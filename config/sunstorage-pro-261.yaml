@@ -1,0 +1,21 @@
+model: STE-261L
+transport: {protocol: modbus-tcp, port: 3200, unit_id: 1}
+canonical_positive_power: discharge
+commissioning:
+  addressing_confirmed: false
+  sign_confirmed: false
+  scaling_confirmed: false
+registers:
+  pcs_active_power_input: {address: 9, type: int16, divisor: 10}
+  bms_current_input: {address: 101, type: int16, divisor: 10}
+  bms_soc_input: {address: 102, type: int16, divisor: 10}
+  bms_soh_input: {address: 103, type: int16, divisor: 1}
+  bms_voltage_input: {address: 104, type: int16, divisor: 10}
+  bms_status_input: {address: 105, type: int16, divisor: 1}
+  bms_alarm_bits_input: {address: 126, type: uint16, divisor: 1}
+  bms_max_charge_kw_input: {address: 127, type: int16, divisor: 10}
+  bms_max_discharge_kw_input: {address: 128, type: int16, divisor: 10}
+  pcs_active_power_holding: {address: 5005, type: int16, multiplier: 10}
+  heartbeat_seconds_holding: {address: 5301, type: int16, multiplier: 1}
+  heartbeat_enable_holding: {address: 5302, type: int16, multiplier: 1}
+
