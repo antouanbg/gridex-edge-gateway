@@ -61,11 +61,12 @@ BatteryTelemetry SunStoragePro261Driver::poll() {
     value.voltageV = decodeSigned(*voltage, 10.0);
     value.statusCode = *status;
     value.alarmBits = *alarms;
-    value.maxChargeKw = std::max(0.0, decodeSigned(*maxCharge, 10.0));
-    value.maxDischargeKw =
-        std::max(0.0, decodeSigned(*maxDischarge, 10.0));
+    const double decodedMaxChargeKw = decodeSigned(*maxCharge, 10.0);
+    const double decodedMaxDischargeKw = decodeSigned(*maxDischarge, 10.0);
+    value.maxChargeKw = std::max(0.0, decodedMaxChargeKw);
+    value.maxDischargeKw = std::max(0.0, decodedMaxDischargeKw);
     value.limitsValid =
-        value.maxChargeKw >= 0.0 && value.maxDischargeKw >= 0.0 &&
+        decodedMaxChargeKw >= 0.0 && decodedMaxDischargeKw >= 0.0 &&
         value.socPct >= 0.0 && value.socPct <= 100.0;
     value.quality = value.limitsValid ? Quality::Good : Quality::Invalid;
     return value;
@@ -98,4 +99,3 @@ bool SunStoragePro261Driver::writesEnabled() const {
 }
 
 }  // namespace gridex
-

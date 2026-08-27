@@ -39,11 +39,13 @@ ControllerSnapshot EdgeController::tick(SteadyTime now) {
         snapshot.heartbeatOk = true;
     }
 
+    const bool controlAvailable =
+        snapshot.emsConnected && snapshot.heartbeatOk;
     snapshot.command = safety_.apply(SafetyInput{
         .requestedPowerKw = requestedPowerKw_,
         .battery = snapshot.battery,
         .site = site_,
-        .emsConnected = snapshot.emsConnected,
+        .emsConnected = controlAvailable,
     });
 
     if (!driver_.writesEnabled()) {
@@ -56,7 +58,9 @@ ControllerSnapshot EdgeController::tick(SteadyTime now) {
         return snapshot;
     }
 
-    if (snapshot.battery.quality != Quality::Good) {
+    if (!snapshot.heartbeatOk) {
+        snapshot.state = EdgeState::Fault;
+    } else if (snapshot.battery.quality != Quality::Good) {
         snapshot.state = EdgeState::WaitingForComms;
     } else if (!snapshot.battery.limitsValid) {
         snapshot.state = EdgeState::WaitingForBmsLimits;
@@ -77,4 +81,3 @@ ControllerSnapshot EdgeController::tick(SteadyTime now) {
 }
 
 }  // namespace gridex
-
