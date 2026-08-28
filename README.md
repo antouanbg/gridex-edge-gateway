@@ -1,6 +1,15 @@
 # GrideX Edge Gateway
 
-Самостоятелен C++20 core за локалния индустриален концентратор. Кодът е отделен от OpenRemote backend и от клиентския уеб интерфейс.
+Самостоятелен Edge проект, отделен от OpenRemote backend и клиентския интерфейс. Хардуер Rev A: Radxa ROCK Pi E + LilyGo T-CAN485 нодове.
+
+## Два независими build-а
+
+| Проект | Платформа | Роля |
+|---|---|---|
+| `base-rockpie/` | Linux ARM64 / RK3328 | STE-261L Modbus TCP, heartbeat, safety envelope, WAN/OT separation и MBUS master |
+| `node-tcan485/` | ESP32 / PlatformIO | Modbus RTU server, UID/addressing, канонична карта и vendor driver |
+
+Общият C++20 safety/STE core остава в `include/` и `src/` и се използва от Linux build-а.
 
 ## Реализирано в началния skeleton
 
@@ -14,7 +23,7 @@
 - Commissioning lock: няма vendor write преди потвърдени address/sign/scale.
 - Каноничен northbound регистров договор към OpenRemote.
 
-## Build
+## Core build и тестове
 
 ~~~bash
 cmake -S . -B build
@@ -24,10 +33,9 @@ ctest --test-dir build --output-on-failure
 
 Core библиотеката няма външни зависимости. След избор на хардуер се добавят:
 
-1. Реален Modbus TCP/RTU transport adapter, обичайно чрез libmodbus или еквивалент.
-2. Modbus TCP slave/server за northbound картата към OpenRemote.
-3. Linux systemd service, hardware watchdog и persistent configuration.
-4. Platform HAL за RS485 портове, GPIO, RTC и watchdog.
+1. `base-rockpie` предоставя POSIX Modbus TCP transport и systemd service skeleton.
+2. `node-tcan485` предоставя самостоятелен ESP32 firmware и host тестове на MBUS протокола.
+3. Northbound Modbus TCP server и конкретните meter/EVSE register maps се добавят след утвърждаване на MBUS картата и протоколите на устройствата.
 
 ## Power sign
 
@@ -36,4 +44,3 @@ Core библиотеката няма външни зависимости. Сл
 ## Source protocol
 
 Началният mapping е извлечен от All-in-one liquid-cooled cabinet BCQ controller Modbus communication, STE-261L, version 2.0, date 2025-09-08. Vendor адресите се пазят в config/sunstorage-pro-261.yaml; northbound картата е отделна и стабилна.
-

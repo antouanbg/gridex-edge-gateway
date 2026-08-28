@@ -1,53 +1,55 @@
-# GrideX Edge hardware baseline
+# GrideX Edge hardware baseline - Rev A
 
 ## Статус
 
-Хардуерът още не е финализиран като конкретен производител, модел и BOM. Финализирани са архитектурните изисквания и препоръчителният клас на платформата.
+Базовата платформа за Rev A е **Radxa ROCK Pi E с RK3328**. Разширителните нодове са **LilyGo T-CAN485 (ESP32)**. Конкретният BOM на захранването, изолацията и DIN carrier платката остава за схемния проект.
 
-## Препоръчителна платформа за първи прототип
+## Базов модул - ROCK Pi E
 
-Индустриален Linux контролер на DIN шина с ARM64 или x86-64 процесор. Това позволява C++ service, Modbus TCP/RTU, локални логове, VPN, secure updates и OpenRemote diagnostics без ограниченията на малък MCU.
+ROCK Pi E предоставя RK3328 quad-core Cortex-A53, 1/2 GB DDR4, два физически Ethernet интерфейса и 40-pin GPIO с UART. Linux услугата се компилира отделно от ESP32 firmware-а.
 
 Минимална базова конфигурация:
 
 | Компонент | Базово изискване |
 |---|---|
-| CPU | Industrial ARM64 или x86-64 |
-| RAM | 4 GB |
-| Storage | 32 GB industrial eMMC, с отчетен endurance |
-| RS485 | 4 независими, галванично изолирани порта |
-| Ethernet | 2 независими GbE интерфейса - OT LAN и EMS/VPN uplink |
+| CPU | Rockchip RK3328, 4x Cortex-A53 ARM64 до 1.3 GHz |
+| RAM | 2 GB DDR4 предпочитано |
+| Storage | 16/32 GB eMMC предпочитано; industrial microSD само за прототип |
+| RS485 | 1 галванично изолиран гръбнак, 115200 8N1 |
+| Ethernet | 1x GbE за OT/STE-261L и 1x 100 MbE за WAN/EMS/IBEX |
 | Power | 24 VDC industrial input, reverse-polarity и surge защита |
 | Watchdog | Независим hardware watchdog |
 | Time | RTC и синхронизация чрез NTP |
-| Mounting | DIN rail, метален корпус |
+| Mounting | 6M DIN, PETG/ASA за прототип; индустриален корпус за серия |
 | Environment | Проектна цел -20°C до +60°C |
 | Security | Secure boot/TPM когато избраната платформа го поддържа |
 | Optional | LTE/4G, GNSS time, isolated digital I/O |
 
-## Портова топология за SunStorage Pro 261
+## Мрежова и портова топология
 
-- Ethernet OT LAN: SunStorage/BCQ Modbus TCP, порт 3200.
-- Ethernet EMS uplink: OpenRemote/VPN и northbound Modbus TCP, порт 1502.
-- RS485-1: външен PCC smart meter.
-- RS485-2: PV/SmartLogger или допълнителен електромер, ако не е Ethernet.
-- RS485-3: EVSE/управляем товар.
-- RS485-4: резервен сегмент или независим локален BMS/IO.
+- GbE/OT: директна изолирана мрежа или OT switch към STE-261L/BCQ, Modbus TCP порт 3200, unit ID 1. Няма default route.
+- 100 MbE/WAN: site router, OpenRemote, IBEX API, VPN, NTP и обновявания. Default route е само тук.
+- UART към изолиран RS485 трансивър: MBUS нодове, 115200 8N1, 4-жилен екраниран кабел A/B/+12V/GND.
+- Терминиране 120 ohm само в двата физически края. Bias/fail-safe се реализира в базовия модул.
 
-При all-in-one STE-261L PCS, BMS, I/O и охлаждането вече се forward-ват през BCQ на един Modbus TCP endpoint; RS485 портовете остават важни за периферията на обекта и за други BESS конфигурации.
+При STE-261L PCS, BMS, I/O и охлаждането се forward-ват от BCQ на един Modbus TCP endpoint. RS485 гръбнакът е само за T-CAN485 нодовете - електромер, зарядна станция и бъдещ втори кабинет.
+
+## UART към RS485
+
+ROCK Pi E не се свързва директно към шината. Между UART и A/B задължително има индустриален галванично изолиран RS485 трансивър с surge/ESD защита. За хардуер V1.2 UART1 е наличен на physical pin 3 TX / pin 5 RX; UART2 е на pin 8 TX / pin 10 RX. Конкретният `/dev/ttyS*` се потвърждава върху избрания Linux image и се задава с конфигурация, а не се кодира твърдо.
 
 ## Какво липсва за окончателен BOM
 
-1. Максимална допустима цена за 1 брой и целеви обем.
-2. Нужни ли са LTE/4G, Wi-Fi и GNSS.
-3. Изискван IP клас на кутията и монтаж вътре/вън.
-4. Сертификационни изисквания за крайния продукт и пазари.
-5. Конекторен стандарт, termination/bias политика и целево ниво на RS485 изолация.
-6. Нужна ли е кратковременна UPS/supercapacitor автономност.
-7. Избор: готов индустриален контролер за пилота или собствена carrier платка.
-8. Потвърден I/O списък от еднолинейната схема на първия обект.
+1. Точна хардуерна ревизия на ROCK Pi E и WiFi вариант.
+2. Изолиран RS485 трансивър, DC/DC изолация и ниво на surge/ESD защита.
+3. 24 V input stage и отделен защитен 12 V изход за MBUS нодовете.
+4. Изискван IP клас и монтаж вътре/вън.
+5. Сертификационни изисквания и температурен диапазон.
+6. Кратковременна UPS/supercapacitor автономност.
+7. Точен конектор и максимален ток/дължина на 12 V гръбнака.
+8. Потвърден I/O списък от първия обект.
 
-## Решение, което препоръчвам
+## Разделяне на кода
 
-За пилота: готов индустриален Linux контролер с 4 изолирани RS485 и 2 Ethernet. За серия: собствена carrier платка едва след полеви тестове на първите 3-5 обекта. Това намалява риска, без firmware архитектурата да се променя.
-
+- `base-rockpie/` - Linux/ARM64 service, Modbus TCP към STE-261L, local heartbeat/safe-state и MBUS master.
+- `node-tcan485/` - ESP32 firmware, Modbus RTU server, auto-addressing и driver layer.

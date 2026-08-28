@@ -1,5 +1,6 @@
 build/
+build-*/
+.pio/
 .cache/
 *.log
 .DS_Store
-
