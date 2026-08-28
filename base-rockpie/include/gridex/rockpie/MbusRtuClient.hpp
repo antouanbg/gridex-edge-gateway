@@ -38,6 +38,11 @@ public:
         std::uint8_t first = 200,
         std::uint8_t last = 247
     );
+    [[nodiscard]] std::optional<std::vector<std::uint16_t>> readHolding(
+        std::uint8_t address,
+        std::uint16_t start,
+        std::uint16_t count
+    );
     [[nodiscard]] bool assign(
         std::uint8_t temporaryAddress,
         std::uint64_t expectedUid,

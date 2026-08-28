@@ -3,6 +3,7 @@
 #include "gridex/mbus/BoardPins.hpp"
 #include "gridex/mbus/IDeviceDriver.hpp"
 #include "gridex/mbus/MbusNode.hpp"
+#include "gridex/mbus/OpenRemoteMqttService.hpp"
 
 #include <Arduino.h>
 #include <Preferences.h>
@@ -13,11 +14,15 @@
 namespace {
 
 Preferences preferences;
+Preferences cloudPreferences;
 std::unique_ptr<gridex::mbus::MbusNode> node;
 std::unique_ptr<gridex::mbus::IDeviceDriver> driver;
+std::unique_ptr<gridex::mbus::OpenRemoteMqttService> cloud;
 std::vector<std::uint8_t> rxFrame;
 unsigned long lastRxUs = 0;
 unsigned long lastPollMs = 0;
+unsigned long lastCloudPublishMs = 0;
+gridex::mbus::DriverSample lastSample;
 
 gridex::mbus::NodeConfig loadConfig() {
     preferences.begin("gridex-mbus", false);
@@ -28,6 +33,24 @@ gridex::mbus::NodeConfig loadConfig() {
     );
     config.driverId = preferences.getUShort("driver_id", 0);
     config.uid = ESP.getEfuseMac();
+    return config;
+}
+
+gridex::mbus::OpenRemoteMqttConfig loadCloudConfig() {
+    cloudPreferences.begin("gridex-cloud", true);
+    gridex::mbus::OpenRemoteMqttConfig config;
+    config.enabled = cloudPreferences.getBool("enabled", false);
+    config.wifiSsid = cloudPreferences.getString("wifi_ssid", "");
+    config.wifiPassword = cloudPreferences.getString("wifi_pass", "");
+    config.host = cloudPreferences.getString("mqtt_host", "");
+    config.port = cloudPreferences.getUShort("mqtt_port", 8883);
+    config.realm = cloudPreferences.getString("realm", "master");
+    config.serviceUser = cloudPreferences.getString("mqtt_user", "");
+    config.serviceSecret = cloudPreferences.getString("mqtt_secret", "");
+    config.clientId = cloudPreferences.getString("client_id", "");
+    config.assetId = cloudPreferences.getString("asset_id", "");
+    config.caCertificate = cloudPreferences.getString("ca_cert", "");
+    cloudPreferences.end();
     return config;
 }
 
@@ -102,11 +125,17 @@ void setup() {
         node->driverId()
     );
     driver->begin();
+    cloud = std::make_unique<gridex::mbus::OpenRemoteMqttService>(
+        loadCloudConfig()
+    );
+    cloud->begin();
     rxFrame.reserve(256);
     digitalWrite(gridex::mbus::board::StatusLed, HIGH);
 }
 
 void loop() {
+    cloud->loop();
+
     while (Serial1.available() > 0) {
         const int value = Serial1.read();
         if (value >= 0 && rxFrame.size() < 256U) {
@@ -122,7 +151,8 @@ void loop() {
 
     if (millis() - lastPollMs >= 500U) {
         lastPollMs = millis();
-        publishDriverSample(driver->poll());
+        lastSample = driver->poll();
+        publishDriverSample(lastSample);
         node->setRegister(
             gridex::mbus::reg::UptimeLow,
             static_cast<std::uint16_t>(millis() / 1000U)
@@ -132,6 +162,17 @@ void loop() {
             static_cast<std::uint16_t>(
                 node->registerValue(gridex::mbus::reg::Heartbeat) + 1U
             )
+        );
+        node->setRegister(
+            gridex::mbus::reg::CloudConnected,
+            cloud->connected() ? 1U : 0U
+        );
+    }
+    if (millis() - lastCloudPublishMs >= 2000U) {
+        lastCloudPublishMs = millis();
+        cloud->publish(
+            lastSample,
+            node->registerValue(gridex::mbus::reg::Heartbeat)
         );
     }
     delay(1);

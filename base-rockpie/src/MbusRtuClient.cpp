@@ -183,6 +183,31 @@ std::vector<MbusNodeIdentity> MbusRtuClient::scan(
     return nodes;
 }
 
+std::optional<std::vector<std::uint16_t>> MbusRtuClient::readHolding(
+    std::uint8_t address,
+    std::uint16_t start,
+    std::uint16_t count
+) {
+    if (address == 0U || address > 247U || count == 0U || count > 64U) {
+        return std::nullopt;
+    }
+    std::vector<std::uint8_t> request{address, 0x03U};
+    appendU16(request, start);
+    appendU16(request, count);
+    request = finish(std::move(request));
+    const auto response = transact(request, 5U + count * 2U);
+    if (!response || (*response)[0] != address || (*response)[1] != 0x03U ||
+        (*response)[2] != count * 2U) {
+        return std::nullopt;
+    }
+    std::vector<std::uint16_t> values;
+    values.reserve(count);
+    for (std::uint16_t index = 0; index < count; ++index) {
+        values.push_back(readU16(response->data() + 3U + index * 2U));
+    }
+    return values;
+}
+
 bool MbusRtuClient::assign(
     std::uint8_t temporaryAddress,
     std::uint64_t expectedUid,

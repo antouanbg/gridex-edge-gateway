@@ -8,6 +8,11 @@ Linux/ARM64 executable for the GrideX base module.
 - 100 MbE / WAN: OpenRemote, IBEX, VPN, NTP and updates.
 - UART plus isolated transceiver: RS485 MBUS backbone to T-CAN485 nodes.
 
+`gridex-rockpie-service` включва постоянен polling worker. Той обхожда адресите
+от `GRIDEX_MBUS_NODE_ADDRESSES` през интервала `GRIDEX_MBUS_POLL_MS`, чете
+identity и telemetry блоковете и ги публикува в нормализираната карта. Един
+неотговарящ нод не прекъсва обхождането на останалите.
+
 The OT interface must not have a default gateway. Linux IP forwarding remains disabled and the firewall blocks forwarding between OT and WAN.
 
 `GRIDEX_MAX_CHARGE_KW` and `GRIDEX_MAX_DISCHARGE_KW` are optional operator caps. They can only reduce the live limits read from BMS registers 127/128; leaving them empty uses the BMS limits unchanged.
@@ -17,6 +22,11 @@ The OT interface must not have a default gateway. Linux IP forwarding remains di
 The service exposes the normalized Modbus TCP map on port `1502`, unit ID `1`. OpenRemote must write requested power and enable first, then increment `command.sequence` last. It refreshes `command.ems_heartbeat` at least every 10 seconds; if neither heartbeat nor sequence changes within the 15-second Edge timeout, the applied command becomes `0 kW`.
 
 Bind `GRIDEX_NORTHBOUND_BIND` to the management/WAN interface in production and restrict port `1502` in the firewall to the OpenRemote server. Never expose vendor port `3200` outside the isolated OT interface.
+
+Нодовете са в input-register слотове с начало `0x0100`, 16 регистъра на нод и
+до 32 нода. Слотът съдържа online, MBUS address, node type/state, driver ID,
+quality, heartbeat, power, energy, device state, alarms, age и дали директната
+MQTTS връзка на нода е активна.
 
 ## Build
 

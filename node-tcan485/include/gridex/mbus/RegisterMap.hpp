@@ -51,6 +51,7 @@ inline constexpr std::uint16_t EnergyWhHigh = 0x0041;
 inline constexpr std::uint16_t EnergyWhLow = 0x0042;
 inline constexpr std::uint16_t DeviceState = 0x0043;
 inline constexpr std::uint16_t AlarmBits = 0x0044;
+inline constexpr std::uint16_t CloudConnected = 0x0045;
 inline constexpr std::uint16_t DriverSpecificStart = 0x0050;
 
 inline constexpr std::size_t HoldingCount = 0x0080;

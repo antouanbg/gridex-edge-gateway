@@ -151,4 +151,39 @@ void NorthboundRegisterBank::publish(
     );
 }
 
+void NorthboundRegisterBank::publishNode(
+    std::size_t slot,
+    const MbusNodeTelemetry& sample
+) {
+    if (slot >= northbound::NodeSlotCount) return;
+    const auto base = static_cast<std::size_t>(northbound::NodeSlotBase) +
+                      slot * northbound::NodeSlotStride;
+    std::scoped_lock lock(mutex_);
+    input_[base + northbound::node::Online] = sample.online ? 1U : 0U;
+    input_[base + northbound::node::Address] = sample.address;
+    input_[base + northbound::node::NodeType] = sample.nodeType;
+    input_[base + northbound::node::NodeState] = sample.nodeState;
+    input_[base + northbound::node::DriverId] = sample.driverId;
+    input_[base + northbound::node::Quality] = sample.quality;
+    input_[base + northbound::node::Heartbeat] = sample.heartbeat;
+    input_[base + northbound::node::ActualPowerKwX10] =
+        encodeSignedX10(sample.actualPowerKw);
+    input_[base + northbound::node::EnergyWhHigh] =
+        static_cast<std::uint16_t>(sample.energyWh >> 16U);
+    input_[base + northbound::node::EnergyWhLow] =
+        static_cast<std::uint16_t>(sample.energyWh);
+    input_[base + northbound::node::DeviceState] = sample.deviceState;
+    input_[base + northbound::node::AlarmBits] = sample.alarmBits;
+    input_[base + northbound::node::CloudConnected] =
+        sample.cloudConnected ? 1U : 0U;
+    const auto age = sample.online
+        ? std::chrono::duration_cast<std::chrono::seconds>(
+              std::chrono::steady_clock::now() - sample.lastSeen
+          ).count()
+        : std::numeric_limits<std::uint16_t>::max();
+    input_[base + northbound::node::AgeSeconds] = static_cast<std::uint16_t>(
+        std::clamp<std::int64_t>(age, 0, std::numeric_limits<std::uint16_t>::max())
+    );
+}
+
 }  // namespace gridex::rockpie

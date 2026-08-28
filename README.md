@@ -27,6 +27,22 @@
 - Commissioning lock: няма vendor write преди потвърдени address/sign/scale.
 - Каноничен northbound регистров договор към OpenRemote.
 - Работещ Modbus TCP northbound server на порт `1502` с FC03/04/06/16, command sequence и EMS heartbeat.
+- Непрекъснат MBUS polling service за до 32 meter/EVSE/inverter/BMS нода по RS485.
+- По 16 нормализирани input регистъра за всеки нод от адрес `0x0100` нагоре.
+- Независима директна MQTTS телеметрия от ESP32 нодовете към private-cloud OpenRemote.
+
+## Комуникационни пътища
+
+```text
+Устройство <- Modbus RTU -> ESP32 node <- RS485 MBUS -> ROCK Pi E
+                                  \- MQTTS 8883 -> OpenRemote private cloud
+
+OpenRemote -> Modbus TCP 1502 -> ROCK Pi E -> safety/driver -> устройство
+```
+
+RS485 пътят никога не зависи от интернет и е задължителен за локални защити,
+software fuse и управление. MQTTS пътят е само за директна телеметрия; облачни
+команди не се приемат от ESP32 нода.
 
 ## Core build и тестове
 

@@ -1,4 +1,5 @@
 #include "gridex/EdgeController.hpp"
+#include "gridex/rockpie/MbusPollingService.hpp"
 #include "gridex/rockpie/MbusRtuClient.hpp"
 #include "gridex/rockpie/NorthboundModbusTcpServer.hpp"
 #include "gridex/rockpie/PosixModbusTcpClient.hpp"
@@ -9,8 +10,10 @@
 #include <cstdlib>
 #include <iostream>
 #include <optional>
+#include <sstream>
 #include <string>
 #include <thread>
+#include <vector>
 
 namespace {
 
@@ -48,6 +51,22 @@ std::optional<double> envOptionalDouble(const char* name) {
     } catch (...) {
         return std::nullopt;
     }
+}
+
+std::vector<std::uint8_t> envAddressList(const char* name) {
+    std::vector<std::uint8_t> addresses;
+    std::stringstream input(envString(name, ""));
+    std::string item;
+    while (std::getline(input, item, ',')) {
+        try {
+            const int value = std::stoi(item);
+            if (value >= 1 && value <= 247) {
+                addresses.push_back(static_cast<std::uint8_t>(value));
+            }
+        } catch (...) {
+        }
+    }
+    return addresses;
 }
 
 const char* stateName(gridex::EdgeState state) {
@@ -113,16 +132,16 @@ int main() {
         return 1;
     }
 
+    gridex::rockpie::MbusRtuClient mbus({
+        .device = envString("GRIDEX_MBUS_DEVICE", "/dev/ttyS1"),
+        .baud = static_cast<std::uint32_t>(
+            envInt("GRIDEX_MBUS_BAUD", 115200)
+        ),
+        .timeout = std::chrono::milliseconds(
+            envInt("GRIDEX_MBUS_TIMEOUT_MS", 80)
+        ),
+    });
     if (envBool("GRIDEX_MBUS_SCAN_ON_START")) {
-        gridex::rockpie::MbusRtuClient mbus({
-            .device = envString("GRIDEX_MBUS_DEVICE", "/dev/ttyS1"),
-            .baud = static_cast<std::uint32_t>(
-                envInt("GRIDEX_MBUS_BAUD", 115200)
-            ),
-            .timeout = std::chrono::milliseconds(
-                envInt("GRIDEX_MBUS_TIMEOUT_MS", 80)
-            ),
-        });
         for (const auto& node : mbus.scan()) {
             std::cout << "MBUS node address=" << static_cast<int>(node.address)
                       << " type=" << node.nodeType
@@ -130,6 +149,16 @@ int main() {
                       << " uid=" << node.uid << '\n';
         }
     }
+    gridex::rockpie::MbusPollingService mbusPolling(
+        mbus,
+        {
+            .addresses = envAddressList("GRIDEX_MBUS_NODE_ADDRESSES"),
+            .interval = std::chrono::milliseconds(
+                envInt("GRIDEX_MBUS_POLL_MS", 500)
+            ),
+        }
+    );
+    mbusPolling.start();
 
     std::cout << "GrideX ROCK Pi E service started; writes_enabled="
               << (driver.writesEnabled() ? "true" : "false") << '\n';
@@ -141,6 +170,10 @@ int main() {
         }
         const auto snapshot = controller.tick(now);
         northboundBank.publish(snapshot, controllerConfig.configuredLimit);
+        const auto nodeSamples = mbusPolling.samples();
+        for (std::size_t slot = 0; slot < nodeSamples.size(); ++slot) {
+            northboundBank.publishNode(slot, nodeSamples[slot]);
+        }
         std::cout << "{\"state\":\"" << stateName(snapshot.state)
                   << "\",\"soc_pct\":" << snapshot.battery.socPct
                   << ",\"actual_kw\":" << snapshot.battery.actualPowerKw
@@ -153,6 +186,7 @@ int main() {
         ));
     }
 
+    mbusPolling.stop();
     northboundServer.stop();
     transport.disconnect();
     std::cout << "GrideX ROCK Pi E service stopped safely\n";

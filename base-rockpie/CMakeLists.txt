@@ -4,6 +4,7 @@ project(gridex_rockpie_base VERSION 0.1.0 LANGUAGES CXX)
 add_subdirectory(.. ${CMAKE_BINARY_DIR}/gridex-core EXCLUDE_FROM_ALL)
 
 add_library(gridex_rockpie_transport
+    src/MbusPollingService.cpp
     src/MbusRtuClient.cpp
     src/NorthboundModbusTcpServer.cpp
     src/NorthboundRegisterBank.cpp

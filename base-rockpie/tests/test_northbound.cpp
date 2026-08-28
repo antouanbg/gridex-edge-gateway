@@ -92,6 +92,33 @@ int main() {
         800U
     );
 
+    gridex::rockpie::MbusNodeTelemetry nodeSample{
+        .address = 3,
+        .nodeType = 4,
+        .nodeState = 2,
+        .driverId = 4001,
+        .quality = 1,
+        .heartbeat = 77,
+        .actualPowerKw = 45.6,
+        .energyWh = 123456,
+        .deviceState = 1,
+        .alarmBits = 0,
+        .cloudConnected = true,
+        .online = true,
+        .lastSeen = std::chrono::steady_clock::now(),
+    };
+    bank.publishNode(0, nodeSample);
+    const auto nodeValues = bank.readInput(gridex::northbound::NodeSlotBase, 14);
+    assert(nodeValues);
+    assert((*nodeValues)[gridex::northbound::node::Online] == 1U);
+    assert((*nodeValues)[gridex::northbound::node::Address] == 3U);
+    assert(static_cast<std::int16_t>(
+        (*nodeValues)[gridex::northbound::node::ActualPowerKwX10]
+    ) == 456);
+    assert(
+        (*nodeValues)[gridex::northbound::node::CloudConnected] == 1U
+    );
+
     const std::array<std::uint16_t, 4> commandRegisters{
         1U,
         static_cast<std::uint16_t>(static_cast<std::int16_t>(-300)),

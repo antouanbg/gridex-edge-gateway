@@ -2,6 +2,7 @@
 
 #include "gridex/EdgeController.hpp"
 #include "gridex/NorthboundMap.hpp"
+#include "gridex/rockpie/MbusNodeTelemetry.hpp"
 
 #include <array>
 #include <cstdint>
@@ -38,6 +39,7 @@ public:
         const ControllerSnapshot& snapshot,
         const ConfiguredPowerLimit& configuredLimit
     );
+    void publishNode(std::size_t slot, const MbusNodeTelemetry& sample);
 
 private:
     mutable std::mutex mutex_;
