@@ -2,6 +2,8 @@
 
 Самостоятелен Edge проект, отделен от OpenRemote backend и клиентския интерфейс. Хардуер Rev A: Radxa ROCK Pi E + LilyGo T-CAN485 нодове.
 
+Проектът е open source и се разпространява под MIT License.
+
 ## Два независими build-а
 
 | Проект | Платформа | Роля |
