@@ -35,21 +35,34 @@ std::uint16_t SunStoragePro261Driver::encodeSigned(
 BatteryTelemetry SunStoragePro261Driver::poll() {
     BatteryTelemetry value;
 
+    const auto pcsFault = client_.readCoil(Registers::PcsFault);
+    const auto pcsOffGrid = client_.readCoil(Registers::PcsOffGrid);
+    const auto pcsCommunicationFault =
+        client_.readCoil(Registers::PcsCommunicationFault);
+    const auto bmsFault = client_.readCoil(Registers::BmsFault);
+    const auto bmsCommunicationFault =
+        client_.readCoil(Registers::BmsCommunicationFault);
+    const auto pcsGridMode = client_.readHolding(Registers::PcsGridMode);
+    const auto pcsWorkMode = client_.readHolding(Registers::PcsWorkMode);
+    const auto pcsPowerOn = client_.readHolding(Registers::PcsPowerOn);
     const auto actualPower = client_.readInput(Registers::PcsActivePower);
     const auto current = client_.readInput(Registers::BmsCurrent);
     const auto soc = client_.readInput(Registers::BmsSoc);
     const auto soh = client_.readInput(Registers::BmsSoh);
     const auto voltage = client_.readInput(Registers::BmsVoltage);
     const auto status = client_.readInput(Registers::BmsStatus);
-    const auto alarms = client_.readInput(Registers::BmsAlarmBits);
+    const auto systemFlags = client_.readInput(Registers::BmsSystemFlags);
     const auto maxCharge = client_.readInput(Registers::BmsMaxChargePower);
     const auto maxDischarge =
         client_.readInput(Registers::BmsMaxDischargePower);
 
-    if (!actualPower || !current || !soc || !soh || !voltage || !status ||
-        !alarms || !maxCharge || !maxDischarge) {
+    if (!pcsFault || !pcsOffGrid || !pcsCommunicationFault || !bmsFault ||
+        !bmsCommunicationFault || !pcsGridMode || !pcsWorkMode ||
+        !pcsPowerOn || !actualPower || !current || !soc || !soh ||
+        !voltage || !status || !systemFlags || !maxCharge || !maxDischarge) {
         value.quality = Quality::Invalid;
         value.limitsValid = false;
+        controlReady_ = false;
         return value;
     }
 
@@ -60,7 +73,14 @@ BatteryTelemetry SunStoragePro261Driver::poll() {
     value.sohPct = decodeSigned(*soh, 1.0);
     value.voltageV = decodeSigned(*voltage, 10.0);
     value.statusCode = *status;
-    value.alarmBits = *alarms;
+    value.bmsSystemFlags = *systemFlags;
+    value.pcsPowerOn = *pcsPowerOn == 1U;
+    value.pcsGridTied = *pcsGridMode == 0U && !*pcsOffGrid;
+    value.pcsCurrentSourceMode = *pcsWorkMode == 1U;
+    value.pcsFault = *pcsFault;
+    value.pcsCommunicationFault = *pcsCommunicationFault;
+    value.bmsFault = *bmsFault;
+    value.bmsCommunicationFault = *bmsCommunicationFault;
     const double decodedMaxChargeKw = decodeSigned(*maxCharge, 10.0);
     const double decodedMaxDischargeKw = decodeSigned(*maxDischarge, 10.0);
     value.maxChargeKw = std::max(0.0, decodedMaxChargeKw);
@@ -68,6 +88,12 @@ BatteryTelemetry SunStoragePro261Driver::poll() {
     value.limitsValid =
         decodedMaxChargeKw >= 0.0 && decodedMaxDischargeKw >= 0.0 &&
         value.socPct >= 0.0 && value.socPct <= 100.0;
+    value.controlReady =
+        value.pcsPowerOn && value.pcsGridTied &&
+        value.pcsCurrentSourceMode && !value.pcsFault &&
+        !value.pcsCommunicationFault && !value.bmsFault &&
+        !value.bmsCommunicationFault;
+    controlReady_ = value.controlReady;
     value.quality = value.limitsValid ? Quality::Good : Quality::Invalid;
     return value;
 }
@@ -85,7 +111,8 @@ bool SunStoragePro261Driver::refreshHeartbeat(
 bool SunStoragePro261Driver::writePowerSetpointKw(
     double canonicalPowerKw
 ) {
-    if (!approval_.writesEnabled()) {
+    if (!approval_.writesEnabled() || !controlReady_ ||
+        !std::isfinite(canonicalPowerKw)) {
         return false;
     }
     return client_.writeHolding(
@@ -94,8 +121,25 @@ bool SunStoragePro261Driver::writePowerSetpointKw(
     );
 }
 
+bool SunStoragePro261Driver::writeReactivePowerSetpointKvar(
+    double reactivePowerKvar
+) {
+    if (!approval_.writesEnabled() || !controlReady_ ||
+        !std::isfinite(reactivePowerKvar)) {
+        return false;
+    }
+    return client_.writeHolding(
+        Registers::PcsReactivePowerCommand,
+        encodeSigned(reactivePowerKvar, 10.0)
+    );
+}
+
 bool SunStoragePro261Driver::writesEnabled() const {
     return approval_.writesEnabled();
+}
+
+bool SunStoragePro261Driver::controlReady() const {
+    return controlReady_;
 }
 
 }  // namespace gridex

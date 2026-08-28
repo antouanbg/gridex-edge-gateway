@@ -61,9 +61,17 @@ gridex::BatteryTelemetry goodBattery() {
         .maxChargeKw = 100.0,
         .maxDischargeKw = 120.0,
         .statusCode = 3,
-        .alarmBits = 0,
+        .bmsSystemFlags = 0,
         .quality = gridex::Quality::Good,
         .limitsValid = true,
+        .pcsPowerOn = true,
+        .pcsGridTied = true,
+        .pcsCurrentSourceMode = true,
+        .pcsFault = false,
+        .pcsCommunicationFault = false,
+        .bmsFault = false,
+        .bmsCommunicationFault = false,
+        .controlReady = true,
     };
 }
 
@@ -95,12 +103,41 @@ void testSafetyEnvelope() {
         .emsConnected = false,
     });
     assert(near(stale.appliedPowerKw, 0.0));
+
+    auto prohibitedBattery = goodBattery();
+    prohibitedBattery.bmsSystemFlags = 0x0001U;
+    auto prohibitedCharge = safety.apply(gridex::SafetyInput{
+        .requestedPowerKw = -40.0,
+        .battery = prohibitedBattery,
+        .site = {},
+        .emsConnected = true,
+    });
+    assert(near(prohibitedCharge.appliedPowerKw, 0.0));
+
+    auto faultedBattery = goodBattery();
+    faultedBattery.pcsFault = true;
+    faultedBattery.controlReady = false;
+    auto faulted = safety.apply(gridex::SafetyInput{
+        .requestedPowerKw = 40.0,
+        .battery = faultedBattery,
+        .site = {},
+        .emsConnected = true,
+    });
+    assert(near(faulted.appliedPowerKw, 0.0));
 }
 
 void testSunStorageDriver() {
     FakeModbusClient modbus;
     using R = gridex::SunStoragePro261Driver::Registers;
 
+    modbus.coils[R::PcsFault] = false;
+    modbus.coils[R::PcsOffGrid] = false;
+    modbus.coils[R::PcsCommunicationFault] = false;
+    modbus.coils[R::BmsFault] = false;
+    modbus.coils[R::BmsCommunicationFault] = false;
+    modbus.holding[R::PcsGridMode] = 0;
+    modbus.holding[R::PcsWorkMode] = 1;
+    modbus.holding[R::PcsPowerOn] = 1;
     modbus.input[R::PcsActivePower] = 250;
     modbus.input[R::BmsCurrent] = static_cast<std::uint16_t>(
         static_cast<std::int16_t>(-123)
@@ -109,7 +146,7 @@ void testSunStorageDriver() {
     modbus.input[R::BmsSoh] = 98;
     modbus.input[R::BmsVoltage] = 7600;
     modbus.input[R::BmsStatus] = 3;
-    modbus.input[R::BmsAlarmBits] = 0;
+    modbus.input[R::BmsSystemFlags] = 0;
     modbus.input[R::BmsMaxChargePower] = 1000;
     modbus.input[R::BmsMaxDischargePower] = 1200;
 
@@ -128,14 +165,26 @@ void testSunStorageDriver() {
     assert(near(value.socPct, 72.5));
     assert(near(value.currentA, -12.3));
     assert(near(value.maxChargeKw, 100.0));
+    assert(value.controlReady);
 
     assert(driver.writePowerSetpointKw(-25.4));
     assert(
         static_cast<std::int16_t>(modbus.holding[R::PcsPowerCommand]) == -254
     );
+    assert(driver.writeReactivePowerSetpointKvar(12.3));
+    assert(
+        static_cast<std::int16_t>(
+            modbus.holding[R::PcsReactivePowerCommand]
+        ) == 123
+    );
     assert(driver.refreshHeartbeat(60));
     assert(modbus.holding[R::HeartbeatEnable] == 1);
     assert(modbus.holding[R::HeartbeatSeconds] == 60);
+
+    modbus.coils[R::PcsFault] = true;
+    const auto faulted = driver.poll();
+    assert(!faulted.controlReady);
+    assert(!driver.writePowerSetpointKw(10.0));
 }
 
 }  // namespace

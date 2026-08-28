@@ -45,6 +45,7 @@ const char* stateName(gridex::EdgeState state) {
         case gridex::EdgeState::SafeMode: return "safe_mode";
         case gridex::EdgeState::Fault: return "fault";
         case gridex::EdgeState::CommissioningLocked: return "commissioning_locked";
+        case gridex::EdgeState::WaitingForPcsReady: return "waiting_for_pcs_ready";
     }
     return "unknown";
 }

@@ -64,13 +64,21 @@ ControllerSnapshot EdgeController::tick(SteadyTime now) {
         snapshot.state = EdgeState::WaitingForComms;
     } else if (!snapshot.battery.limitsValid) {
         snapshot.state = EdgeState::WaitingForBmsLimits;
+    } else if (!snapshot.battery.controlReady) {
+        snapshot.state =
+            (snapshot.battery.pcsFault || snapshot.battery.bmsFault ||
+             snapshot.battery.pcsCommunicationFault ||
+             snapshot.battery.bmsCommunicationFault)
+                ? EdgeState::Fault
+                : EdgeState::WaitingForPcsReady;
     } else if (!snapshot.emsConnected) {
         snapshot.state = EdgeState::SafeMode;
     } else {
         snapshot.state = EdgeState::Ready;
     }
 
-    if (!driver_.writePowerSetpointKw(snapshot.command.appliedPowerKw)) {
+    if (snapshot.battery.controlReady &&
+        !driver_.writePowerSetpointKw(snapshot.command.appliedPowerKw)) {
         snapshot.state = EdgeState::Fault;
         snapshot.command.appliedPowerKw = 0.0;
         snapshot.command.clamped = true;

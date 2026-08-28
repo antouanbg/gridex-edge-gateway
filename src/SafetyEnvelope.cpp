@@ -31,8 +31,29 @@ SafetyResult SafetyEnvelope::apply(const SafetyInput& input) const {
         return result;
     }
 
-    const bool chargeProhibited = (input.battery.alarmBits & 0x0001U) != 0U;
-    const bool dischargeProhibited = (input.battery.alarmBits & 0x0002U) != 0U;
+    if (!input.battery.controlReady) {
+        result.clamped = std::abs(input.requestedPowerKw) > 0.001;
+        if (input.battery.pcsFault || input.battery.bmsFault) {
+            result.reason = "active PCS/BMS fault";
+        } else if (input.battery.pcsCommunicationFault ||
+                   input.battery.bmsCommunicationFault) {
+            result.reason = "PCS/BMS communication fault";
+        } else if (!input.battery.pcsPowerOn) {
+            result.reason = "PCS is not powered on (5003 != 1)";
+        } else if (!input.battery.pcsGridTied) {
+            result.reason = "PCS is not in grid-tied mode (5001 != 0)";
+        } else if (!input.battery.pcsCurrentSourceMode) {
+            result.reason = "PCS is not in PQ current-source mode (5002 != 1)";
+        } else {
+            result.reason = "PCS control prerequisites are not satisfied";
+        }
+        return result;
+    }
+
+    const bool chargeProhibited =
+        (input.battery.bmsSystemFlags & 0x0001U) != 0U;
+    const bool dischargeProhibited =
+        (input.battery.bmsSystemFlags & 0x0002U) != 0U;
 
     double maxChargeKw = std::max(0.0, input.battery.maxChargeKw);
     const double maxDischargeKw = std::max(0.0, input.battery.maxDischargeKw);
@@ -64,4 +85,3 @@ SafetyResult SafetyEnvelope::apply(const SafetyInput& input) const {
 }
 
 }  // namespace gridex
-

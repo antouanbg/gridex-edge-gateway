@@ -17,7 +17,7 @@ cmake -S base-rockpie -B build-rockpie
 cmake --build build-rockpie
 ~~~
 
-For the first bench run leave all `GRIDEX_APPROVE_*` values at zero. This permits telemetry reads but locks heartbeat and power writes until the address offset, sign and scale are confirmed against the real cabinet.
+For the first bench run leave all `GRIDEX_APPROVE_*` values at zero. This permits telemetry reads but locks heartbeat and power writes until direct addressing, sign and scale are verified against the real cabinet. The manufacturer confirmation is recorded, but the on-site readback and limited-power test are still mandatory.
 
 ## Safe-state
 

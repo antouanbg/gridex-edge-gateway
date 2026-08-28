@@ -1,21 +1,65 @@
 model: STE-261L
-transport: {protocol: modbus-tcp, port: 3200, unit_id: 1}
-canonical_positive_power: discharge
+controller: BCQ
+protocol_version: "2.0"
+transport:
+  protocol: modbus-tcp
+  port: 3200
+  unit_id: 1
+  addressing: direct-vendor-register-number
+canonical_sign:
+  positive_power: discharge
+  negative_power: charge
+scaling:
+  active_power: 10
+  reactive_power: 10
 commissioning:
-  addressing_confirmed: false
-  sign_confirmed: false
-  scaling_confirmed: false
+  vendor_addressing_confirmed: true
+  vendor_sign_confirmed: true
+  vendor_scaling_confirmed: true
+  onsite_readback_confirmed: false
+  onsite_low_power_test_complete: false
+power_command_prerequisites:
+  pcs_power_on_holding_5003: 1
+  pcs_grid_mode_holding_5001: 0
+  pcs_work_mode_holding_5002: 1
+  pcs_fault_coil_1: false
+  pcs_communication_fault_coil_4: false
+  bms_fault_coil_184: false
+  bms_communication_fault_coil_185: false
 registers:
-  pcs_active_power_input: {address: 9, type: int16, divisor: 10}
-  bms_current_input: {address: 101, type: int16, divisor: 10}
-  bms_soc_input: {address: 102, type: int16, divisor: 10}
-  bms_soh_input: {address: 103, type: int16, divisor: 1}
-  bms_voltage_input: {address: 104, type: int16, divisor: 10}
-  bms_status_input: {address: 105, type: int16, divisor: 1}
-  bms_alarm_bits_input: {address: 126, type: uint16, divisor: 1}
-  bms_max_charge_kw_input: {address: 127, type: int16, divisor: 10}
-  bms_max_discharge_kw_input: {address: 128, type: int16, divisor: 10}
-  pcs_active_power_holding: {address: 5005, type: int16, multiplier: 10}
-  heartbeat_seconds_holding: {address: 5301, type: int16, multiplier: 1}
-  heartbeat_enable_holding: {address: 5302, type: int16, multiplier: 1}
-
+  coils:
+    pcs_fault: {address: 1, normal: 0, fault: 1}
+    pcs_off_grid: {address: 2, on_grid: 0, off_grid: 1}
+    pcs_communication_fault: {address: 4, normal: 0, fault: 1}
+    bms_fault: {address: 184, normal: 0, fault: 1}
+    bms_communication_fault: {address: 185, normal: 0, fault: 1}
+  holding:
+    pcs_grid_mode: {address: 5001, type: int16, required: 0}
+    pcs_work_mode: {address: 5002, type: int16, required: 1}
+    pcs_power_on: {address: 5003, type: int16, required: 1}
+    pcs_active_power_kw: {address: 5005, type: int16, multiplier: 10}
+    pcs_reactive_power_kvar: {address: 5006, type: int16, multiplier: 10}
+    heartbeat_seconds: {address: 5301, type: int16, refresh_seconds: 35, timeout_seconds: 60}
+    heartbeat_enable: {address: 5302, type: int16, enabled: 1}
+  input:
+    pcs_active_power_kw: {address: 9, type: int16, divisor: 10}
+    pcs_status: {address: 16, type: int16}
+    bms_current_a: {address: 101, type: int16, divisor: 10}
+    bms_soc_pct: {address: 102, type: int16, divisor: 10}
+    bms_soh_pct: {address: 103, type: int16}
+    bms_voltage_v: {address: 104, type: int16, divisor: 10}
+    bms_status: {address: 105, type: int16}
+    bms_system_flags: {address: 126, type: uint16}
+    bms_max_charge_kw: {address: 127, type: int16, divisor: 10}
+    bms_max_discharge_kw: {address: 128, type: int16, divisor: 10}
+bms_system_flag_bits:
+  0: charge_prohibited
+  1: discharge_prohibited
+  2: alarm
+  3: fully_charged
+  4: fully_discharged
+safety:
+  bms_limits_are_authoritative: true
+  reject_power_write_when_prerequisites_fail: true
+  never_auto_modify_holding: [5001, 5002]
+  heartbeat_timeout_action: zero_power_without_shutdown

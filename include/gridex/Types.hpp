@@ -22,6 +22,7 @@ enum class EdgeState : std::uint16_t {
     SafeMode = 4,
     Fault = 5,
     CommissioningLocked = 6,
+    WaitingForPcsReady = 7,
 };
 
 struct BatteryTelemetry {
@@ -33,9 +34,17 @@ struct BatteryTelemetry {
     double maxChargeKw{};
     double maxDischargeKw{};
     std::uint16_t statusCode{};
-    std::uint16_t alarmBits{};
+    std::uint16_t bmsSystemFlags{};
     Quality quality{Quality::Invalid};
     bool limitsValid{false};
+    bool pcsPowerOn{false};
+    bool pcsGridTied{false};
+    bool pcsCurrentSourceMode{false};
+    bool pcsFault{true};
+    bool pcsCommunicationFault{true};
+    bool bmsFault{true};
+    bool bmsCommunicationFault{true};
+    bool controlReady{false};
 };
 
 struct SiteLimit {
@@ -60,4 +69,3 @@ struct SafetyResult {
 using SteadyTime = std::chrono::steady_clock::time_point;
 
 }  // namespace gridex
-
