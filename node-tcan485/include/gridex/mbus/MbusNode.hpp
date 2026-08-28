@@ -12,6 +12,7 @@ namespace gridex::mbus {
 struct NodeConfig {
     std::uint8_t address{0};
     NodeType type{NodeType::Unconfigured};
+    std::uint16_t driverId{0};
     std::uint64_t uid{0};
 };
 
@@ -25,6 +26,7 @@ public:
     );
     [[nodiscard]] std::uint8_t address() const;
     [[nodiscard]] NodeType type() const;
+    [[nodiscard]] std::uint16_t driverId() const;
     [[nodiscard]] std::uint64_t uid() const;
     [[nodiscard]] bool takeConfigurationChanged();
 

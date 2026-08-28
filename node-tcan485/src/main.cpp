@@ -26,6 +26,7 @@ gridex::mbus::NodeConfig loadConfig() {
     config.type = static_cast<gridex::mbus::NodeType>(
         preferences.getUShort("node_type", 0)
     );
+    config.driverId = preferences.getUShort("driver_id", 0);
     config.uid = ESP.getEfuseMac();
     return config;
 }
@@ -36,6 +37,7 @@ void persistConfig() {
         "node_type",
         static_cast<std::uint16_t>(node->type())
     );
+    preferences.putUShort("driver_id", node->driverId());
 }
 
 void publishDriverSample(const gridex::mbus::DriverSample& sample) {
@@ -68,7 +70,10 @@ void processCompleteFrame() {
     }
     if (node->takeConfigurationChanged()) {
         persistConfig();
-        driver = std::make_unique<gridex::mbus::UnconfiguredDriver>(node->type());
+        driver = std::make_unique<gridex::mbus::UnconfiguredDriver>(
+            node->type(),
+            node->driverId()
+        );
         driver->begin();
     }
 }
@@ -92,7 +97,10 @@ void setup() {
     );
 
     node = std::make_unique<gridex::mbus::MbusNode>(loadConfig());
-    driver = std::make_unique<gridex::mbus::UnconfiguredDriver>(node->type());
+    driver = std::make_unique<gridex::mbus::UnconfiguredDriver>(
+        node->type(),
+        node->driverId()
+    );
     driver->begin();
     rxFrame.reserve(256);
     digitalWrite(gridex::mbus::board::StatusLed, HIGH);

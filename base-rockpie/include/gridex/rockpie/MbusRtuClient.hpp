@@ -19,6 +19,7 @@ struct MbusNodeIdentity {
     std::uint16_t mapVersion{0};
     std::uint16_t nodeType{0};
     std::uint16_t state{0};
+    std::uint16_t driverId{0};
     std::uint64_t uid{0};
 };
 
@@ -41,7 +42,8 @@ public:
         std::uint8_t temporaryAddress,
         std::uint64_t expectedUid,
         std::uint8_t finalAddress,
-        std::uint16_t nodeType
+        std::uint16_t nodeType,
+        std::uint16_t driverId
     );
     void closeDevice();
 

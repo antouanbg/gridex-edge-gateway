@@ -24,12 +24,15 @@ public:
 
 class UnconfiguredDriver final : public IDeviceDriver {
 public:
-    explicit UnconfiguredDriver(NodeType type) : type_(type) {}
+    UnconfiguredDriver(NodeType type, std::uint16_t driverId)
+        : type_(type), driverId_(driverId) {}
 
     bool begin() override { return false; }
     DriverSample poll() override {
         DriverSample sample;
-        sample.state = static_cast<std::uint16_t>(type_);
+        sample.state = driverId_ == 0U
+                           ? static_cast<std::uint16_t>(NodeState::DriverMissing)
+                           : static_cast<std::uint16_t>(type_);
         sample.quality = 0;
         return sample;
     }
@@ -37,6 +40,7 @@ public:
 
 private:
     NodeType type_;
+    std::uint16_t driverId_;
 };
 
 }  // namespace gridex::mbus

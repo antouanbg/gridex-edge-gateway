@@ -37,9 +37,15 @@ OpenRemote + IBEX <---- 100 MbE
                     |  ROCK Pi E   |
                     |  RK3328      |
                     +--+--------+--+
-        GbE / OT -------+        +------ isolated RS485 / 12 V MBUS
+        GbE / OT -------+        +------ isolated RS485-A / 12 V MBUS
              |                             |       |       |
-        STE-261L:3200                  meter    EVSE   cabinet node
+        STE-261L:3200                 inverter   EVSE   meter node
+                                         |
+                                  isolated RS485-B
+                                         |
+                                  concrete inverter
 ~~~
 
 Route policy: default route exists only on WAN. The OT interface has a static address and a connected route only. Firewall rules reject forwarding between WAN and OT; the local gateway service is the only allowed application path.
+
+Each node exposes `node_type` plus `driver_id`. `driver_id` is not a generic vendor selector: it binds manufacturer, exact model, protocol revision, serial profile, register map, sign convention and scaling. A driver mismatch keeps the downstream write path locked.

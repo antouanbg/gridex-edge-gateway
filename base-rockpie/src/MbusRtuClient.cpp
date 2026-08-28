@@ -150,10 +150,10 @@ std::optional<std::vector<std::uint8_t>> MbusRtuClient::transact(
 std::optional<MbusNodeIdentity> MbusRtuClient::readIdentity(
     std::uint8_t address
 ) {
-    auto request = finish({address, 0x03U, 0x00U, 0x00U, 0x00U, 0x0AU});
-    const auto response = transact(request, 25U);
+    auto request = finish({address, 0x03U, 0x00U, 0x00U, 0x00U, 0x0DU});
+    const auto response = transact(request, 31U);
     if (!response || (*response)[0] != address || (*response)[1] != 0x03U ||
-        (*response)[2] != 20U || readU16(response->data() + 3) != kMagic) {
+        (*response)[2] != 26U || readU16(response->data() + 3) != kMagic) {
         return std::nullopt;
     }
     MbusNodeIdentity identity;
@@ -161,11 +161,12 @@ std::optional<MbusNodeIdentity> MbusRtuClient::readIdentity(
     identity.mapVersion = readU16(response->data() + 5);
     identity.nodeType = readU16(response->data() + 7);
     identity.state = readU16(response->data() + 9);
+    identity.driverId = readU16(response->data() + 13);
     identity.uid =
-        (static_cast<std::uint64_t>(readU16(response->data() + 15)) << 48U) |
-        (static_cast<std::uint64_t>(readU16(response->data() + 17)) << 32U) |
-        (static_cast<std::uint64_t>(readU16(response->data() + 19)) << 16U) |
-        readU16(response->data() + 21);
+        (static_cast<std::uint64_t>(readU16(response->data() + 17)) << 48U) |
+        (static_cast<std::uint64_t>(readU16(response->data() + 19)) << 32U) |
+        (static_cast<std::uint64_t>(readU16(response->data() + 21)) << 16U) |
+        readU16(response->data() + 23);
     return identity;
 }
 
@@ -186,19 +187,21 @@ bool MbusRtuClient::assign(
     std::uint8_t temporaryAddress,
     std::uint64_t expectedUid,
     std::uint8_t finalAddress,
-    std::uint16_t nodeType
+    std::uint16_t nodeType,
+    std::uint16_t driverId
 ) {
     const auto identity = readIdentity(temporaryAddress);
     if (!identity || identity->uid != expectedUid || finalAddress == 0U ||
-        finalAddress > 247U) {
+        finalAddress > 247U || driverId == 0U) {
         return false;
     }
     std::vector<std::uint8_t> request{temporaryAddress, 0x10U};
     appendU16(request, kRequestedAddress);
-    appendU16(request, 3U);
-    request.push_back(6U);
+    appendU16(request, 4U);
+    request.push_back(8U);
     appendU16(request, finalAddress);
     appendU16(request, nodeType);
+    appendU16(request, driverId);
     appendU16(request, kApplyKey);
     request = finish(std::move(request));
     const auto response = transact(request, 8U);

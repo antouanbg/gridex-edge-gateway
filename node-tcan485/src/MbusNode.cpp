@@ -17,7 +17,10 @@ void appendU16(std::vector<std::uint8_t>& bytes, std::uint16_t value) {
 }
 
 bool validType(std::uint16_t type) {
-    return type == static_cast<std::uint16_t>(NodeType::Meter) ||
+    return type == static_cast<std::uint16_t>(NodeType::Inverter) ||
+           type == static_cast<std::uint16_t>(NodeType::BatteryBms) ||
+           type == static_cast<std::uint16_t>(NodeType::AllInOneBess) ||
+           type == static_cast<std::uint16_t>(NodeType::Meter) ||
            type == static_cast<std::uint16_t>(NodeType::Evse) ||
            type == static_cast<std::uint16_t>(NodeType::SecondCabinet);
 }
@@ -48,6 +51,7 @@ void MbusNode::initializeIdentity() {
             : NodeState::DriverMissing
     );
     registers_[reg::NodeAddress] = config_.address;
+    registers_[reg::DriverId] = config_.driverId;
     registers_[reg::Uid0] = static_cast<std::uint16_t>(config_.uid >> 48U);
     registers_[reg::Uid1] = static_cast<std::uint16_t>(config_.uid >> 32U);
     registers_[reg::Uid2] = static_cast<std::uint16_t>(config_.uid >> 16U);
@@ -55,6 +59,7 @@ void MbusNode::initializeIdentity() {
     registers_[reg::RequestedAddress] = config_.address;
     registers_[reg::RequestedNodeType] =
         static_cast<std::uint16_t>(config_.type);
+    registers_[reg::RequestedDriverId] = config_.driverId;
 }
 
 std::uint16_t MbusNode::crc16(const std::uint8_t* bytes, std::size_t size) {
@@ -96,14 +101,17 @@ void MbusNode::applyPendingConfiguration() {
     registers_[reg::ApplyConfiguration] = 0U;
     const auto requestedAddress = registers_[reg::RequestedAddress];
     const auto requestedType = registers_[reg::RequestedNodeType];
+    const auto requestedDriverId = registers_[reg::RequestedDriverId];
     if (requestedAddress < 1U || requestedAddress > 247U ||
-        !validType(requestedType)) {
+        !validType(requestedType) || requestedDriverId == 0U) {
         return;
     }
     config_.address = static_cast<std::uint8_t>(requestedAddress);
     config_.type = static_cast<NodeType>(requestedType);
+    config_.driverId = requestedDriverId;
     registers_[reg::NodeAddress] = config_.address;
     registers_[reg::NodeType] = requestedType;
+    registers_[reg::DriverId] = requestedDriverId;
     registers_[reg::NodeState] =
         static_cast<std::uint16_t>(NodeState::DriverMissing);
     configurationChanged_ = true;
@@ -199,6 +207,10 @@ std::uint8_t MbusNode::address() const {
 
 NodeType MbusNode::type() const {
     return config_.type;
+}
+
+std::uint16_t MbusNode::driverId() const {
+    return config_.driverId;
 }
 
 std::uint64_t MbusNode::uid() const {

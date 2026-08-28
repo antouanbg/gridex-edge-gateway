@@ -85,6 +85,7 @@ int main() {
         for (const auto& node : mbus.scan()) {
             std::cout << "MBUS node address=" << static_cast<int>(node.address)
                       << " type=" << node.nodeType
+                      << " driver_id=" << node.driverId
                       << " uid=" << node.uid << '\n';
         }
     }
