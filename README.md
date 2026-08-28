@@ -26,6 +26,7 @@
 - Safe mode при загуба на EMS команда.
 - Commissioning lock: няма vendor write преди потвърдени address/sign/scale.
 - Каноничен northbound регистров договор към OpenRemote.
+- Работещ Modbus TCP northbound server на порт `1502` с FC03/04/06/16, command sequence и EMS heartbeat.
 
 ## Core build и тестове
 
@@ -39,7 +40,7 @@ Core библиотеката няма външни зависимости. Сл
 
 1. `base-rockpie` предоставя POSIX Modbus TCP transport и systemd service.
 2. `node-tcan485` предоставя самостоятелен ESP32 firmware и host тестове на MBUS протокола.
-3. Northbound Modbus TCP server и конкретните meter/EVSE register maps се добавят след утвърждаване на MBUS картата и протоколите на устройствата.
+3. Конкретните meter/EVSE register maps се добавят след получаване и валидиране на протоколите на устройствата.
 
 ## Power sign
 

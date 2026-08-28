@@ -1,5 +1,6 @@
 #include "gridex/EdgeController.hpp"
 #include "gridex/rockpie/MbusRtuClient.hpp"
+#include "gridex/rockpie/NorthboundModbusTcpServer.hpp"
 #include "gridex/rockpie/PosixModbusTcpClient.hpp"
 
 #include <atomic>
@@ -94,6 +95,23 @@ int main() {
         gridex::SafetyEnvelope{},
         controllerConfig
     );
+    gridex::rockpie::NorthboundRegisterBank northboundBank;
+    gridex::rockpie::NorthboundModbusTcpServer northboundServer(
+        northboundBank,
+        {
+            .bindAddress = envString("GRIDEX_NORTHBOUND_BIND", "0.0.0.0"),
+            .port = static_cast<std::uint16_t>(
+                envInt("GRIDEX_NORTHBOUND_PORT", 1502)
+            ),
+            .unitId = static_cast<std::uint8_t>(
+                envInt("GRIDEX_NORTHBOUND_UNIT_ID", 1)
+            ),
+        }
+    );
+    if (!northboundServer.start()) {
+        std::cerr << "Cannot start northbound Modbus TCP server\n";
+        return 1;
+    }
 
     if (envBool("GRIDEX_MBUS_SCAN_ON_START")) {
         gridex::rockpie::MbusRtuClient mbus({
@@ -117,7 +135,12 @@ int main() {
               << (driver.writesEnabled() ? "true" : "false") << '\n';
 
     while (running) {
-        const auto snapshot = controller.tick(std::chrono::steady_clock::now());
+        const auto now = std::chrono::steady_clock::now();
+        if (const auto command = northboundBank.takeCommand()) {
+            controller.receiveCommand(command->requestedPowerKw, {}, now);
+        }
+        const auto snapshot = controller.tick(now);
+        northboundBank.publish(snapshot, controllerConfig.configuredLimit);
         std::cout << "{\"state\":\"" << stateName(snapshot.state)
                   << "\",\"soc_pct\":" << snapshot.battery.socPct
                   << ",\"actual_kw\":" << snapshot.battery.actualPowerKw
@@ -130,6 +153,7 @@ int main() {
         ));
     }
 
+    northboundServer.stop();
     transport.disconnect();
     std::cout << "GrideX ROCK Pi E service stopped safely\n";
     return 0;

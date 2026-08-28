@@ -5,6 +5,8 @@ add_subdirectory(.. ${CMAKE_BINARY_DIR}/gridex-core EXCLUDE_FROM_ALL)
 
 add_library(gridex_rockpie_transport
     src/MbusRtuClient.cpp
+    src/NorthboundModbusTcpServer.cpp
+    src/NorthboundRegisterBank.cpp
     src/PosixModbusTcpClient.cpp
 )
 target_include_directories(gridex_rockpie_transport PUBLIC include)
@@ -19,6 +21,11 @@ endif()
 
 add_executable(gridex_rockpie_service src/main.cpp)
 target_link_libraries(gridex_rockpie_service PRIVATE gridex_rockpie_transport)
+
+enable_testing()
+add_executable(gridex_rockpie_tests tests/test_northbound.cpp)
+target_link_libraries(gridex_rockpie_tests PRIVATE gridex_rockpie_transport)
+add_test(NAME gridex_rockpie_tests COMMAND gridex_rockpie_tests)
 
 install(TARGETS gridex_rockpie_service RUNTIME DESTINATION bin)
 install(FILES systemd/gridex-rockpie.service DESTINATION lib/systemd/system)

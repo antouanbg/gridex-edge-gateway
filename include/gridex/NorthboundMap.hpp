@@ -4,6 +4,9 @@
 
 namespace gridex::northbound {
 
+inline constexpr std::uint16_t HoldingRegisterCount = 4;
+inline constexpr std::uint16_t InputRegisterCount = 15;
+
 // PDU zero-based addresses exposed by the Edge Modbus TCP server on port 1502.
 namespace holding {
 inline constexpr std::uint16_t CommandSequence = 0;

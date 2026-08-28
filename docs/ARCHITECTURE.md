@@ -4,7 +4,7 @@
 OpenRemote / strategy service (WAN)
           |
           v
-ROCK Pi E northbound register server (stable canonical map)
+ROCK Pi E northbound Modbus TCP :1502 (stable canonical map)
           |
           v
 Command arbiter + EMS timeout
@@ -47,5 +47,7 @@ OpenRemote + IBEX <---- 100 MbE
 ~~~
 
 Route policy: default route exists only on WAN. The OT interface has a static address and a connected route only. Firewall rules reject forwarding between WAN and OT; the local gateway service is the only allowed application path.
+
+OpenRemote never reaches STE-261L port `3200`. It reads normalized input registers and writes command registers only through Edge port `1502`. The command remains alive when `ems_heartbeat` changes within 15 seconds; an expired heartbeat forces the controller to request `0 kW` while the independent vendor heartbeat remains under local Edge control.
 
 Each node exposes `node_type` plus `driver_id`. `driver_id` is not a generic vendor selector: it binds manufacturer, exact model, protocol revision, serial profile, register map, sign convention and scaling. A driver mismatch keeps the downstream write path locked.
