@@ -56,7 +56,20 @@ SafetyResult SafetyEnvelope::apply(const SafetyInput& input) const {
         (input.battery.bmsSystemFlags & 0x0002U) != 0U;
 
     double maxChargeKw = std::max(0.0, input.battery.maxChargeKw);
-    const double maxDischargeKw = std::max(0.0, input.battery.maxDischargeKw);
+    double maxDischargeKw = std::max(0.0, input.battery.maxDischargeKw);
+
+    if (input.configuredLimit.maxChargeKw) {
+        maxChargeKw = std::min(
+            maxChargeKw,
+            std::max(0.0, *input.configuredLimit.maxChargeKw)
+        );
+    }
+    if (input.configuredLimit.maxDischargeKw) {
+        maxDischargeKw = std::min(
+            maxDischargeKw,
+            std::max(0.0, *input.configuredLimit.maxDischargeKw)
+        );
+    }
 
     if (input.site.siteLoadKw && input.site.contractLimitKw) {
         const double headroomKw =

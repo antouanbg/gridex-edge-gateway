@@ -7,6 +7,7 @@
 #include <csignal>
 #include <cstdlib>
 #include <iostream>
+#include <optional>
 #include <string>
 #include <thread>
 
@@ -34,6 +35,18 @@ int envInt(const char* name, int fallback) {
 bool envBool(const char* name, bool fallback = false) {
     const auto value = envString(name, fallback ? "1" : "0");
     return value == "1" || value == "true" || value == "yes";
+}
+
+std::optional<double> envOptionalDouble(const char* name) {
+    const auto value = envString(name, "");
+    if (value.empty()) {
+        return std::nullopt;
+    }
+    try {
+        return std::stod(value);
+    } catch (...) {
+        return std::nullopt;
+    }
 }
 
 const char* stateName(gridex::EdgeState state) {
@@ -71,7 +84,16 @@ int main() {
             .scalingConfirmed = envBool("GRIDEX_APPROVE_SCALING"),
         }
     );
-    gridex::EdgeController controller(driver, gridex::SafetyEnvelope{});
+    gridex::ControllerConfig controllerConfig;
+    controllerConfig.configuredLimit.maxChargeKw =
+        envOptionalDouble("GRIDEX_MAX_CHARGE_KW");
+    controllerConfig.configuredLimit.maxDischargeKw =
+        envOptionalDouble("GRIDEX_MAX_DISCHARGE_KW");
+    gridex::EdgeController controller(
+        driver,
+        gridex::SafetyEnvelope{},
+        controllerConfig
+    );
 
     if (envBool("GRIDEX_MBUS_SCAN_ON_START")) {
         gridex::rockpie::MbusRtuClient mbus({

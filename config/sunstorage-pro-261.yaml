@@ -60,6 +60,8 @@ bms_system_flag_bits:
   4: fully_discharged
 safety:
   bms_limits_are_authoritative: true
+  configured_max_charge_kw: null
+  configured_max_discharge_kw: null
   reject_power_write_when_prerequisites_fail: true
   never_auto_modify_holding: [5001, 5002]
   heartbeat_timeout_action: zero_power_without_shutdown

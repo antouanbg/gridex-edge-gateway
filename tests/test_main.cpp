@@ -82,6 +82,7 @@ void testSafetyEnvelope() {
         .requestedPowerKw = 200.0,
         .battery = goodBattery(),
         .site = {},
+        .configuredLimit = {},
         .emsConnected = true,
     });
     assert(near(discharge.appliedPowerKw, 120.0));
@@ -91,6 +92,7 @@ void testSafetyEnvelope() {
         .requestedPowerKw = -90.0,
         .battery = goodBattery(),
         .site = {.siteLoadKw = 470.0, .contractLimitKw = 500.0},
+        .configuredLimit = {},
         .emsConnected = true,
     });
     assert(near(charge.appliedPowerKw, -30.0));
@@ -100,6 +102,7 @@ void testSafetyEnvelope() {
         .requestedPowerKw = 40.0,
         .battery = goodBattery(),
         .site = {},
+        .configuredLimit = {},
         .emsConnected = false,
     });
     assert(near(stale.appliedPowerKw, 0.0));
@@ -110,6 +113,7 @@ void testSafetyEnvelope() {
         .requestedPowerKw = -40.0,
         .battery = prohibitedBattery,
         .site = {},
+        .configuredLimit = {},
         .emsConnected = true,
     });
     assert(near(prohibitedCharge.appliedPowerKw, 0.0));
@@ -121,9 +125,19 @@ void testSafetyEnvelope() {
         .requestedPowerKw = 40.0,
         .battery = faultedBattery,
         .site = {},
+        .configuredLimit = {},
         .emsConnected = true,
     });
     assert(near(faulted.appliedPowerKw, 0.0));
+
+    auto configuredCap = safety.apply(gridex::SafetyInput{
+        .requestedPowerKw = 100.0,
+        .battery = goodBattery(),
+        .site = {},
+        .configuredLimit = {.maxChargeKw = 40.0, .maxDischargeKw = 55.0},
+        .emsConnected = true,
+    });
+    assert(near(configuredCap.appliedPowerKw, 55.0));
 }
 
 void testSunStorageDriver() {
@@ -180,6 +194,15 @@ void testSunStorageDriver() {
     assert(driver.refreshHeartbeat(60));
     assert(modbus.holding[R::HeartbeatEnable] == 1);
     assert(modbus.holding[R::HeartbeatSeconds] == 60);
+
+    assert(!driver.writePowerSetpointKw(120.1));
+    assert(!driver.writePowerSetpointKw(-100.1));
+
+    modbus.input[R::BmsSystemFlags] = 0x0001U;
+    const auto chargeProhibited = driver.poll();
+    assert(chargeProhibited.controlReady);
+    assert(!driver.writePowerSetpointKw(-10.0));
+    assert(driver.writePowerSetpointKw(10.0));
 
     modbus.coils[R::PcsFault] = true;
     const auto faulted = driver.poll();

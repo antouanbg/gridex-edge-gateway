@@ -63,6 +63,7 @@ BatteryTelemetry SunStoragePro261Driver::poll() {
         value.quality = Quality::Invalid;
         value.limitsValid = false;
         controlReady_ = false;
+        limitsValid_ = false;
         return value;
     }
 
@@ -94,6 +95,10 @@ BatteryTelemetry SunStoragePro261Driver::poll() {
         !value.pcsCommunicationFault && !value.bmsFault &&
         !value.bmsCommunicationFault;
     controlReady_ = value.controlReady;
+    limitsValid_ = value.limitsValid;
+    maxChargeKw_ = value.maxChargeKw;
+    maxDischargeKw_ = value.maxDischargeKw;
+    bmsSystemFlags_ = value.bmsSystemFlags;
     value.quality = value.limitsValid ? Quality::Good : Quality::Invalid;
     return value;
 }
@@ -111,8 +116,18 @@ bool SunStoragePro261Driver::refreshHeartbeat(
 bool SunStoragePro261Driver::writePowerSetpointKw(
     double canonicalPowerKw
 ) {
-    if (!approval_.writesEnabled() || !controlReady_ ||
+    if (!approval_.writesEnabled() || !controlReady_ || !limitsValid_ ||
         !std::isfinite(canonicalPowerKw)) {
+        return false;
+    }
+    constexpr double toleranceKw = 0.001;
+    const bool chargeProhibited = (bmsSystemFlags_ & 0x0001U) != 0U;
+    const bool dischargeProhibited = (bmsSystemFlags_ & 0x0002U) != 0U;
+    if ((canonicalPowerKw < -toleranceKw &&
+         (chargeProhibited || -canonicalPowerKw > maxChargeKw_ + toleranceKw)) ||
+        (canonicalPowerKw > toleranceKw &&
+         (dischargeProhibited ||
+          canonicalPowerKw > maxDischargeKw_ + toleranceKw))) {
         return false;
     }
     return client_.writeHolding(

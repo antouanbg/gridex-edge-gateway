@@ -45,6 +45,7 @@ ControllerSnapshot EdgeController::tick(SteadyTime now) {
         .requestedPowerKw = requestedPowerKw_,
         .battery = snapshot.battery,
         .site = site_,
+        .configuredLimit = config_.configuredLimit,
         .emsConnected = controlAvailable,
     });
 

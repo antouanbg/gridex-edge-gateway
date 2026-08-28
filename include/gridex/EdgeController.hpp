@@ -13,6 +13,7 @@ struct ControllerConfig {
     std::chrono::seconds emsTimeout{15};
     std::chrono::seconds heartbeatRefresh{35};
     std::uint16_t heartbeatTimeoutSeconds{60};
+    ConfiguredPowerLimit configuredLimit;
 };
 
 struct ControllerSnapshot {
@@ -45,4 +46,3 @@ private:
 };
 
 }  // namespace gridex
-

@@ -13,13 +13,15 @@
 
 Общият C++20 safety/STE core остава в `include/` и `src/` и се използва от Linux build-а.
 
-## Реализирано в началния skeleton
+## Реализирано
 
 - Device driver interface за Modbus устройства.
 - Първи драйвер за SunStorage Pro 261 / STE-261L.
 - Четене на PCS мощност, SOC, SOH, ток, напрежение, BMS статус и динамични лимити.
 - Локален PCS heartbeat на регистри 5301/5302.
 - Safety envelope с BMS clamp.
+- Втори независим clamp в vendor драйвера: директна команда над последните валидни BMS лимити се отказва.
+- Опционални site/PCS caps за заряд и разряд, които могат само да намалят BMS envelope-а.
 - Software fuse спрямо товар на обекта и договорен лимит.
 - Safe mode при загуба на EMS команда.
 - Commissioning lock: няма vendor write преди потвърдени address/sign/scale.
@@ -35,13 +37,13 @@ ctest --test-dir build --output-on-failure
 
 Core библиотеката няма външни зависимости. След избор на хардуер се добавят:
 
-1. `base-rockpie` предоставя POSIX Modbus TCP transport и systemd service skeleton.
+1. `base-rockpie` предоставя POSIX Modbus TCP transport и systemd service.
 2. `node-tcan485` предоставя самостоятелен ESP32 firmware и host тестове на MBUS протокола.
 3. Northbound Modbus TCP server и конкретните meter/EVSE register maps се добавят след утвърждаване на MBUS картата и протоколите на устройствата.
 
 ## Power sign
 
-В GrideX положителна мощност означава разряд от батерията, отрицателна означава заряд. Vendor драйверът е единственото място, което може да обръща знака. Този sign convention трябва да бъде потвърден на реалния шкаф преди отключване на командите.
+В GrideX положителна мощност означава разряд от батерията, отрицателна означава заряд. Производителят потвърди знака и коефициента ×10; на реалния шкаф остава задължителен ограничен commissioning тест преди отключване на командите.
 
 ## Source protocol
 

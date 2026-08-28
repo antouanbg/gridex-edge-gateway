@@ -60,6 +60,10 @@ private:
     IModbusClient& client_;
     CommissioningApproval approval_;
     bool controlReady_{false};
+    bool limitsValid_{false};
+    double maxChargeKw_{0.0};
+    double maxDischargeKw_{0.0};
+    std::uint16_t bmsSystemFlags_{0};
 
     [[nodiscard]] static double decodeSigned(std::uint16_t raw, double scale);
     [[nodiscard]] static std::uint16_t encodeSigned(double value, double scale);

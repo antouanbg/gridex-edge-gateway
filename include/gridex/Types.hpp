@@ -52,10 +52,16 @@ struct SiteLimit {
     std::optional<double> contractLimitKw;
 };
 
+struct ConfiguredPowerLimit {
+    std::optional<double> maxChargeKw;
+    std::optional<double> maxDischargeKw;
+};
+
 struct SafetyInput {
     double requestedPowerKw{};
     BatteryTelemetry battery;
     SiteLimit site;
+    ConfiguredPowerLimit configuredLimit;
     bool emsConnected{false};
 };
 
