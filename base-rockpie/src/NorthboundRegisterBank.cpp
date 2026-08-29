@@ -27,6 +27,16 @@ std::uint16_t encodeUnsigned(double value, double scale) {
     ));
 }
 
+std::uint32_t encodeUnsigned32(double value, double scale) {
+    if (!std::isfinite(value)) return 0U;
+    const auto scaled = std::clamp(
+        std::round(value * scale),
+        0.0,
+        static_cast<double>(std::numeric_limits<std::uint32_t>::max())
+    );
+    return static_cast<std::uint32_t>(scaled);
+}
+
 template <std::size_t Size>
 std::optional<std::vector<std::uint16_t>> readRange(
     const std::array<std::uint16_t, Size>& registers,
@@ -102,6 +112,45 @@ std::optional<NorthboundCommand> NorthboundRegisterBank::takeCommand() {
     };
 }
 
+std::optional<NorthboundOperatorCommand>
+NorthboundRegisterBank::takeOperatorCommand() {
+    std::scoped_lock lock(mutex_);
+    const auto sequence = holding_[northbound::holding::OperatorSequence];
+    if (operatorCommandObserved_ && sequence == lastOperatorSequence_) {
+        return std::nullopt;
+    }
+    operatorCommandObserved_ = true;
+    lastOperatorSequence_ = sequence;
+    return NorthboundOperatorCommand{
+        .sequence = sequence,
+        .actionMask = holding_[northbound::holding::OperatorActionMask],
+        .requestedRunState =
+            holding_[northbound::holding::RequestedRunState],
+        .requestedReactivePowerKvar = static_cast<double>(
+            static_cast<std::int16_t>(
+                holding_[northbound::holding::RequestedReactivePowerKvarX10]
+            )
+        ) / 10.0,
+        .requestedSocUpperPct = static_cast<double>(holding_[
+            northbound::holding::RequestedSocUpperPct
+        ]),
+        .requestedSocLowerPct = static_cast<double>(holding_[
+            northbound::holding::RequestedSocLowerPct
+        ]),
+        .authorized = holding_[northbound::holding::OperatorApplyKey] ==
+                      northbound::OperatorApplyKeyValue,
+    };
+}
+
+void NorthboundRegisterBank::publishOperatorResult(
+    std::uint16_t sequence,
+    std::uint16_t result
+) {
+    std::scoped_lock lock(mutex_);
+    input_[northbound::input::LastOperatorSequence] = sequence;
+    input_[northbound::input::LastOperatorResult] = result;
+}
+
 void NorthboundRegisterBank::publish(
     const ControllerSnapshot& snapshot,
     const ConfiguredPowerLimit& configuredLimit
@@ -134,6 +183,7 @@ void NorthboundRegisterBank::publish(
         qualityBits |= 1U << 4U;
     }
     if (snapshot.battery.controlReady) qualityBits |= 1U << 5U;
+    if (snapshot.battery.extendedTelemetryValid) qualityBits |= 1U << 6U;
     input_[northbound::input::QualityBits] = qualityBits;
     input_[northbound::input::EdgeState] =
         static_cast<std::uint16_t>(snapshot.state);
@@ -149,6 +199,45 @@ void NorthboundRegisterBank::publish(
         configuredLimit.maxDischargeKw.value_or(0.0),
         10.0
     );
+    input_[northbound::input::DcPowerKwX10] =
+        encodeSignedX10(snapshot.battery.dcPowerKw);
+    input_[northbound::input::CommandedPowerKwX10] =
+        encodeSignedX10(snapshot.battery.commandedPowerKw);
+    input_[northbound::input::PcsStatus] = snapshot.battery.pcsStatusCode;
+    input_[northbound::input::ReactivePowerKvarX10] =
+        encodeSignedX10(snapshot.battery.reactivePowerKvar);
+    const auto accumulatedCharge = encodeUnsigned32(
+        snapshot.battery.accumulatedChargeKwh,
+        10.0
+    );
+    const auto accumulatedDischarge = encodeUnsigned32(
+        snapshot.battery.accumulatedDischargeKwh,
+        10.0
+    );
+    input_[northbound::input::AccumulatedChargeKwhX10High] =
+        static_cast<std::uint16_t>(accumulatedCharge >> 16U);
+    input_[northbound::input::AccumulatedChargeKwhX10Low] =
+        static_cast<std::uint16_t>(accumulatedCharge);
+    input_[northbound::input::AccumulatedDischargeKwhX10High] =
+        static_cast<std::uint16_t>(accumulatedDischarge >> 16U);
+    input_[northbound::input::AccumulatedDischargeKwhX10Low] =
+        static_cast<std::uint16_t>(accumulatedDischarge);
+    input_[northbound::input::DailyChargeKwhX10] =
+        encodeUnsigned(snapshot.battery.dailyChargeKwh, 10.0);
+    input_[northbound::input::DailyDischargeKwhX10] =
+        encodeUnsigned(snapshot.battery.dailyDischargeKwh, 10.0);
+    std::uint16_t alarmBits = 0U;
+    if (snapshot.battery.pcsWarning) alarmBits |= 1U << 0U;
+    if (snapshot.battery.bmsAlarm) alarmBits |= 1U << 1U;
+    input_[northbound::input::AlarmBits] = alarmBits;
+    input_[northbound::input::FrequencyHzX100] =
+        encodeUnsigned(snapshot.battery.frequencyHz, 100.0);
+    input_[northbound::input::SocUpperLimitPct] =
+        encodeUnsigned(snapshot.battery.socUpperLimitPct, 1.0);
+    input_[northbound::input::SocLowerLimitPct] =
+        encodeUnsigned(snapshot.battery.socLowerLimitPct, 1.0);
+    input_[northbound::input::ExtendedTelemetryValid] =
+        snapshot.battery.extendedTelemetryValid ? 1U : 0U;
 }
 
 void NorthboundRegisterBank::publishNode(

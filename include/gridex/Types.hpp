@@ -27,13 +27,24 @@ enum class EdgeState : std::uint16_t {
 
 struct BatteryTelemetry {
     double actualPowerKw{};
+    double commandedPowerKw{};
+    double dcPowerKw{};
+    double reactivePowerKvar{};
+    double frequencyHz{};
     double socPct{};
     double sohPct{};
     double voltageV{};
     double currentA{};
     double maxChargeKw{};
     double maxDischargeKw{};
+    double accumulatedChargeKwh{};
+    double accumulatedDischargeKwh{};
+    double dailyChargeKwh{};
+    double dailyDischargeKwh{};
+    double socUpperLimitPct{};
+    double socLowerLimitPct{};
     std::uint16_t statusCode{};
+    std::uint16_t pcsStatusCode{};
     std::uint16_t bmsSystemFlags{};
     Quality quality{Quality::Invalid};
     bool limitsValid{false};
@@ -44,6 +55,9 @@ struct BatteryTelemetry {
     bool pcsCommunicationFault{true};
     bool bmsFault{true};
     bool bmsCommunicationFault{true};
+    bool bmsAlarm{true};
+    bool pcsWarning{true};
+    bool extendedTelemetryValid{false};
     bool controlReady{false};
 };
 

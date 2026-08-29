@@ -102,6 +102,10 @@ int main() {
             .addressingConfirmed = envBool("GRIDEX_APPROVE_ADDRESSING"),
             .signConfirmed = envBool("GRIDEX_APPROVE_POWER_SIGN"),
             .scalingConfirmed = envBool("GRIDEX_APPROVE_SCALING"),
+            .int32WordOrderConfirmed =
+                envBool("GRIDEX_APPROVE_INT32_WORD_ORDER"),
+            .int32HighWordFirst =
+                envBool("GRIDEX_INT32_HIGH_WORD_FIRST", true),
         }
     );
     gridex::ControllerConfig controllerConfig;
@@ -169,6 +173,42 @@ int main() {
             controller.receiveCommand(command->requestedPowerKw, {}, now);
         }
         const auto snapshot = controller.tick(now);
+        if (const auto operation = northboundBank.takeOperatorCommand()) {
+            std::uint16_t result = 1U;  // success
+            const bool maskValid = operation->actionMask != 0U &&
+                (operation->actionMask & ~gridex::northbound::action::All) == 0U;
+            if (!operation->authorized) {
+                result = 2U;  // invalid apply key
+            } else if (!maskValid ||
+                       ((operation->actionMask &
+                         gridex::northbound::action::RunState) != 0U &&
+                        operation->requestedRunState > 1U)) {
+                result = 3U;  // invalid request
+            } else {
+                bool accepted = true;
+                if ((operation->actionMask &
+                     gridex::northbound::action::RunState) != 0U) {
+                    accepted = driver.writePowerState(
+                        operation->requestedRunState == 1U
+                    ) && accepted;
+                }
+                if ((operation->actionMask &
+                     gridex::northbound::action::SocLimits) != 0U) {
+                    accepted = driver.writeSocLimitsPct(
+                        operation->requestedSocLowerPct,
+                        operation->requestedSocUpperPct
+                    ) && accepted;
+                }
+                if ((operation->actionMask &
+                     gridex::northbound::action::ReactivePower) != 0U) {
+                    accepted = driver.writeReactivePowerSetpointKvar(
+                        operation->requestedReactivePowerKvar
+                    ) && accepted;
+                }
+                if (!accepted) result = 4U;  // safety/driver rejection
+            }
+            northboundBank.publishOperatorResult(operation->sequence, result);
+        }
         northboundBank.publish(snapshot, controllerConfig.configuredLimit);
         const auto nodeSamples = mbusPolling.samples();
         for (std::size_t slot = 0; slot < nodeSamples.size(); ++slot) {

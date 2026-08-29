@@ -46,19 +46,31 @@ std::vector<std::uint8_t> roundTrip(
 int main() {
     gridex::rockpie::NorthboundRegisterBank bank;
     assert(!bank.takeCommand());
+    assert(!bank.takeOperatorCommand());
     gridex::ControllerSnapshot snapshot;
     snapshot.state = gridex::EdgeState::Ready;
     snapshot.emsConnected = true;
     snapshot.heartbeatOk = true;
     snapshot.battery = {
         .actualPowerKw = -25.4,
+        .commandedPowerKw = -30.0,
+        .dcPowerKw = -27.0,
+        .reactivePowerKvar = 4.5,
+        .frequencyHz = 50.0,
         .socPct = 72.5,
         .sohPct = 98.0,
         .voltageV = 760.0,
         .currentA = -12.3,
         .maxChargeKw = 100.0,
         .maxDischargeKw = 120.0,
+        .accumulatedChargeKwh = 1234.5,
+        .accumulatedDischargeKwh = 9876.5,
+        .dailyChargeKwh = 12.5,
+        .dailyDischargeKwh = 25.0,
+        .socUpperLimitPct = 90.0,
+        .socLowerLimitPct = 10.0,
         .statusCode = 2,
+        .pcsStatusCode = 2,
         .bmsSystemFlags = 0,
         .quality = gridex::Quality::Good,
         .limitsValid = true,
@@ -69,6 +81,9 @@ int main() {
         .pcsCommunicationFault = false,
         .bmsFault = false,
         .bmsCommunicationFault = false,
+        .bmsAlarm = false,
+        .pcsWarning = false,
+        .extendedTelemetryValid = true,
         .controlReady = true,
     };
     snapshot.command.appliedPowerKw = -25.4;
@@ -90,6 +105,16 @@ int main() {
     assert(
         (*values)[gridex::northbound::input::ConfiguredMaxChargeKwX10] ==
         800U
+    );
+    assert(static_cast<std::int16_t>(
+        (*values)[gridex::northbound::input::DcPowerKwX10]
+    ) == -270);
+    assert(
+        (*values)[gridex::northbound::input::AccumulatedChargeKwhX10Low] ==
+        12345U
+    );
+    assert(
+        (*values)[gridex::northbound::input::ExtendedTelemetryValid] == 1U
     );
 
     gridex::rockpie::MbusNodeTelemetry nodeSample{
@@ -156,6 +181,44 @@ int main() {
     assert(stopped);
     assert(!stopped->enabled);
     assert(stopped->requestedPowerKw == 0.0);
+
+    const std::array<std::uint16_t, 6> operatorFields{
+        static_cast<std::uint16_t>(
+            gridex::northbound::action::RunState |
+            gridex::northbound::action::ReactivePower |
+            gridex::northbound::action::SocLimits
+        ),
+        1U,
+        125U,
+        85U,
+        15U,
+        gridex::northbound::OperatorApplyKeyValue,
+    };
+    assert(bank.writeHolding(
+        gridex::northbound::holding::OperatorActionMask,
+        operatorFields
+    ));
+    const std::array<std::uint16_t, 1> operatorSequence{7U};
+    assert(bank.writeHolding(
+        gridex::northbound::holding::OperatorSequence,
+        operatorSequence
+    ));
+    const auto operatorCommand = bank.takeOperatorCommand();
+    assert(operatorCommand);
+    assert(operatorCommand->authorized);
+    assert(operatorCommand->requestedRunState == 1U);
+    assert(operatorCommand->requestedReactivePowerKvar == 12.5);
+    assert(operatorCommand->requestedSocUpperPct == 85.0);
+    assert(operatorCommand->requestedSocLowerPct == 15.0);
+    assert(!bank.takeOperatorCommand());
+    bank.publishOperatorResult(operatorCommand->sequence, 1U);
+    const auto operatorResult = bank.readInput(
+        gridex::northbound::input::LastOperatorSequence,
+        2U
+    );
+    assert(operatorResult);
+    assert((*operatorResult)[0] == 7U);
+    assert((*operatorResult)[1] == 1U);
 
     constexpr std::uint16_t testPort = 21502;
     gridex::rockpie::NorthboundModbusTcpServer server(

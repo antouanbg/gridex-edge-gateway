@@ -16,6 +16,8 @@ commissioning:
   vendor_addressing_confirmed: true
   vendor_sign_confirmed: true
   vendor_scaling_confirmed: true
+  int32_word_order_confirmed: false
+  int32_high_word_first: true
   onsite_readback_confirmed: false
   onsite_low_power_test_complete: false
 power_command_prerequisites:
@@ -30,7 +32,9 @@ registers:
   coils:
     pcs_fault: {address: 1, normal: 0, fault: 1}
     pcs_off_grid: {address: 2, on_grid: 0, off_grid: 1}
+    pcs_warning: {address: 3, normal: 0, warning: 1}
     pcs_communication_fault: {address: 4, normal: 0, fault: 1}
+    bms_alarm: {address: 183, normal: 0, alarm: 1}
     bms_fault: {address: 184, normal: 0, fault: 1}
     bms_communication_fault: {address: 185, normal: 0, fault: 1}
   holding:
@@ -39,19 +43,29 @@ registers:
     pcs_power_on: {address: 5003, type: int16, required: 1}
     pcs_active_power_kw: {address: 5005, type: int16, multiplier: 10}
     pcs_reactive_power_kvar: {address: 5006, type: int16, multiplier: 10}
+    pcs_soc_upper_limit_pct: {address: 5007, type: int16, access: operator-rw}
+    pcs_soc_lower_limit_pct: {address: 5008, type: int16, access: operator-rw}
     heartbeat_seconds: {address: 5301, type: int16, refresh_seconds: 35, timeout_seconds: 60}
     heartbeat_enable: {address: 5302, type: int16, enabled: 1}
   input:
     pcs_active_power_kw: {address: 9, type: int16, divisor: 10}
+    pcs_reactive_power_kvar: {address: 10, type: int16, divisor: 10}
+    pcs_dc_power_kw: {address: 12, type: int16, divisor: 10}
+    pcs_frequency_hz: {address: 13, type: int16, divisor: 100}
+    pcs_commanded_power_kw: {address: 14, type: int16, divisor: 10}
     pcs_status: {address: 16, type: int16}
     bms_current_a: {address: 101, type: int16, divisor: 10}
     bms_soc_pct: {address: 102, type: int16, divisor: 10}
     bms_soh_pct: {address: 103, type: int16}
     bms_voltage_v: {address: 104, type: int16, divisor: 10}
     bms_status: {address: 105, type: int16}
+    bms_accumulated_charge_kwh: {address: 122, words: 2, type: int32, divisor: 10, configured_word_order: high-low, onsite_confirmation_required: true}
+    bms_accumulated_discharge_kwh: {address: 124, words: 2, type: int32, divisor: 10, configured_word_order: high-low, onsite_confirmation_required: true}
     bms_system_flags: {address: 126, type: uint16}
     bms_max_charge_kw: {address: 127, type: int16, divisor: 10}
     bms_max_discharge_kw: {address: 128, type: int16, divisor: 10}
+    bms_daily_charge_kwh: {address: 129, type: int16, divisor: 10}
+    bms_daily_discharge_kwh: {address: 130, type: int16, divisor: 10}
 bms_system_flag_bits:
   0: charge_prohibited
   1: discharge_prohibited
@@ -64,4 +78,6 @@ safety:
   configured_max_discharge_kw: null
   reject_power_write_when_prerequisites_fail: true
   never_auto_modify_holding: [5001, 5002]
+  operator_only_holding: [5003, 5006, 5007, 5008]
+  operator_apply_key: 0xA55A
   heartbeat_timeout_action: zero_power_without_shutdown

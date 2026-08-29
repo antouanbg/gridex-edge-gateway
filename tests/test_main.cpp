@@ -8,6 +8,8 @@
 #include <iostream>
 #include <map>
 #include <optional>
+#include <utility>
+#include <vector>
 
 namespace {
 
@@ -37,6 +39,7 @@ public:
         std::uint16_t address,
         std::uint16_t value
     ) override {
+        writeLog.emplace_back(address, value);
         holding[address] = value;
         return writesSucceed;
     }
@@ -44,6 +47,7 @@ public:
     std::map<std::uint16_t, std::uint16_t> input;
     std::map<std::uint16_t, std::uint16_t> holding;
     std::map<std::uint16_t, bool> coils;
+    std::vector<std::pair<std::uint16_t, std::uint16_t>> writeLog;
     bool writesSucceed{true};
 };
 
@@ -146,13 +150,22 @@ void testSunStorageDriver() {
 
     modbus.coils[R::PcsFault] = false;
     modbus.coils[R::PcsOffGrid] = false;
+    modbus.coils[R::PcsWarning] = false;
     modbus.coils[R::PcsCommunicationFault] = false;
+    modbus.coils[R::BmsAlarm] = false;
     modbus.coils[R::BmsFault] = false;
     modbus.coils[R::BmsCommunicationFault] = false;
     modbus.holding[R::PcsGridMode] = 0;
     modbus.holding[R::PcsWorkMode] = 1;
     modbus.holding[R::PcsPowerOn] = 1;
+    modbus.holding[R::PcsSocUpperLimit] = 90;
+    modbus.holding[R::PcsSocLowerLimit] = 10;
     modbus.input[R::PcsActivePower] = 250;
+    modbus.input[R::PcsReactivePower] = 35;
+    modbus.input[R::PcsDcPower] = 260;
+    modbus.input[R::PcsFrequency] = 5000;
+    modbus.input[R::PcsCommandedPower] = 250;
+    modbus.input[R::PcsStatus] = 3;
     modbus.input[R::BmsCurrent] = static_cast<std::uint16_t>(
         static_cast<std::int16_t>(-123)
     );
@@ -160,18 +173,36 @@ void testSunStorageDriver() {
     modbus.input[R::BmsSoh] = 98;
     modbus.input[R::BmsVoltage] = 7600;
     modbus.input[R::BmsStatus] = 3;
+    modbus.input[R::BmsAccumulatedChargeEnergy] = 0;
+    modbus.input[R::BmsAccumulatedChargeEnergy + 1U] = 12345;
+    modbus.input[R::BmsAccumulatedDischargeEnergy] = 1;
+    modbus.input[R::BmsAccumulatedDischargeEnergy + 1U] = 33229;
     modbus.input[R::BmsSystemFlags] = 0;
     modbus.input[R::BmsMaxChargePower] = 1000;
     modbus.input[R::BmsMaxDischargePower] = 1200;
+    modbus.input[R::BmsDailyChargeEnergy] = 125;
+    modbus.input[R::BmsDailyDischargeEnergy] = 250;
 
     gridex::SunStoragePro261Driver locked(modbus);
     assert(!locked.writePowerSetpointKw(25.0));
+
+    gridex::SunStoragePro261Driver unconfirmedEnergyOrder(
+        modbus,
+        {.addressingConfirmed = true,
+         .signConfirmed = true,
+         .scalingConfirmed = true}
+    );
+    const auto unconfirmedValue = unconfirmedEnergyOrder.poll();
+    assert(unconfirmedValue.controlReady);
+    assert(!unconfirmedValue.extendedTelemetryValid);
 
     gridex::SunStoragePro261Driver driver(
         modbus,
         {.addressingConfirmed = true,
          .signConfirmed = true,
-         .scalingConfirmed = true}
+         .scalingConfirmed = true,
+         .int32WordOrderConfirmed = true,
+         .int32HighWordFirst = true}
     );
 
     const auto value = driver.poll();
@@ -179,6 +210,16 @@ void testSunStorageDriver() {
     assert(near(value.socPct, 72.5));
     assert(near(value.currentA, -12.3));
     assert(near(value.maxChargeKw, 100.0));
+    assert(near(value.dcPowerKw, 26.0));
+    assert(near(value.commandedPowerKw, 25.0));
+    assert(near(value.reactivePowerKvar, 3.5));
+    assert(near(value.frequencyHz, 50.0));
+    assert(near(value.accumulatedChargeKwh, 1234.5));
+    assert(near(value.accumulatedDischargeKwh, 9876.5));
+    assert(near(value.dailyChargeKwh, 12.5));
+    assert(near(value.dailyDischargeKwh, 25.0));
+    assert(value.pcsStatusCode == 3U);
+    assert(value.extendedTelemetryValid);
     assert(value.controlReady);
 
     assert(driver.writePowerSetpointKw(-25.4));
@@ -194,6 +235,18 @@ void testSunStorageDriver() {
     assert(driver.refreshHeartbeat(60));
     assert(modbus.holding[R::HeartbeatEnable] == 1);
     assert(modbus.holding[R::HeartbeatSeconds] == 60);
+    assert(driver.writeSocLimitsPct(15.0, 85.0));
+    assert(modbus.holding[R::PcsSocLowerLimit] == 15U);
+    assert(modbus.holding[R::PcsSocUpperLimit] == 85U);
+    assert(!driver.writeSocLimitsPct(90.0, 80.0));
+    assert(driver.writePowerState(false));
+    assert(modbus.holding[R::PcsPowerCommand] == 0U);
+    assert(modbus.holding[R::PcsPowerOn] == 0U);
+    assert(modbus.writeLog[modbus.writeLog.size() - 2U].first ==
+           R::PcsPowerCommand);
+    assert(modbus.writeLog.back().first == R::PcsPowerOn);
+    modbus.holding[R::PcsPowerOn] = 1U;
+    assert(driver.writePowerState(true));
 
     assert(!driver.writePowerSetpointKw(120.1));
     assert(!driver.writePowerSetpointKw(-100.1));

@@ -21,6 +21,11 @@ The OT interface must not have a default gateway. Linux IP forwarding remains di
 
 The service exposes the normalized Modbus TCP map on port `1502`, unit ID `1`. OpenRemote must write requested power and enable first, then increment `command.sequence` last. It refreshes `command.ems_heartbeat` at least every 10 seconds; if neither heartbeat nor sequence changes within the 15-second Edge timeout, the applied command becomes `0 kW`.
 
+Holding registers 4-10 form a separate operator-only transaction. OpenRemote
+writes the action mask and requested values, apply key `0xA55A`, then increments
+operator sequence last. Result code and processed sequence are returned in
+input registers 26-27. This path is not writable by the automatic strategy.
+
 Bind `GRIDEX_NORTHBOUND_BIND` to the management/WAN interface in production and restrict port `1502` in the firewall to the OpenRemote server. Never expose vendor port `3200` outside the isolated OT interface.
 
 Нодовете са в input-register слотове с начало `0x0100`, 16 регистъра на нод и
@@ -36,6 +41,11 @@ cmake --build build-rockpie
 ~~~
 
 For the first bench run leave all `GRIDEX_APPROVE_*` values at zero. This permits telemetry reads but locks heartbeat and power writes until direct addressing, sign and scale are verified against the real cabinet. The manufacturer confirmation is recorded, but the on-site readback and limited-power test are still mandatory.
+
+`GRIDEX_APPROVE_INT32_WORD_ORDER` affects only validity of accumulated-energy
+telemetry from registers 122-125. The vendor table declares Int32 but does not
+specify the two-word order, so this flag remains zero until a meter comparison
+confirms `GRIDEX_INT32_HIGH_WORD_FIRST` for the real cabinet.
 
 ## Safe-state
 

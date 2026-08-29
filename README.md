@@ -30,6 +30,10 @@
 - Непрекъснат MBUS polling service за до 32 meter/EVSE/inverter/BMS нода по RS485.
 - По 16 нормализирани input регистъра за всеки нод от адрес `0x0100` нагоре.
 - Независима директна MQTTS телеметрия от ESP32 нодовете към private-cloud OpenRemote.
+- Разширена STE-261L телеметрия: PCS status, DC/reactive power, setpoint,
+  frequency, accumulated/daily charge-discharge energy и alarm summary.
+- Защитен operator-only канал за start/stop, reactive power и SOC limits с
+  apply key, отделен sequence и result code.
 
 ## Комуникационни пътища
 
