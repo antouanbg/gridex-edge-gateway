@@ -1,5 +1,7 @@
 # ROCK Pi E base module
 
+## English
+
 Linux/ARM64 executable for the GrideX base module.
 
 ## Interfaces
@@ -8,10 +10,10 @@ Linux/ARM64 executable for the GrideX base module.
 - 100 MbE / WAN: OpenRemote, IBEX, VPN, NTP and updates.
 - UART plus isolated transceiver: RS485 MBUS backbone to T-CAN485 nodes.
 
-`gridex-rockpie-service` включва постоянен polling worker. Той обхожда адресите
-от `GRIDEX_MBUS_NODE_ADDRESSES` през интервала `GRIDEX_MBUS_POLL_MS`, чете
-identity и telemetry блоковете и ги публикува в нормализираната карта. Един
-неотговарящ нод не прекъсва обхождането на останалите.
+`gridex-rockpie-service` includes a continuous polling worker. It scans the
+addresses in `GRIDEX_MBUS_NODE_ADDRESSES` at the `GRIDEX_MBUS_POLL_MS` interval,
+reads the identity and telemetry blocks and publishes them into the normalized
+map. One non-responsive node does not interrupt polling of the other nodes.
 
 The OT interface must not have a default gateway. Linux IP forwarding remains disabled and the firewall blocks forwarding between OT and WAN.
 
@@ -28,10 +30,10 @@ input registers 26-27. This path is not writable by the automatic strategy.
 
 Bind `GRIDEX_NORTHBOUND_BIND` to the management/WAN interface in production and restrict port `1502` in the firewall to the OpenRemote server. Never expose vendor port `3200` outside the isolated OT interface.
 
-Нодовете са в input-register слотове с начало `0x0100`, 16 регистъра на нод и
-до 32 нода. Слотът съдържа online, MBUS address, node type/state, driver ID,
-quality, heartbeat, power, energy, device state, alarms, age и дали директната
-MQTTS връзка на нода е активна.
+Nodes occupy input-register slots starting at `0x0100`, with 16 registers per
+node and support for up to 32 nodes. A slot contains online state, MBUS address,
+node type/state, driver ID, quality, heartbeat, power, energy, device state,
+alarms, data age and direct-MQTTS connection state.
 
 ## Build
 
@@ -50,3 +52,46 @@ confirms `GRIDEX_INT32_HIGH_WORD_FIRST` for the real cabinet.
 ## Safe-state
 
 Heartbeat registers 5301/5302 are refreshed locally only after commissioning approval. If Linux, the service or the OT link fails, the cabinet's own heartbeat timeout returns PCS power to zero. The strategy/cloud path is not part of this safety chain.
+
+---
+
+## Български
+
+Linux/ARM64 изпълним модул за базовото GrideX устройство.
+
+### Интерфейси
+
+- GbE / OT: статична мрежа към STE-261L, Modbus TCP порт 3200, unit ID 1.
+- 100 MbE / WAN: OpenRemote, IBEX, VPN, NTP и обновявания.
+- UART плюс изолиран трансивър: RS485 MBUS гръбнак към T-CAN485 нодовете.
+
+`gridex-rockpie-service` включва постоянен polling worker. Той обхожда адресите от `GRIDEX_MBUS_NODE_ADDRESSES` през интервала `GRIDEX_MBUS_POLL_MS`, чете identity и telemetry блоковете и ги публикува в нормализираната карта. Един неотговарящ нод не прекъсва обхождането на останалите.
+
+OT интерфейсът няма default gateway. Linux IP forwarding е изключен, а firewall-ът блокира препращането между OT и WAN.
+
+`GRIDEX_MAX_CHARGE_KW` и `GRIDEX_MAX_DISCHARGE_KW` са опционални операторски лимити. Те могат само да намалят текущите BMS лимити от регистри 127/128; празни стойности използват BMS лимитите без промяна.
+
+### Northbound endpoint към OpenRemote
+
+Услугата предоставя нормализираната Modbus TCP карта на порт `1502`, unit ID `1`. OpenRemote първо записва желаната мощност и enable, след което увеличава `command.sequence`. `command.ems_heartbeat` се обновява поне на 10 секунди; ако heartbeat или sequence не се променят в рамките на 15 секунди, приложената команда става `0 kW`.
+
+Holding регистри 4–10 образуват отделна operator-only транзакция. OpenRemote записва action mask и стойностите, apply key `0xA55A`, след което увеличава operator sequence. Result code и обработената sequence стойност се връщат в input регистри 26–27. Автоматичната стратегия няма право да записва по този път.
+
+В production `GRIDEX_NORTHBOUND_BIND` се свързва с management/WAN интерфейса, а firewall-ът допуска порт `1502` само от OpenRemote сървъра. Vendor порт `3200` никога не се публикува извън изолирания OT интерфейс.
+
+Нодовете са в input-register слотове от `0x0100`, по 16 регистъра на нод и до 32 нода. Слотът съдържа online състояние, MBUS адрес, node type/state, driver ID, quality, heartbeat, power, energy, device state, alarms, възраст на данните и състояние на директната MQTTS връзка.
+
+### Компилиране
+
+~~~bash
+cmake -S base-rockpie -B build-rockpie
+cmake --build build-rockpie
+~~~
+
+При първия стендов тест всички `GRIDEX_APPROVE_*` стойности остават нула. Това позволява telemetry reads, но заключва heartbeat и power writes, докато адресиране, знак и мащаб не бъдат потвърдени върху реалния шкаф.
+
+`GRIDEX_APPROVE_INT32_WORD_ORDER` влияе само върху валидността на accumulated-energy телеметрията от регистри 122–125. Производителската таблица посочва Int32, но не и реда на двете думи; флагът остава нула до сравнение с реален електромер.
+
+### Безопасно състояние
+
+Heartbeat регистрите 5301/5302 се обновяват локално само след commissioning approval. При отказ на Linux, услугата или OT връзката, собственият heartbeat timeout на шкафа връща PCS мощността към нула. Стратегията и облакът не са част от тази защитна верига.
