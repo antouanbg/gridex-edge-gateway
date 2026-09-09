@@ -142,6 +142,38 @@ NorthboundRegisterBank::takeOperatorCommand() {
     };
 }
 
+std::optional<NorthboundNodeCommand>
+NorthboundRegisterBank::takeNodeCommand() {
+    std::scoped_lock lock(mutex_);
+    const auto sequence = holding_[
+        northbound::holding::NodeCommandSequence
+    ];
+    if (nodeCommandObserved_ && sequence == lastNodeCommandSequence_) {
+        return std::nullopt;
+    }
+    nodeCommandObserved_ = true;
+    lastNodeCommandSequence_ = sequence;
+    const auto rawPower = static_cast<std::int16_t>(
+        holding_[northbound::holding::NodeRequestedPowerKwX10]
+    );
+    return NorthboundNodeCommand{
+        .sequence = sequence,
+        .targetSlot = holding_[
+            northbound::holding::NodeCommandTargetSlot
+        ],
+        .requestedPowerKw = static_cast<double>(rawPower) / 10.0,
+        .ttlSeconds = holding_[
+            northbound::holding::NodeCommandTtlSeconds
+        ],
+        .enabled = holding_[
+            northbound::holding::NodeCommandEnable
+        ] == 1U,
+        .authorized = holding_[
+            northbound::holding::NodeCommandApplyKey
+        ] == northbound::OperatorApplyKeyValue,
+    };
+}
+
 void NorthboundRegisterBank::publishOperatorResult(
     std::uint16_t sequence,
     std::uint16_t result

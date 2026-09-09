@@ -30,6 +30,15 @@ struct NorthboundOperatorCommand {
     bool authorized{false};
 };
 
+struct NorthboundNodeCommand {
+    std::uint16_t sequence{};
+    std::size_t targetSlot{};
+    double requestedPowerKw{};
+    std::uint16_t ttlSeconds{};
+    bool enabled{false};
+    bool authorized{false};
+};
+
 class NorthboundRegisterBank {
 public:
     [[nodiscard]] std::optional<std::vector<std::uint16_t>> readHolding(
@@ -47,6 +56,7 @@ public:
     [[nodiscard]] std::optional<NorthboundCommand> takeCommand();
     [[nodiscard]] std::optional<NorthboundOperatorCommand>
         takeOperatorCommand();
+    [[nodiscard]] std::optional<NorthboundNodeCommand> takeNodeCommand();
     void publishOperatorResult(std::uint16_t sequence, std::uint16_t result);
     void publish(
         const ControllerSnapshot& snapshot,
@@ -63,6 +73,8 @@ private:
     std::uint16_t lastHeartbeat_{};
     bool operatorCommandObserved_{true};
     std::uint16_t lastOperatorSequence_{};
+    bool nodeCommandObserved_{true};
+    std::uint16_t lastNodeCommandSequence_{};
 };
 
 }  // namespace gridex::rockpie

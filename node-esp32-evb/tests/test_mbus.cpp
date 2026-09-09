@@ -74,6 +74,6 @@ int main() {
     testIdentityRead();
     testConfigurationWrite();
     testCrcAndAddressRejection();
-    std::cout << "All GrideX MBUS node tests passed.\n";
+    std::cout << "All GrideX ESP32-EVB MBUS map tests passed.\n";
     return 0;
 }

@@ -18,6 +18,7 @@ struct NodeConfig {
 
 class MbusNode {
 public:
+    // Canonical MBUS register map; transported over local Modbus TCP.
     explicit MbusNode(NodeConfig config);
 
     [[nodiscard]] std::vector<std::uint8_t> processFrame(

@@ -10,10 +10,8 @@
 
 namespace gridex::mbus {
 
-struct OpenRemoteMqttConfig {
+struct MqttTelemetryConfig {
     bool enabled{false};
-    String wifiSsid;
-    String wifiPassword;
     String host;
     std::uint16_t port{8883};
     String realm{"master"};
@@ -24,9 +22,9 @@ struct OpenRemoteMqttConfig {
     String caCertificate;
 };
 
-class OpenRemoteMqttService {
+class MqttTelemetryService {
 public:
-    explicit OpenRemoteMqttService(OpenRemoteMqttConfig config);
+    explicit MqttTelemetryService(MqttTelemetryConfig config);
 
     bool begin();
     void loop();
@@ -34,7 +32,7 @@ public:
     [[nodiscard]] bool connected();
 
 private:
-    OpenRemoteMqttConfig config_;
+    MqttTelemetryConfig config_;
     WiFiClientSecure tls_;
     PubSubClient mqtt_;
     unsigned long nextReconnectMs_{0};

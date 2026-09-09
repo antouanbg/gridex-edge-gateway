@@ -1,53 +1,48 @@
-# Firmware architecture
+# Edge architecture V2
 
-~~~text
-OpenRemote / strategy service (WAN)
-          |
-          v
-ROCK Pi E northbound Modbus TCP :1502 (stable canonical map)
-          |
-          v
-Command arbiter + EMS timeout
-          |
-          v
-Safety envelope
-  - BMS charge/discharge limits
-  - charge/discharge prohibit bits
-  - software fuse / PCC headroom
-  - ramp and SOC rules (next increment)
-          |
-          v
-Transport and driver boundary
-  - GbE/OT: SunStorage Pro 261 / STE-261L driver on ROCK Pi E
-  - RS485/MBUS: canonical register map from T-CAN485 nodes
-          |
-          v
-Dual Ethernet + isolated RS485 HAL
-~~~
+## English
 
-STE-261L е директен TCP driver в базовия модул, защото кабинетът е в OT Ethernet мрежата. Марковата специфика на RS485 периферията живее само в T-CAN485 нодовете. ROCK Pi E вижда всички нодове през една канонична MBUS карта и не знае марката на електромера/зарядното.
+```text
+OpenRemote / GrideX backend
+       |
+       | CONTROL over site-router WireGuard
+       v
+ROCK Pi E northbound Modbus TCP :1502
+       |
+       +-- local strategy arbiter + software fuse + BMS envelope
+       |
+       +-- direct Modbus TCP :3200 -> Suntech STE-261L
+       |
+       +-- isolated OT Ethernet -> ESP32-EVB node :1502
+                                    |
+                                    +-- onboard CAN -> one device
+                                    \-- isolated UEXT RS485 -> one device
 
-## Physical data paths
+ESP32-EVB telemetry -> Ethernet -> site-router WireGuard
+                    -> VPN-only MQTT :8883 -> OpenRemote
+```
 
-~~~text
-                         WAN / Internet
-OpenRemote + IBEX <---- 100 MbE
-                           |
-                    +------v-------+
-                    |  ROCK Pi E   |
-                    |  RK3328      |
-                    +--+--------+--+
-        GbE / OT -------+        +------ isolated RS485-A / 12 V MBUS
-             |                             |       |       |
-        STE-261L:3200                 inverter   EVSE   meter node
-                                         |
-                                  isolated RS485-B
-                                         |
-                                  concrete inverter
-~~~
+The browser never reaches OpenRemote or Edge directly. ROCK Pi E and ESP32 do
+not run WireGuard; the site router owns the site's unique peer. CONTROL and
+TELEMETRY are separated, there is no site-to-site routing, and the OT/BESS
+network has no direct backend route.
 
-Route policy: default route exists only on WAN. The OT interface has a static address and a connected route only. Firewall rules reject forwarding between WAN and OT; the local gateway service is the only allowed application path.
+The ROCK Pi E polls every node's canonical map over Ethernet. Vendor mapping
+stays in the compiled node driver. Cloud MQTT is telemetry-only. Device
+commands use the deterministic ROCK Pi E path, a per-node sequence, a short TTL
+and zero-power fallback.
 
-OpenRemote never reaches STE-261L port `3200`. It reads normalized input registers and writes command registers only through Edge port `1502`. The command remains alive when `ems_heartbeat` changes within 15 seconds; an expired heartbeat forces the controller to request `0 kW` while the independent vendor heartbeat remains under local Edge control.
+## Български
 
-Each node exposes `node_type` plus `driver_id`. `driver_id` is not a generic vendor selector: it binds manufacturer, exact model, protocol revision, serial profile, register map, sign convention and scaling. A driver mismatch keeps the downstream write path locked.
+ROCK Pi E получава команди от OpenRemote през WireGuard тунела на site router-а,
+прилага локалния safety envelope и ги изпраща по изолиран OT Ethernet към
+конкретния ESP32-EVB. Нодът превежда към вградения CAN или към външен изолиран
+RS485 трансивър.
+
+Телеметрията се публикува директно от нода към VPN-only MQTT. Няма MQTT
+команди, WireGuard върху ROCK Pi/ESP32, site-to-site routing или директен route
+от backend към OT/BESS мрежата.
+
+Всеки нод има един компилиран driver_id за един тип, бранд, модел и ревизия.
+Командата е валидна само при правилен source, sequence и TTL; след timeout
+изходът става 0 kW.

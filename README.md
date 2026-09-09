@@ -2,142 +2,86 @@
 
 ## English
 
-Standalone Edge project separated from the OpenRemote backend and the customer interface. Rev A hardware: Radxa ROCK Pi E with LilyGo T-CAN485 nodes.
+Open-source Edge runtime for industrial sites. The selected architecture uses
+one Radxa ROCK Pi E controller and OLIMEX ESP32-EVB nodes connected by isolated
+OT Ethernet.
 
-The project is open source under the MIT License.
-
-### Two independent builds
-
-| Project | Platform | Role |
+| Build | Platform | Role |
 |---|---|---|
-| `base-rockpie/` | Linux ARM64 / RK3328 | STE-261L Modbus TCP, heartbeat, safety envelope, WAN/OT separation and MBUS master |
-| `node-tcan485/` | ESP32 / PlatformIO | Modbus RTU server, UID/addressing, canonical map and vendor driver |
+| `base-rockpie/` | Linux ARM64 / RK3328 | Safety controller, STE-261L driver, node polling and command routing |
+| `node-esp32-evb/` | ESP32 / PlatformIO | One device-specific CAN or RS485 driver, direct MQTT telemetry and local Ethernet control |
 
-The shared C++20 safety/STE core remains in `include/` and `src/` and is used by the Linux build.
+Production nodes use ESP32-EVB-EA-IND. The ordinary ESP32-EVB is a lab option.
+The board has Ethernet and CAN; the RS485 profile adds an external galvanically
+isolated UEXT/UART transceiver.
 
-### Implemented
-
-- Device-driver interface for Modbus equipment.
-- Initial SunStorage Pro 261 / STE-261L driver.
-- PCS power, SOC, SOH, current, voltage, BMS state and dynamic-limit reads.
-- Local PCS heartbeat on registers 5301/5302.
-- Safety envelope with BMS clamping.
-- A second independent clamp in the vendor driver rejects any direct command above the latest valid BMS limits.
-- Optional site/PCS charge and discharge caps that may only reduce the BMS envelope.
-- Software fuse based on site load and contracted power.
-- Safe mode after loss of the EMS command.
-- Commissioning lock: no vendor write before address, sign and scaling are confirmed.
-- Canonical northbound register contract for OpenRemote.
-- Working Modbus TCP northbound server on port `1502` with FC03/04/06/16, command sequencing and EMS heartbeat.
-- Continuous MBUS polling for up to 32 meter/EVSE/inverter/BMS nodes over RS485.
-- Sixteen normalized input registers per node starting at address `0x0100`.
-- Independent direct MQTTS telemetry from ESP32 nodes to private-cloud OpenRemote.
-- Extended STE-261L telemetry: PCS state, DC/reactive power, setpoint, frequency, accumulated/daily charge-discharge energy and alarm summary.
-- Protected operator-only channel for start/stop, reactive power and SOC limits, using an apply key, separate sequence and result code.
-
-### Communication paths
+### Data paths
 
 ```text
-Device <- Modbus RTU -> ESP32 node <- RS485 MBUS -> ROCK Pi E
-                                \- MQTTS 8883 -> OpenRemote private cloud
+TELEMETRY
+CAN/RS485 device -> ESP32-EVB -> Ethernet -> site router WireGuard
+                 -> VPN-only MQTT 8883 -> OpenRemote
 
-OpenRemote -> Modbus TCP 1502 -> ROCK Pi E -> safety/driver -> device
+CONTROL
+OpenRemote -> site router WireGuard -> ROCK Pi E -> OT Ethernet
+           -> ESP32-EVB Modbus TCP 1502 -> CAN/isolated RS485 -> device
+
+DIRECT BESS
+ROCK Pi E -> OT Ethernet -> Suntech STE-261L Modbus TCP 3200
 ```
 
-The RS485 path never depends on the internet and is mandatory for local protection, software fuse and control. The MQTTS path is for direct telemetry only; ESP32 nodes do not accept cloud commands.
+ROCK Pi E and ESP32 do not run WireGuard. They use the site router tunnel.
+There is no public MQTT listener, no direct cloud route to the OT/BESS network
+and no MQTT command subscription on the node. Every node contains one compiled
+driver for one device type, brand, model and protocol revision.
 
-### Core build and tests
+Implemented safety includes live BMS limit clamping, software fuse, EMS
+command timeout, local Suntech heartbeat, commissioning write lock, a second
+driver-side clamp, per-node command sequence/TTL and zero-power fallback.
 
-~~~bash
+### Build and tests
+
+```bash
 cmake -S . -B build
 cmake --build build
 ctest --test-dir build --output-on-failure
-~~~
 
-The core library has no external dependencies. After the hardware is selected:
+cmake -S base-rockpie -B build-rockpie
+cmake --build build-rockpie
+ctest --test-dir build-rockpie --output-on-failure
 
-1. `base-rockpie` provides the POSIX Modbus TCP transport and systemd service.
-2. `node-tcan485` provides standalone ESP32 firmware and host-side MBUS protocol tests.
-3. Exact meter/EVSE register maps are added only after their protocol documents are received and validated.
+cd node-esp32-evb
+pio run -e esp32-evb-can
+pio run -e esp32-evb-rs485
+```
 
-### Power sign
-
-In GrideX, positive power means battery discharge and negative power means charge. The manufacturer confirmed the sign and ×10 coefficient; a limited commissioning test on the real cabinet remains mandatory before commands are unlocked.
-
-### Source protocol
-
-The initial mapping is derived from *All-in-one liquid-cooled cabinet BCQ controller Modbus communication*, STE-261L, version 2.0, dated 2025-09-08. Vendor addresses are stored in `config/sunstorage-pro-261.yaml`; the northbound map remains separate and stable.
-
----
+The Suntech SunStorage Pro 261 / STE-261L map is manufacturer-confirmed. Other
+drivers remain read-only or reference status until their exact hardware and
+write behavior pass bench commissioning.
 
 ## Български
 
-Самостоятелен Edge проект, отделен от OpenRemote backend и клиентския интерфейс. Хардуер Rev A: Radxa ROCK Pi E + LilyGo T-CAN485 нодове.
+Това е open-source Edge runtime за индустриални обекти. Избраната архитектура
+използва един Radxa ROCK Pi E контролер и OLIMEX ESP32-EVB нодове, свързани по
+изолирана OT Ethernet мрежа.
 
-Проектът е open source и се разпространява под MIT License.
+- `base-rockpie/` съдържа Linux услугата, safety логиката, драйвера за
+  STE-261L, polling-а на нодовете и маршрутирането на команди.
+- `node-esp32-evb/` съдържа firmware за един конкретен CAN или RS485 продукт,
+  директна MQTT телеметрия и локален Modbus TCP control endpoint.
 
-## Два независими build-а
+Производственият нод е ESP32-EVB-EA-IND; стандартният ESP32-EVB е за лаборатория.
+Платката има Ethernet и CAN. RS485 вариантът добавя външен галванично изолиран
+UEXT/UART трансивър.
 
-| Проект | Платформа | Роля |
-|---|---|---|
-| `base-rockpie/` | Linux ARM64 / RK3328 | STE-261L Modbus TCP, heartbeat, safety envelope, WAN/OT separation и MBUS master |
-| `node-tcan485/` | ESP32 / PlatformIO | Modbus RTU server, UID/addressing, канонична карта и vendor driver |
+Телеметрията отива директно от нода по MQTT/TLS през WireGuard тунела на site
+router-а. Командите идват през ROCK Pi E и вътрешната Ethernet мрежа. ROCK Pi E
+и ESP32 нямат WireGuard, OT/BESS мрежата не се route-ва към backend, публичен
+MQTT не се използва и ESP32 не приема MQTT команди.
 
-Общият C++20 safety/STE core остава в `include/` и `src/` и се използва от Linux build-а.
+Всеки нод се компилира за точно един тип, бранд, модел и протоколна ревизия.
+При отпадане на командния TTL нодът подава 0 kW. Локалните BMS лимити,
+software fuse, commissioning lock и heartbeat защитите не могат да бъдат
+заобиколени от облачната стратегия.
 
-## Реализирано
-
-- Device driver interface за Modbus устройства.
-- Първи драйвер за SunStorage Pro 261 / STE-261L.
-- Четене на PCS мощност, SOC, SOH, ток, напрежение, BMS статус и динамични лимити.
-- Локален PCS heartbeat на регистри 5301/5302.
-- Safety envelope с BMS clamp.
-- Втори независим clamp в vendor драйвера: директна команда над последните валидни BMS лимити се отказва.
-- Опционални site/PCS caps за заряд и разряд, които могат само да намалят BMS envelope-а.
-- Software fuse спрямо товар на обекта и договорен лимит.
-- Safe mode при загуба на EMS команда.
-- Commissioning lock: няма vendor write преди потвърдени address/sign/scale.
-- Каноничен northbound регистров договор към OpenRemote.
-- Работещ Modbus TCP northbound server на порт `1502` с FC03/04/06/16, command sequence и EMS heartbeat.
-- Непрекъснат MBUS polling service за до 32 meter/EVSE/inverter/BMS нода по RS485.
-- По 16 нормализирани input регистъра за всеки нод от адрес `0x0100` нагоре.
-- Независима директна MQTTS телеметрия от ESP32 нодовете към private-cloud OpenRemote.
-- Разширена STE-261L телеметрия: PCS status, DC/reactive power, setpoint,
-  frequency, accumulated/daily charge-discharge energy и alarm summary.
-- Защитен operator-only канал за start/stop, reactive power и SOC limits с
-  apply key, отделен sequence и result code.
-
-## Комуникационни пътища
-
-```text
-Устройство <- Modbus RTU -> ESP32 node <- RS485 MBUS -> ROCK Pi E
-                                  \- MQTTS 8883 -> OpenRemote private cloud
-
-OpenRemote -> Modbus TCP 1502 -> ROCK Pi E -> safety/driver -> устройство
-```
-
-RS485 пътят никога не зависи от интернет и е задължителен за локални защити,
-software fuse и управление. MQTTS пътят е само за директна телеметрия; облачни
-команди не се приемат от ESP32 нода.
-
-## Core build и тестове
-
-~~~bash
-cmake -S . -B build
-cmake --build build
-ctest --test-dir build --output-on-failure
-~~~
-
-Core библиотеката няма външни зависимости. След избор на хардуер се добавят:
-
-1. `base-rockpie` предоставя POSIX Modbus TCP transport и systemd service.
-2. `node-tcan485` предоставя самостоятелен ESP32 firmware и host тестове на MBUS протокола.
-3. Конкретните meter/EVSE register maps се добавят след получаване и валидиране на протоколите на устройствата.
-
-## Power sign
-
-В GrideX положителна мощност означава разряд от батерията, отрицателна означава заряд. Производителят потвърди знака и коефициента ×10; на реалния шкаф остава задължителен ограничен commissioning тест преди отключване на командите.
-
-## Source protocol
-
-Началният mapping е извлечен от All-in-one liquid-cooled cabinet BCQ controller Modbus communication, STE-261L, version 2.0, date 2025-09-08. Vendor адресите се пазят в config/sunstorage-pro-261.yaml; northbound картата е отделна и стабилна.
+Лиценз: MIT.

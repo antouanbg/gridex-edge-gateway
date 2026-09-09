@@ -4,7 +4,7 @@
 
 namespace gridex::northbound {
 
-inline constexpr std::uint16_t HoldingRegisterCount = 11;
+inline constexpr std::uint16_t HoldingRegisterCount = 17;
 inline constexpr std::uint16_t OperatorApplyKeyValue = 0xA55A;
 inline constexpr std::uint16_t NodeSlotBase = 0x0100;
 inline constexpr std::uint16_t NodeSlotStride = 16;
@@ -25,6 +25,12 @@ inline constexpr std::uint16_t RequestedReactivePowerKvarX10 = 7;
 inline constexpr std::uint16_t RequestedSocUpperPct = 8;
 inline constexpr std::uint16_t RequestedSocLowerPct = 9;
 inline constexpr std::uint16_t OperatorApplyKey = 10;
+inline constexpr std::uint16_t NodeCommandSequence = 11;
+inline constexpr std::uint16_t NodeCommandTargetSlot = 12;
+inline constexpr std::uint16_t NodeRequestedPowerKwX10 = 13;
+inline constexpr std::uint16_t NodeCommandEnable = 14;
+inline constexpr std::uint16_t NodeCommandTtlSeconds = 15;
+inline constexpr std::uint16_t NodeCommandApplyKey = 16;
 }  // namespace holding
 
 namespace action {

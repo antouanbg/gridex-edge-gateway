@@ -5,8 +5,8 @@
 
 namespace gridex::mbus {
 
-// Vendor drivers use this second, electrically separate RS485 channel.
-// The onboard T-CAN485 transceiver remains dedicated to upstream MBUS.
+// Vendor drivers use the optional isolated UEXT/UART RS485 transceiver.
+// The canonical northbound path to ROCK Pi E is Ethernet, not this bus.
 class IDownstreamModbusClient {
 public:
     virtual ~IDownstreamModbusClient() = default;

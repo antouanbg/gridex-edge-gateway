@@ -1,18 +1,17 @@
 #ifdef ARDUINO
 
-#include "gridex/mbus/OpenRemoteMqttService.hpp"
+#include "gridex/mbus/MqttTelemetryService.hpp"
 
-#include <WiFi.h>
+#include <ETH.h>
 #include <utility>
 
 namespace gridex::mbus {
 
-OpenRemoteMqttService::OpenRemoteMqttService(OpenRemoteMqttConfig config)
+MqttTelemetryService::MqttTelemetryService(MqttTelemetryConfig config)
     : config_(std::move(config)), mqtt_(tls_) {}
 
-bool OpenRemoteMqttService::begin() {
-    if (!config_.enabled || config_.wifiSsid.isEmpty() ||
-        config_.host.isEmpty() || config_.serviceUser.isEmpty() ||
+bool MqttTelemetryService::begin() {
+    if (!config_.enabled || config_.host.isEmpty() || config_.serviceUser.isEmpty() ||
         config_.serviceSecret.isEmpty() || config_.clientId.isEmpty() ||
         config_.assetId.isEmpty() || config_.caCertificate.isEmpty()) {
         return false;
@@ -22,19 +21,17 @@ bool OpenRemoteMqttService::begin() {
     mqtt_.setBufferSize(512U);
     mqtt_.setKeepAlive(30U);
     mqtt_.setSocketTimeout(5U);
-    WiFi.mode(WIFI_STA);
-    WiFi.begin(config_.wifiSsid.c_str(), config_.wifiPassword.c_str());
     active_ = true;
     return true;
 }
 
-String OpenRemoteMqttService::topic(const char* attribute) const {
+String MqttTelemetryService::topic(const char* attribute) const {
     return config_.realm + "/" + config_.clientId +
            "/writeattributevalue/" + attribute + "/" + config_.assetId;
 }
 
-bool OpenRemoteMqttService::connectMqtt() {
-    if (WiFi.status() != WL_CONNECTED) return false;
+bool MqttTelemetryService::connectMqtt() {
+    if (!ETH.linkUp()) return false;
     String username = config_.serviceUser;
     if (username.indexOf(':') < 0) {
         username = config_.realm + ":" + username;
@@ -53,16 +50,9 @@ bool OpenRemoteMqttService::connectMqtt() {
     return ok;
 }
 
-void OpenRemoteMqttService::loop() {
+void MqttTelemetryService::loop() {
     if (!active_) return;
-    if (WiFi.status() != WL_CONNECTED) {
-        if (millis() >= nextReconnectMs_) {
-            WiFi.disconnect();
-            WiFi.begin(config_.wifiSsid.c_str(), config_.wifiPassword.c_str());
-            nextReconnectMs_ = millis() + 5000U;
-        }
-        return;
-    }
+    if (!ETH.linkUp()) return;
     if (!mqtt_.connected()) {
         if (millis() >= nextReconnectMs_) {
             connectMqtt();
@@ -73,7 +63,7 @@ void OpenRemoteMqttService::loop() {
     mqtt_.loop();
 }
 
-bool OpenRemoteMqttService::publishValue(
+bool MqttTelemetryService::publishValue(
     const char* attribute,
     const String& value
 ) {
@@ -81,7 +71,7 @@ bool OpenRemoteMqttService::publishValue(
     return mqtt_.publish(target.c_str(), value.c_str(), false);
 }
 
-void OpenRemoteMqttService::publish(
+void MqttTelemetryService::publish(
     const DriverSample& sample,
     std::uint16_t heartbeat
 ) {
@@ -94,7 +84,7 @@ void OpenRemoteMqttService::publish(
     publishValue("heartbeat", String(heartbeat));
 }
 
-bool OpenRemoteMqttService::connected() {
+bool MqttTelemetryService::connected() {
     return active_ && mqtt_.connected();
 }
 

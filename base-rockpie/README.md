@@ -8,12 +8,12 @@ Linux/ARM64 executable for the GrideX base module.
 
 - GbE / OT: static network to STE-261L, Modbus TCP port 3200, unit ID 1.
 - 100 MbE / WAN: OpenRemote, IBEX, VPN, NTP and updates.
-- UART plus isolated transceiver: RS485 MBUS backbone to T-CAN485 nodes.
+- GbE / OT switch: Modbus TCP to each OLIMEX ESP32-EVB node.
 
-`gridex-rockpie-service` includes a continuous polling worker. It scans the
-addresses in `GRIDEX_MBUS_NODE_ADDRESSES` at the `GRIDEX_MBUS_POLL_MS` interval,
-reads the identity and telemetry blocks and publishes them into the normalized
-map. One non-responsive node does not interrupt polling of the other nodes.
+`gridex-rockpie-service` continuously polls the comma-separated
+`GRIDEX_NODE_ENDPOINTS` over OT Ethernet at `GRIDEX_NODE_POLL_MS`. It reads
+the canonical identity and telemetry blocks and publishes them into the
+northbound map. One non-responsive node does not interrupt the others.
 
 The OT interface must not have a default gateway. Linux IP forwarding remains disabled and the firewall blocks forwarding between OT and WAN.
 
@@ -35,6 +35,12 @@ node and support for up to 32 nodes. A slot contains online state, MBUS address,
 node type/state, driver ID, quality, heartbeat, power, energy, device state,
 alarms, data age and direct-MQTTS connection state.
 
+Holding registers 11–16 route a device command to one node slot. OpenRemote
+writes target slot, requested power, enable, TTL (1–30 seconds) and apply key,
+then changes the node-command sequence. ROCK Pi E forwards the complete command
+over OT Modbus TCP. The node accepts only the configured ROCK Pi E source and
+forces 0 kW when the TTL expires.
+
 ## Build
 
 ~~~bash
@@ -44,10 +50,9 @@ cmake --build build-rockpie
 
 For the first bench run leave all `GRIDEX_APPROVE_*` values at zero. This permits telemetry reads but locks heartbeat and power writes until direct addressing, sign and scale are verified against the real cabinet. The manufacturer confirmation is recorded, but the on-site readback and limited-power test are still mandatory.
 
-`GRIDEX_APPROVE_INT32_WORD_ORDER` affects only validity of accumulated-energy
-telemetry from registers 122-125. The vendor table declares Int32 but does not
-specify the two-word order, so this flag remains zero until a meter comparison
-confirms `GRIDEX_INT32_HIGH_WORD_FIRST` for the real cabinet.
+`GRIDEX_APPROVE_INT32_WORD_ORDER` unlocks accumulated-energy telemetry from
+registers 122–125 after the on-site check. The manufacturer confirmed ABCD /
+high-order word first and signed Int32 divided by 10.
 
 ## Safe-state
 
@@ -63,9 +68,11 @@ Linux/ARM64 изпълним модул за базовото GrideX устро�
 
 - GbE / OT: статична мрежа към STE-261L, Modbus TCP порт 3200, unit ID 1.
 - 100 MbE / WAN: OpenRemote, IBEX, VPN, NTP и обновявания.
-- UART плюс изолиран трансивър: RS485 MBUS гръбнак към T-CAN485 нодовете.
+- GbE / OT switch: Modbus TCP към всеки OLIMEX ESP32-EVB нод.
 
-`gridex-rockpie-service` включва постоянен polling worker. Той обхожда адресите от `GRIDEX_MBUS_NODE_ADDRESSES` през интервала `GRIDEX_MBUS_POLL_MS`, чете identity и telemetry блоковете и ги публикува в нормализираната карта. Един неотговарящ нод не прекъсва обхождането на останалите.
+`gridex-rockpie-service` обхожда постоянно endpoint-ите от
+`GRIDEX_NODE_ENDPOINTS` по OT Ethernet през `GRIDEX_NODE_POLL_MS`. Един
+неотговарящ нод не прекъсва останалите.
 
 OT интерфейсът няма default gateway. Linux IP forwarding е изключен, а firewall-ът блокира препращането между OT и WAN.
 
@@ -81,6 +88,10 @@ Holding регистри 4–10 образуват отделна operator-only 
 
 Нодовете са в input-register слотове от `0x0100`, по 16 регистъра на нод и до 32 нода. Слотът съдържа online състояние, MBUS адрес, node type/state, driver ID, quality, heartbeat, power, energy, device state, alarms, възраст на данните и състояние на директната MQTTS връзка.
 
+Holding регистри 11–16 маршрутизират команда към конкретен node slot.
+ROCK Pi E я препраща по OT Modbus TCP. Нодът допуска само конфигурирания
+ROCK Pi E и при изтичане на TTL връща командата към 0 kW.
+
 ### Компилиране
 
 ~~~bash
@@ -90,7 +101,9 @@ cmake --build build-rockpie
 
 При първия стендов тест всички `GRIDEX_APPROVE_*` стойности остават нула. Това позволява telemetry reads, но заключва heartbeat и power writes, докато адресиране, знак и мащаб не бъдат потвърдени върху реалния шкаф.
 
-`GRIDEX_APPROVE_INT32_WORD_ORDER` влияе само върху валидността на accumulated-energy телеметрията от регистри 122–125. Производителската таблица посочва Int32, но не и реда на двете думи; флагът остава нула до сравнение с реален електромер.
+`GRIDEX_APPROVE_INT32_WORD_ORDER` отключва accumulated-energy телеметрията от
+регистри 122–125 след проверка на място. Производителят потвърди ABCD /
+high-order word first и signed Int32 ÷10.
 
 ### Безопасно състояние
 

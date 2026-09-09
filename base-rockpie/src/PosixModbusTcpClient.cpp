@@ -217,4 +217,60 @@ bool PosixModbusTcpClient::writeHolding(
            readU16(response->data() + 3) == value;
 }
 
+std::optional<std::vector<std::uint16_t>>
+PosixModbusTcpClient::readHoldingRange(
+    std::uint16_t start,
+    std::uint16_t count
+) {
+    if (count == 0U || count > 125U) return std::nullopt;
+    std::scoped_lock lock(mutex_);
+    const std::vector<std::uint8_t> payload{
+        static_cast<std::uint8_t>(start >> 8U),
+        static_cast<std::uint8_t>(start),
+        static_cast<std::uint8_t>(count >> 8U),
+        static_cast<std::uint8_t>(count),
+    };
+    const auto response = transactLocked(0x03U, payload);
+    if (!response || response->size() != 2U + count * 2U ||
+        (*response)[0] != 0x03U || (*response)[1] != count * 2U) {
+        return std::nullopt;
+    }
+    std::vector<std::uint16_t> values;
+    values.reserve(count);
+    for (std::uint16_t index = 0; index < count; ++index) {
+        const auto offset = 2U + index * 2U;
+        values.push_back(static_cast<std::uint16_t>(
+            (static_cast<std::uint16_t>((*response)[offset]) << 8U) |
+            (*response)[offset + 1U]
+        ));
+    }
+    return values;
+}
+
+bool PosixModbusTcpClient::writeHoldingRange(
+    std::uint16_t start,
+    const std::vector<std::uint16_t>& values
+) {
+    if (values.empty() || values.size() > 123U) return false;
+    std::vector<std::uint8_t> payload{
+        static_cast<std::uint8_t>(start >> 8U),
+        static_cast<std::uint8_t>(start),
+        static_cast<std::uint8_t>(values.size() >> 8U),
+        static_cast<std::uint8_t>(values.size()),
+        static_cast<std::uint8_t>(values.size() * 2U),
+    };
+    for (const auto value : values) {
+        payload.push_back(static_cast<std::uint8_t>(value >> 8U));
+        payload.push_back(static_cast<std::uint8_t>(value));
+    }
+    std::scoped_lock lock(mutex_);
+    const auto response = transactLocked(0x10U, payload);
+    return response && response->size() == 5U &&
+           (*response)[0] == 0x10U &&
+           (*response)[1] == static_cast<std::uint8_t>(start >> 8U) &&
+           (*response)[2] == static_cast<std::uint8_t>(start) &&
+           (*response)[3] == static_cast<std::uint8_t>(values.size() >> 8U) &&
+           (*response)[4] == static_cast<std::uint8_t>(values.size());
+}
+
 }  // namespace gridex::rockpie

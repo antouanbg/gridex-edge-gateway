@@ -45,6 +45,9 @@ inline constexpr std::uint16_t ApplyConfiguration = 0x0013;
 inline constexpr std::uint16_t CommandSequence = 0x0014;
 inline constexpr std::uint16_t RequestedPowerKwX10 = 0x0015;
 inline constexpr std::uint16_t CommandEnable = 0x0016;
+inline constexpr std::uint16_t CommandTtlSeconds = 0x0017;
+inline constexpr std::uint16_t LastCommandResult = 0x0018;
+inline constexpr std::uint16_t AppliedPowerKwX10 = 0x0019;
 
 inline constexpr std::uint16_t ActualPowerKwX10 = 0x0040;
 inline constexpr std::uint16_t EnergyWhHigh = 0x0041;
@@ -56,7 +59,7 @@ inline constexpr std::uint16_t DriverSpecificStart = 0x0050;
 
 inline constexpr std::size_t HoldingCount = 0x0080;
 inline constexpr std::uint16_t MagicValue = 0x4758;  // GX
-inline constexpr std::uint16_t MapVersionValue = 0x0003;
+inline constexpr std::uint16_t MapVersionValue = 0x0004;
 inline constexpr std::uint16_t ApplyKey = 0xA55A;
 }  // namespace reg
 
