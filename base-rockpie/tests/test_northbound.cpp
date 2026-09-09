@@ -220,6 +220,27 @@ int main() {
     assert((*operatorResult)[0] == 7U);
     assert((*operatorResult)[1] == 1U);
 
+    const std::array<std::uint16_t, 6> nodeCommandFields{
+        9U,
+        2U,
+        static_cast<std::uint16_t>(static_cast<std::int16_t>(-155)),
+        1U,
+        10U,
+        gridex::northbound::OperatorApplyKeyValue,
+    };
+    assert(bank.writeHolding(
+        gridex::northbound::holding::NodeCommandSequence,
+        nodeCommandFields
+    ));
+    const auto nodeCommand = bank.takeNodeCommand();
+    assert(nodeCommand);
+    assert(nodeCommand->authorized);
+    assert(nodeCommand->targetSlot == 2U);
+    assert(nodeCommand->enabled);
+    assert(nodeCommand->requestedPowerKw == -15.5);
+    assert(nodeCommand->ttlSeconds == 10U);
+    assert(!bank.takeNodeCommand());
+
     constexpr std::uint16_t testPort = 21502;
     gridex::rockpie::NorthboundModbusTcpServer server(
         bank,

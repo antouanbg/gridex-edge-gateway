@@ -10,8 +10,9 @@ driver_id
   -> manufacturer
   -> exact model or model family with identical map
   -> protocol document and revision/date
-  -> RS485 baud/data/parity/stop
-  -> Modbus unit ID policy
+  -> device bus: CAN or isolated RS485
+  -> CAN bitrate/identifier/endianness or RS485 baud/data/parity/stop
+  -> Modbus unit ID policy when applicable
   -> register map, offset, scale, byte order and sign convention
   -> allowed write operations and commissioning evidence
 ~~~
@@ -46,6 +47,10 @@ serial:
   parity: REQUIRED
   stop_bits: REQUIRED
   unit_id: REQUIRED
+node:
+  hardware: olimex-esp32-evb-ea-ind
+  control_transport: modbus-tcp
+  telemetry_transport: mqtt-tls-vpn-only
 commissioning:
   read_mapping_confirmed: false
   write_mapping_confirmed: false

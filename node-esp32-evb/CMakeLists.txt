@@ -1,5 +1,5 @@
 cmake_minimum_required(VERSION 3.20)
-project(gridex_tcan485_protocol VERSION 0.1.0 LANGUAGES CXX)
+project(gridex_esp32_evb_protocol VERSION 0.2.0 LANGUAGES CXX)
 
 add_library(gridex_mbus_node src/MbusNode.cpp)
 target_include_directories(gridex_mbus_node PUBLIC include)
