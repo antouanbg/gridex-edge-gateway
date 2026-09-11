@@ -9,7 +9,7 @@ OT Ethernet.
 | Build | Platform | Role |
 |---|---|---|
 | `base-rockpie/` | Linux ARM64 / RK3328 | Safety controller, STE-261L driver, node polling and command routing |
-| `node-esp32-evb/` | ESP32 / PlatformIO | One device-specific CAN or RS485 driver, direct MQTT telemetry and local Ethernet control |
+| `node-esp32-evb/` | ESP32 / PlatformIO | One device-specific CAN or RS485 driver and local OT Ethernet / Modbus TCP endpoint |
 
 Production nodes use ESP32-EVB-EA-IND. The ordinary ESP32-EVB is a lab option.
 The board has Ethernet and CAN; the RS485 profile adds an external galvanically
@@ -19,13 +19,19 @@ isolated UEXT/UART transceiver.
 
 ```text
 TELEMETRY
-CAN/RS485 device -> ESP32-EVB -> OT Ethernet / Modbus TCP -> ROCK Pi E
-                -> site router WireGuard -> private MQTT -> backend
-                 -> VPN-only MQTT 8883 -> OpenRemote
+CAN/RS485 device -> ESP32-EVB -> OT Ethernet / Modbus TCP :1502 -> ROCK Pi E
+                -> Site Router WireGuard tunnel -> private MQTT broker
+                -> GrideX backend ingestion -> PostgreSQL -> OpenRemote Assets
 
 CONTROL
-OpenRemote -> site router WireGuard -> ROCK Pi E -> OT Ethernet
-           -> ESP32-EVB Modbus TCP 1502 -> CAN/isolated RS485 -> device
+OpenRemote Strategy/Control Asset -> Site Router WireGuard tunnel
+                                  -> ROCK Pi E northbound Modbus TCP :1502
+                                  -> OT Ethernet -> ESP32-EVB Modbus TCP :1502
+                                  -> CAN/isolated RS485 -> device
+
+NODE COMMAND (where a backend service uses MQTT)
+GrideX backend -> private MQTT broker -> Site Router WireGuard tunnel
+               -> ROCK Pi E command bridge -> OT Ethernet -> ESP32-EVB
 
 DIRECT BESS
 ROCK Pi E -> OT Ethernet -> Suntech STE-261L Modbus TCP 3200
@@ -34,9 +40,10 @@ ROCK Pi E -> OT Ethernet -> Suntech STE-261L Modbus TCP 3200
 ROCK Pi E and ESP32 do not run WireGuard. ROCK Pi E is the sole MQTT bridge for
 ESP32 node telemetry and broker commands; ESP32 nodes have no MQTT credentials
 in the default production profile.
-There is no public MQTT listener, no direct cloud route to the OT/BESS network
-and no MQTT command subscription on the node. Every node contains one compiled
-driver for one device type, brand, model and protocol revision.
+There is no public MQTT listener, direct ESP32-to-cloud telemetry path, direct
+cloud route to the OT/BESS network or MQTT command subscription on a node.
+Every node contains one compiled driver for one device type, brand, model and
+protocol revision.
 
 Implemented safety includes live BMS limit clamping, software fuse, EMS
 command timeout, local Suntech heartbeat, commissioning write lock, a second
@@ -70,19 +77,21 @@ write behavior pass bench commissioning.
 
 - `base-rockpie/` съдържа Linux услугата, safety логиката, драйвера за
   STE-261L, polling-а на нодовете и маршрутирането на команди.
-- `node-esp32-evb/` съдържа firmware за един конкретен CAN или RS485 продукт,
-  директна MQTT телеметрия и локален Modbus TCP control endpoint.
+- `node-esp32-evb/` съдържа firmware за един конкретен CAN или RS485 продукт
+  и локален OT Ethernet / Modbus TCP endpoint.
 
 Производственият нод е ESP32-EVB-EA-IND; стандартният ESP32-EVB е за лаборатория.
 Платката има Ethernet и CAN. RS485 вариантът добавя външен галванично изолиран
 UEXT/UART трансивър.
 
-Телеметрията отива директно от нода по MQTT/TLS през WireGuard тунела на site
-router-а. ROCK Pi E е единственият MQTT мост за ESP32 телеметрия и broker
-команди; нодовете нямат MQTT credentials в стандартния production профил.
-Командите минават през ROCK Pi E и вътрешната Ethernet мрежа. ROCK Pi E и ESP32
-нямат WireGuard, OT/BESS мрежата не се route-ва към backend, публичен MQTT не
-се използва и ESP32 не приема MQTT команди.
+Телеметрията преминава от нода през Modbus TCP в изолираната OT мрежа до ROCK
+Pi E. Само ROCK Pi E я публикува към private MQTT broker през WireGuard тунела
+на Site Router, откъдето backend ingestion услугата я записва в PostgreSQL и
+синхронизира нужните OpenRemote Assets. Нодовете нямат MQTT credentials в
+стандартния production профил. Командите минават през ROCK Pi E и вътрешната
+Ethernet мрежа. ROCK Pi E и ESP32 нямат WireGuard, OT/BESS мрежата не се
+route-ва към backend, публичен MQTT не се използва и ESP32 не приема MQTT
+команди.
 
 Всеки нод се компилира за точно един тип, бранд, модел и протоколна ревизия.
 При отпадане на командния TTL нодът подава 0 kW. Локалните BMS лимити,

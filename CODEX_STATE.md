@@ -1,7 +1,7 @@
 # Current task
 
-Implement the ROCK Pi MQTT bridge for ESP32 node telemetry and commands while
-keeping ESP32 nodes on internal OT Modbus TCP only.
+Correct the Edge data-path documentation to the VPN-only Site Router topology:
+ESP32 nodes use OT Modbus TCP to ROCK Pi; only ROCK Pi crosses to private MQTT.
 
 ## Completed
 
@@ -12,6 +12,8 @@ keeping ESP32 nodes on internal OT Modbus TCP only.
 - Compiled the ESP target and ran the host MBUS test successfully.
 - Added ROCK Pi node telemetry publishing and bounded MQTT command intake.
 - Disabled direct ESP MQTT by default and documented the MQTT topic contract.
+- Corrected Edge README and architecture diagrams to remove the obsolete direct
+  ESP32 MQTT and MQTT `8883` paths.
 
 ## Remaining
 
@@ -30,6 +32,8 @@ keeping ESP32 nodes on internal OT Modbus TCP only.
 - `docs/ROCKPI_ESP32_MQTT_BRIDGE.md`
 - `docs/DRIVER_CATALOG.md`
 - `HANDOFF.md`
+- `README.md`
+- `docs/ARCHITECTURE.md`
 
 ## Tests
 
@@ -47,9 +51,10 @@ keeping ESP32 nodes on internal OT Modbus TCP only.
 
 ## Next action
 
-Implement backend MQTT ingestion for node topics, then flash a lab ESP32-EVB
-and validate the complete ESP32 → ROCK Pi → MQTT → backend route, including a
-read-only Deye poll and a separately authorized register-77 limiter test.
+Align the corresponding backend documentation and MQTT configuration, then
+flash a lab ESP32-EVB and validate the complete ESP32 → ROCK Pi → MQTT →
+backend route, including a read-only Deye poll and a separately authorized
+register-77 limiter test.
 
 ## Last updated
 
