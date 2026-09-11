@@ -69,6 +69,14 @@ The Suntech SunStorage Pro 261 / STE-261L map is manufacturer-confirmed. Other
 drivers remain read-only or reference status until their exact hardware and
 write behavior pass bench commissioning.
 
+## Project credits / Принос към проекта
+
+Created and led by **Dr. Eng. Antuan Hristov Angelov** — product concept, EMS
+and system architecture, software development, Edge-gateway design, and
+product/UX/UI design. [Digital profile](https://linkmy.cards/en/antouan-anguelov/)
+· [LinkedIn](https://www.linkedin.com/in/antouan/) ·
+[Българска версия](CREDITS.md#български)
+
 ## Български
 
 Това е open-source Edge runtime за индустриални обекти. Избраната архитектура
