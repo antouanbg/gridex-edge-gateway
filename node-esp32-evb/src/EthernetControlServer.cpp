@@ -154,7 +154,7 @@ void EthernetControlServer::loop() {
     }
 }
 
-bool EthernetControlServer::connected() const {
+bool EthernetControlServer::connected() {
     return client_ && client_.connected();
 }
 
