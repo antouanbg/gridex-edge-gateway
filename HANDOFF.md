@@ -1,5 +1,7 @@
 # Handoff — GrideX Edge gateway
 
+Repository / GitHub: `antouanbg/gridex-edge-gateway`
+
 ## Purpose
 
 This document records work that is planned but not yet commissioned or fully

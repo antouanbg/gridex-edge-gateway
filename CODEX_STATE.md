@@ -12,6 +12,7 @@ ESP32 nodes use OT Modbus TCP to ROCK Pi; only ROCK Pi crosses to private MQTT.
 - Compiled the ESP target and ran the host MBUS test successfully.
 - Added ROCK Pi node telemetry publishing and bounded MQTT command intake.
 - Disabled direct ESP MQTT by default and documented the MQTT topic contract.
+- Required every HANDOFF to state its exact GitHub repository below the title.
 - Corrected Edge README and architecture diagrams to remove the obsolete direct
   ESP32 MQTT and MQTT `8883` paths.
 

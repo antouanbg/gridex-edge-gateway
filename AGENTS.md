@@ -34,5 +34,8 @@ implemented, bench-tested, commissioned or deployment-verified.
   work remains deferred, blocked or awaiting hardware/infrastructure.
 - Each entry needs dependencies, acceptance evidence and one exact next action.
   Remove it only after required source, test and commissioning evidence exists.
+- Every `HANDOFF.md` must identify its repository directly below its title in
+  this form: `Repository / GitHub: <owner>/<repository>`. This is mandatory
+  when multiple GrideX repositories or worktrees are active.
 - Never include secrets, real network details or customer data, and never call
   a related task complete while its handoff entry is stale.
