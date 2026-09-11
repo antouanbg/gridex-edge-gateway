@@ -2,11 +2,12 @@
 
 ## English
 
-The selected isolated RS-485/RS-422 module for applicable ESP32-EVB device
-nodes is **OLIMEX MOD-RS485-ISO**. It provides galvanic isolation through the
-TI ISO35T and supports half-duplex RS-485 or full-duplex RS-422/RS-485 through
-board jumpers. It is suitable for industrial meters, inverters and BMS devices
-only after the downstream vendor protocol has been confirmed.
+**Current decision:** ESP32-EVB nodes use the existing direct UART/RS-485
+transceiver path by default. **OLIMEX MOD-RS485-ISO** is an optional isolated
+RS-485/RS-422 profile, selected only when a particular device, cable run or
+site electrical environment requires galvanic isolation. It provides isolation
+through the TI ISO35T and supports half-duplex RS-485 or full-duplex
+RS-422/RS-485 through board jumpers.
 
 This is **not** a passive UART-to-RS-485 carrier. A PIC16 with Olimex firmware
 is part of the module; the ESP32 host controls it over the UEXT RS-232 or I²C
@@ -31,11 +32,12 @@ hardware capability includes 3 kV galvanic isolation and signalling up to
 
 ## Български
 
-Избраният изолиран RS-485/RS-422 модул за приложимите ESP32-EVB нодове е
-**OLIMEX MOD-RS485-ISO**. Той осигурява галванична изолация чрез TI ISO35T и
-поддържа half-duplex RS-485 или full-duplex RS-422/RS-485 чрез jumper-и. Може
-да се използва за индустриални електромери, инвертори и BMS устройства само
-след потвърждение на downstream протокола от производителя.
+**Текущо решение:** ESP32-EVB нодовете използват по подразбиране наличния
+директен UART/RS-485 transceiver. **OLIMEX MOD-RS485-ISO** е опционален
+изолиран RS-485/RS-422 профил, който се избира само ако конкретното устройство,
+кабелно трасе или електрическа среда изискват галванична изолация. Той използва
+TI ISO35T и поддържа half-duplex RS-485 или full-duplex RS-422/RS-485 чрез
+jumper-и.
 
 Това **не е** пасивен UART↔RS-485 carrier. Модулът има PIC16 с Olimex firmware;
 ESP32 го управлява през UEXT host интерфейса по RS-232 или I²C. Поради това
