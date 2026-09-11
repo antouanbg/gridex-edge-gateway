@@ -17,12 +17,16 @@
 #include <driver/twai.h>
 #endif
 
+#include <algorithm>
 #include <memory>
 
 namespace {
 
 Preferences preferences;
 Preferences cloudPreferences;
+#if defined(GRIDEX_DRIVER_DEYE_SUN100K_G03_RS485)
+Preferences deyePreferences;
+#endif
 std::unique_ptr<gridex::mbus::MbusNode> node;
 std::unique_ptr<gridex::mbus::IDeviceDriver> driver;
 std::unique_ptr<gridex::mbus::MqttTelemetryService> cloud;
@@ -84,6 +88,29 @@ gridex::mbus::EthernetControlConfig loadControlConfig() {
     cloudPreferences.end();
     return config;
 }
+
+#if defined(GRIDEX_DRIVER_DEYE_SUN100K_G03_RS485)
+struct DeyeProvisioning {
+    std::uint8_t unitId{1U};
+    gridex::drivers::DeyeSun100kG03ControlConfig control{};
+};
+
+DeyeProvisioning loadDeyeProvisioning() {
+    deyePreferences.begin("gridex-deye", true);
+    DeyeProvisioning provisioning;
+    const auto configuredUnitId = deyePreferences.getUShort("unit_id", 1U);
+    provisioning.unitId = configuredUnitId >= 1U && configuredUnitId <= 247U
+        ? static_cast<std::uint8_t>(configuredUnitId) : 1U;
+    provisioning.control.writesEnabled = deyePreferences.getBool("writes_enabled", false);
+    provisioning.control.requireControlEnableRegister =
+        deyePreferences.getBool("enable_register_76", false);
+    provisioning.control.maximumRegulationTenthsPct = std::min<std::uint16_t>(
+        deyePreferences.getUShort("maximum_limit_x10pct", 1000U), 1000U
+    );
+    deyePreferences.end();
+    return provisioning;
+}
+#endif
 
 bool initializeDeviceBus() {
 #if defined(GRIDEX_DEVICE_BUS_CAN)
@@ -179,13 +206,14 @@ void setup() {
 
     node = std::make_unique<gridex::mbus::MbusNode>(loadConfig());
 #if defined(GRIDEX_DRIVER_DEYE_SUN100K_G03_RS485)
+    const auto deyeProvisioning = loadDeyeProvisioning();
     deyeTransport = std::make_unique<gridex::mbus::Rs485ModbusRtuClient>(
-        Serial1, 1U, GRIDEX_RS485_DIRECTION_GPIO
+        Serial1, deyeProvisioning.unitId, GRIDEX_RS485_DIRECTION_GPIO
     );
     deyeTransport->begin(9600U, SERIAL_8N1, gridex::node::board::Rs485Rx,
                          gridex::node::board::Rs485Tx);
     driver = std::make_unique<gridex::drivers::DeyeSun100kG03Rs485Driver>(
-        *deyeTransport
+        *deyeTransport, deyeProvisioning.control
     );
 #else
     driver = std::make_unique<gridex::mbus::UnconfiguredDriver>(node->type(), node->driverId());

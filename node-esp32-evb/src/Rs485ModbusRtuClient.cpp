@@ -79,6 +79,42 @@ std::optional<std::uint16_t> Rs485ModbusRtuClient::readHolding(std::uint16_t add
     return static_cast<std::uint16_t>(response[3] << 8U) | response[4];
 }
 
+bool Rs485ModbusRtuClient::writeHolding(std::uint16_t address, std::uint16_t value) {
+    drainInput();
+    std::array<std::uint8_t, 8> request{
+        unitId_, 0x06,
+        static_cast<std::uint8_t>(address >> 8U), static_cast<std::uint8_t>(address),
+        static_cast<std::uint8_t>(value >> 8U), static_cast<std::uint8_t>(value),
+        0x00, 0x00,
+    };
+    const auto requestCrc = crc16(request.data(), 6);
+    request[6] = static_cast<std::uint8_t>(requestCrc);
+    request[7] = static_cast<std::uint8_t>(requestCrc >> 8U);
+
+    digitalWrite(directionPin_, HIGH);
+    serial_.write(request.data(), request.size());
+    serial_.flush();
+    digitalWrite(directionPin_, LOW);
+
+    std::array<std::uint8_t, 8> response{};
+    std::size_t received = 0;
+    const auto deadline = millis() + timeoutMs_;
+    while (received < response.size() && static_cast<std::int32_t>(millis() - deadline) < 0) {
+        if (serial_.available() > 0) {
+            response[received++] = static_cast<std::uint8_t>(serial_.read());
+        }
+        delay(1);
+    }
+    if (received != response.size() || response[0] != unitId_ || response[1] != 0x06) {
+        return false;
+    }
+    const auto responseCrc = static_cast<std::uint16_t>(response[6]) |
+                             static_cast<std::uint16_t>(response[7] << 8U);
+    return crc16(response.data(), 6) == responseCrc &&
+           response[2] == request[2] && response[3] == request[3] &&
+           response[4] == request[4] && response[5] == request[5];
+}
+
 }  // namespace gridex::mbus
 
 #endif

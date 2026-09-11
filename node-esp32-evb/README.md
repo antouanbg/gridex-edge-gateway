@@ -52,8 +52,9 @@ pio run -e esp32-evb-deye-sun100k-g03-rs485
 ```
 
 `esp32-evb-deye-sun100k-g03-rs485` is the first concrete direct RS-485
-telemetry profile. It is for Deye SUN-100K-G03 only and keeps power writes
-locked; see [its protocol profile](../docs/DEYE_SUN100K_G03_RS485_PROTOCOL.md).
+profile. It is for Deye SUN-100K-G03 only. It supports active-power regulation
+through register 77 but keeps writes disabled until deployment enables them;
+see [its protocol profile](../docs/DEYE_SUN100K_G03_RS485_PROTOCOL.md).
 
 The concrete driver build adds `GRIDEX_NODE_TYPE` and `GRIDEX_DRIVER_ID`
 and links only the selected device driver. Credentials, addresses and
@@ -93,7 +94,8 @@ UEXT UART GPIO4/GPIO36 и конфигурируем direction GPIO; конкр�
 платка, изолацията, терминирането и защитите трябва да се валидират електрически.
 
 `esp32-evb-deye-sun100k-g03-rs485` е първият конкретен RS485 telemetry профил
-за Deye SUN-100K-G03. Командите за мощност в него са заключени; вижте
+за Deye SUN-100K-G03. Той поддържа ограничение на активната мощност през
+регистър 77, но записите се включват отделно в deployment конфигурацията; вижте
 [протоколния профил](../docs/DEYE_SUN100K_G03_RS485_PROTOCOL.md).
 
 Източници:

@@ -7,13 +7,20 @@
 
 namespace gridex::drivers {
 
-// Deye SUN-100K-G03 string inverter telemetry profile. The public V118 map
-// confirms reads below; it does not confirm an active-power limit write, so
-// applyPowerCommand is deliberately locked.
+struct DeyeSun100kG03ControlConfig {
+    bool writesEnabled{false};
+    bool requireControlEnableRegister{false};
+    std::uint16_t maximumRegulationTenthsPct{1000};
+};
+
+// Deye SUN-100K-G03 telemetry and active-power limiter. Command kW values are
+// converted to the vendor's 0.1% holding-register 77 representation.
 class DeyeSun100kG03Rs485Driver final : public mbus::IDeviceDriver {
 public:
-    explicit DeyeSun100kG03Rs485Driver(mbus::Rs485ModbusRtuClient& transport)
-        : transport_(transport) {}
+    explicit DeyeSun100kG03Rs485Driver(
+        mbus::Rs485ModbusRtuClient& transport,
+        DeyeSun100kG03ControlConfig config = {}
+    ) : transport_(transport), config_(config) {}
 
     bool begin() override;
     mbus::DriverSample poll() override;
@@ -21,7 +28,9 @@ public:
 
 private:
     mbus::Rs485ModbusRtuClient& transport_;
+    DeyeSun100kG03ControlConfig config_;
     bool online_{false};
+    std::uint16_t ratedPowerKwX10_{0};
 
     [[nodiscard]] static std::uint32_t joinU32(std::uint16_t high, std::uint16_t low);
 };

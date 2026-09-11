@@ -22,6 +22,7 @@ public:
 
     void begin(std::uint32_t baud, std::uint32_t serialConfig, int rxPin, int txPin);
     [[nodiscard]] std::optional<std::uint16_t> readHolding(std::uint16_t address);
+    [[nodiscard]] bool writeHolding(std::uint16_t address, std::uint16_t value);
 
 private:
     HardwareSerial& serial_;

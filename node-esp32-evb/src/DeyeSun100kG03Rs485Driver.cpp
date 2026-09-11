@@ -7,6 +7,8 @@
 namespace gridex::drivers {
 namespace {
 constexpr std::uint16_t DeviceType = 0x0000;
+constexpr std::uint16_t ExternalControlEnable = 0x004C;
+constexpr std::uint16_t ActivePowerRegulation = 0x004D;
 constexpr std::uint16_t RatedPowerHigh = 0x0010;
 constexpr std::uint16_t DeviceState = 0x003B;
 constexpr std::uint16_t TotalEnergyHigh = 0x003F;
@@ -27,6 +29,7 @@ bool DeyeSun100kG03Rs485Driver::begin() {
     // The V118 profile expresses rated power as an unsigned value in 0.1 W.
     const auto ratedWatts = joinU32(*ratedHigh, *ratedLow) / 10U;
     online_ = ratedWatts >= 90000U && ratedWatts <= 110000U;
+    ratedPowerKwX10_ = online_ ? static_cast<std::uint16_t>(ratedWatts / 100U) : 0U;
     return online_;
 }
 
@@ -59,10 +62,23 @@ mbus::DriverSample DeyeSun100kG03Rs485Driver::poll() {
     return sample;
 }
 
-bool DeyeSun100kG03Rs485Driver::applyPowerCommand(std::int16_t) {
-    // The upstream V118 string-inverter profile confirms telemetry and on/off,
-    // but does not establish a safe active-power-limit write contract.
-    return false;
+bool DeyeSun100kG03Rs485Driver::applyPowerCommand(std::int16_t requestedPowerKwX10) {
+    if (!config_.writesEnabled || !online_ || ratedPowerKwX10_ == 0U || requestedPowerKwX10 < 0) {
+        return false;
+    }
+    const auto requested = static_cast<std::uint32_t>(requestedPowerKwX10);
+    const auto rawTenthsPct = static_cast<std::uint32_t>(requested) * 1000U / ratedPowerKwX10_;
+    const auto limitedRawTenthsPct = static_cast<std::uint16_t>(std::min<std::uint32_t>(
+        rawTenthsPct, config_.maximumRegulationTenthsPct
+    ));
+    if (config_.requireControlEnableRegister && !transport_.writeHolding(ExternalControlEnable, 1U)) {
+        return false;
+    }
+    if (!transport_.writeHolding(ActivePowerRegulation, limitedRawTenthsPct)) {
+        return false;
+    }
+    const auto readBack = transport_.readHolding(ActivePowerRegulation);
+    return readBack && *readBack == limitedRawTenthsPct;
 }
 
 std::uint32_t DeyeSun100kG03Rs485Driver::joinU32(std::uint16_t high, std::uint16_t low) {

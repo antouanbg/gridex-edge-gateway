@@ -6,8 +6,8 @@ keeping ESP32 nodes on internal OT Modbus TCP only.
 ## Completed
 
 - Added the `esp32-evb-deye-sun100k-g03-rs485` PlatformIO target.
-- Added a direct UART/RS-485 Modbus RTU read client and the Deye telemetry
-  driver (ID 1001).
+- Added a direct UART/RS-485 Modbus RTU client and the Deye SUN-100K-G03
+  driver (ID 1001), including an opt-in active-power limiter on register 77.
 - Added the bilingual Deye profile and driver-catalog record.
 - Compiled the ESP target and ran the host MBUS test successfully.
 - Added ROCK Pi node telemetry publishing and bounded MQTT command intake.
@@ -19,8 +19,8 @@ keeping ESP32 nodes on internal OT Modbus TCP only.
   response, scale and alarms.
 - Implement backend MQTT ingestion, authorization and audit for the new node
   telemetry and command topics.
-- Obtain and validate the exact Deye active-power-limit write contract before
-  enabling any Deye command.
+- Bench-validate the confirmed Deye register-77 write/readback contract and
+  actual AC response before enabling any Deye command on a physical unit.
 - Complete physical commissioning; no firmware has been flashed to hardware.
 
 ## Modified files
@@ -41,15 +41,15 @@ keeping ESP32 nodes on internal OT Modbus TCP only.
 
 ## Known issues
 
-- Deye active-power control is intentionally disabled pending manufacturer and
-  on-site validation; the current profile is telemetry-only.
-- Public Home Assistant/forum research did not provide a safe SUN-100K-G03
-  active-power-limit write. Hybrid-only registers 244/245 are excluded.
+- Deye active-power control is implemented from the supplied official
+  V1.31/V1.32 string-inverter contract but intentionally disabled by default
+  until on-site validation. Hybrid-only registers 244/245 are excluded.
 
 ## Next action
 
 Implement backend MQTT ingestion for node topics, then flash a lab ESP32-EVB
-and validate the complete ESP32 → ROCK Pi → MQTT → backend route.
+and validate the complete ESP32 → ROCK Pi → MQTT → backend route, including a
+read-only Deye poll and a separately authorized register-77 limiter test.
 
 ## Last updated
 

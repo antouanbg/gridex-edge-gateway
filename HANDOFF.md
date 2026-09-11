@@ -33,16 +33,21 @@ addresses or customer inventory.
      and protocol revision.
    - Confirm CAN/RS-485 settings, sign, scale, byte/word order and allowed
      writes from manufacturer documentation before enabling commands.
-   - The Deye SUN-100K-G03 telemetry driver (ID `1001`) is compiled from the
-     archived public V118 profile. Bench-validate the actual unit ID, serial
-     settings, model/type response, scale and alarms. Active-power writes stay
-     locked until Deye supplies and the site validates the exact write map.
-   - Internet/Home Assistant research confirms the read profile but not a
-     100 kW G03 power-limit write. Do not use hybrid-family registers 244/245:
-     their documented range is only 0–8000 W and they are not this device.
-   - Do not derive Deye RS-485 writes from another Deye family or from the
-     Suntech TCP map. The approved Suntech SunStorage Pro 261 path remains
-     direct ROCK Pi E-to-cabinet Modbus TCP on the isolated OT interface.
+   - The Deye SUN-100K-G03 driver (ID `1001`) uses the confirmed official
+     string-inverter contract: Modbus RTU `9600 8N1`, default unit ID `1`,
+     function `0x06`, and register `77` (`0…1000`, `0.1%`) for active-power
+     regulation. It reads back register `77` with `0x03`; register `76` can
+     be enabled only for firmware that requires it.
+   - Writes are **disabled by default**. Bench-validate the installed unit ID,
+     serial settings, model/type response, rated-power scale, register-77
+     readback and actual AC output (registers 86/87) before an administrator
+     enables `writes_enabled`. Start with a bounded curtailment test; do not
+     test on a live production schedule without explicit authorization.
+   - Registers `244/245` are hybrid-only and are excluded from this string
+     inverter driver. Do not derive other Deye writes from another family or
+     from the Suntech TCP map. The approved Suntech SunStorage Pro 261 path
+     remains direct ROCK Pi E-to-cabinet Modbus TCP on the isolated OT
+     interface.
 
 5. **Bench-test the ROCK Pi ↔ ESP32 MBUS v4 contract**
    - Validate Modbus TCP port 1502/unit 1, source-IP admission, identity and

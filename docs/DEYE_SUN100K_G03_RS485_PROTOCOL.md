@@ -2,7 +2,7 @@
 
 ## English
 
-This is the ESP32-EVB **read-only telemetry** profile for the Deye
+This is the ESP32-EVB telemetry and active-power-limiter profile for the Deye
 `SUN-100K-G03` three-phase string inverter. It is compiled with:
 
 ```bash
@@ -26,48 +26,70 @@ which lists the G03 family including the 100 kW model.
 | Total production | `0x003F–0x0040` | UInt32, 0.1 kWh |
 | Output power | `0x0056–0x0057` | UInt32, 0.1 W |
 | Alarm word | `0x0065–0x0066` | UInt32; compacted to the MBUS alarm field |
+| External-control enable | `76` (`0x004C`) | Optional UInt16: `0` disable, `1` enable |
+| Active-power regulation | `77` (`0x004D`) | R/W UInt16, `0…1000`, scale `0.1%` |
 
 Serial defaults are Modbus RTU, unit ID `1`, `9600 8N1`, direct UART pins
 RX `GPIO36`, TX `GPIO4`, direction `GPIO13`. They are deployment/board values,
 not a claim about every installed Deye unit.
 
-`applyPowerCommand()` deliberately returns **false**. The public V118 telemetry
-profile does not establish a safe external active-power-limit write contract
-for this exact installed firmware. No Deye write is enabled until the on-site
-manual, unit ID, serial settings, register address, scale, sign and read-back
-test are approved.
+The supplied official Deye `Modbus RTU Protocol V1.31 / V1.32 for String PV
+Inverters` confirms Modbus RTU `9600 8N1`, unit ID `1` by default and function
+codes `0x03`, `0x06`, `0x10`. The driver uses `0x06` for the limiter and reads
+register `77` with `0x03` immediately afterwards. A GrideX kW request is
+converted using the actual rated power read from the inverter; for example,
+50 kW on a 100 kW unit writes `500` (50.0%).
 
-### Control research boundary (2026-09-11)
+Writes remain **off by default** in deployment configuration. An administrator
+must explicitly set `writes_enabled=true` after a read-only bench check. The
+optional register-76 write is separately controlled by
+`enable_register_76=true` because direct register-77 writes are sufficient on
+most firmware versions. On Edge TTL expiry, GrideX writes a `0.0%` limiter.
+The Deye device's own configured communication-timeout policy remains a
+separate site safety setting.
 
-The `deye_string` profile exposes an on/off control at `0x002B`, but does not
-define an active-power limit for this G03 string-inverter family. Community
-references to registers `244/245` concern Deye hybrid energy-management
-profiles and define a maximum export limit of only `8000 W`; they must **not**
-be applied to a 100 kW SUN-100K-G03. Deye's G03 manual describes zero-export
-operation through an energy meter/SUN-Limiter rather than confirming a remote
-Modbus active-power-limit write. The driver therefore supports telemetry only.
+The ESP32 provisioning namespace is `gridex-deye`. It accepts the following
+non-secret values: `unit_id` (`1…247`, default `1`), `writes_enabled` (default
+`false`), `enable_register_76` (default `false`) and
+`maximum_limit_x10pct` (`0…1000`, default `1000`). The maximum is an Edge
+ceiling and can only lower, never exceed, the inverter's 100.0% protocol
+limit. Browser clients must never set these values directly.
+
+Registers `244/245` are not part of the SUN-100K-G03 string-inverter map and
+are excluded from this driver.
 
 ## Български
 
-Това е **read-only telemetry** профилът за Deye `SUN-100K-G03` за ESP32-EVB.
-Компилира се с горната PlatformIO команда. Пътят е ROCK Pi E → вътрешна OT
-Ethernet/Modbus TCP мрежа → ESP32‑EVB → локален RS‑485/Modbus RTU → Deye.
+Това е telemetry и active-power-limiter профилът за Deye `SUN-100K-G03` за
+ESP32-EVB. Компилира се с горната PlatformIO команда. Пътят е ROCK Pi E →
+вътрешна OT Ethernet/Modbus TCP мрежа → ESP32‑EVB → локален RS‑485/Modbus RTU
+→ Deye.
 
 Профилът чете типа, номиналната мощност, състоянието, произведената енергия,
 изходната мощност и алармите от посочените регистри. Приемането на устройство
 изисква номиналната мощност да е между 90 и 110 kW. Комуникационните стойности
 по подразбиране са unit ID 1 и 9600 8N1, но се валидират на конкретния обект.
 
-Командите за мощност са заключени. Публичната карта потвърждава телеметрията,
-но не и безопасен write регистър за ограничение на активната мощност на този
-firmware. Преди разрешаване на какъвто и да е запис са нужни документ от Deye,
-проверка на адрес/мащаб/знак и read-back тест на реалния инвертор.
+Предоставеният официален `Modbus RTU Protocol V1.31 / V1.32 for String PV
+Inverters` потвърждава `9600 8N1`, unit ID `1` по подразбиране и function codes
+`0x03`, `0x06`, `0x10`. Драйверът записва limiter-а с `0x06` в регистър 77 и
+веднага го прочита обратно с `0x03`. GrideX подава kW, които се преобразуват
+спрямо реално прочетената номинална мощност: 50 kW при 100 kW инвертор записва
+`500` (50.0%).
 
-### Граница на проучването за управление (2026-09-11)
+Записите са изключени по подразбиране в deployment конфигурацията. Администратор
+ги включва с `writes_enabled=true` след read-only bench тест. Регистър 76 е
+отделна опция `enable_register_76=true`, защото повечето firmware версии
+приемат директен запис в 77. При изтичане на Edge TTL GrideX записва лимит
+`0.0%`. Настройката Comm Timeout Protection в самия Deye остава отделна
+site safety настройка.
 
-Профилът `deye_string` има on/off при `0x002B`, но няма потвърдена команда за
-ограничение на активната мощност за G03 string семейството. Обсъжданите във
-форуми `244/245` са за Deye hybrid режими и са с лимит само `8000 W`; те **не
-трябва** да се използват за 100 kW SUN-100K-G03. Ръководството на Deye описва
-zero-export чрез електромер/SUN-Limiter, а не потвърден remote Modbus write.
-Затова драйверът остава само за телеметрия.
+ESP32 използва provisioning namespace `gridex-deye` със стойности без тайни:
+`unit_id` (`1…247`, по подразбиране `1`), `writes_enabled` (по подразбиране
+`false`), `enable_register_76` (по подразбиране `false`) и
+`maximum_limit_x10pct` (`0…1000`, по подразбиране `1000`). Последният е Edge
+таван и може само да намалява, но не и да надвишава протоколния лимит 100.0%.
+Browser клиентите не трябва да записват тези стойности директно.
+
+Регистри `244/245` не са част от string картата за SUN-100K-G03 и не се
+използват от този драйвер.
