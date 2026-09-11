@@ -52,6 +52,15 @@ addresses or customer inventory.
    - Verify the module PIC/firmware revision, host protocol/address and
      half/full-duplex jumper configuration on the actual unit before build.
 
+8. **Repair the ROCK Pi CTest suite**
+   - The complete CMake build now succeeds locally, but CTest has two existing
+     harness issues: the northbound test depends on a local TCP bind that can
+     fail in restricted environments, and `gridex_edge_tests` is registered
+     without its executable being generated.
+   - Make the test port injectable/ephemeral and align test registration with
+     the target build. Completion requires `ctest --output-on-failure` to pass
+     after a clean CMake build.
+
 ## Completion evidence
 
 - PR #2 passes target ARM64 CMake/CTest and review.
