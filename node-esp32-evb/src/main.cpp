@@ -5,6 +5,10 @@
 #include "gridex/mbus/MbusNode.hpp"
 #include "gridex/mbus/MqttTelemetryService.hpp"
 #include "gridex/node/BoardPins.hpp"
+#if defined(GRIDEX_DRIVER_DEYE_SUN100K_G03_RS485)
+#include "gridex/drivers/DeyeSun100kG03Rs485Driver.hpp"
+#include "gridex/mbus/Rs485ModbusRtuClient.hpp"
+#endif
 
 #include <Arduino.h>
 #include <ETH.h>
@@ -23,6 +27,9 @@ std::unique_ptr<gridex::mbus::MbusNode> node;
 std::unique_ptr<gridex::mbus::IDeviceDriver> driver;
 std::unique_ptr<gridex::mbus::MqttTelemetryService> cloud;
 std::unique_ptr<gridex::mbus::EthernetControlServer> control;
+#if defined(GRIDEX_DRIVER_DEYE_SUN100K_G03_RS485)
+std::unique_ptr<gridex::mbus::Rs485ModbusRtuClient> deyeTransport;
+#endif
 unsigned long lastPollMs = 0;
 unsigned long lastCloudPublishMs = 0;
 unsigned long lastCommandMs = 0;
@@ -38,6 +45,14 @@ gridex::mbus::NodeConfig loadConfig() {
         preferences.getUShort("node_type", 0)
     );
     config.driverId = preferences.getUShort("driver_id", 0);
+#if defined(GRIDEX_DRIVER_DEYE_SUN100K_G03_RS485)
+    if (config.type == gridex::mbus::NodeType::Unconfigured) {
+        config.type = gridex::mbus::NodeType::Inverter;
+    }
+    if (config.driverId == 0U) {
+        config.driverId = 1001U;
+    }
+#endif
     config.uid = ESP.getEfuseMac();
     preferences.end();
     return config;
@@ -85,12 +100,10 @@ bool initializeDeviceBus() {
     const int directionPin = GRIDEX_RS485_DIRECTION_GPIO;
     pinMode(directionPin, OUTPUT);
     digitalWrite(directionPin, LOW);
-    Serial1.begin(
-        9600,
-        SERIAL_8N1,
-        gridex::node::board::Rs485Rx,
-        gridex::node::board::Rs485Tx
-    );
+#if !defined(GRIDEX_DRIVER_DEYE_SUN100K_G03_RS485)
+    Serial1.begin(9600, SERIAL_8N1, gridex::node::board::Rs485Rx,
+                  gridex::node::board::Rs485Tx);
+#endif
     return true;
 #else
     return false;
@@ -165,10 +178,18 @@ void setup() {
     }
 
     node = std::make_unique<gridex::mbus::MbusNode>(loadConfig());
-    driver = std::make_unique<gridex::mbus::UnconfiguredDriver>(
-        node->type(),
-        node->driverId()
+#if defined(GRIDEX_DRIVER_DEYE_SUN100K_G03_RS485)
+    deyeTransport = std::make_unique<gridex::mbus::Rs485ModbusRtuClient>(
+        Serial1, 1U, GRIDEX_RS485_DIRECTION_GPIO
     );
+    deyeTransport->begin(9600U, SERIAL_8N1, gridex::node::board::Rs485Rx,
+                         gridex::node::board::Rs485Tx);
+    driver = std::make_unique<gridex::drivers::DeyeSun100kG03Rs485Driver>(
+        *deyeTransport
+    );
+#else
+    driver = std::make_unique<gridex::mbus::UnconfiguredDriver>(node->type(), node->driverId());
+#endif
     driver->begin();
     cloud = std::make_unique<gridex::mbus::MqttTelemetryService>(
         loadCloudConfig()

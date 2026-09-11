@@ -31,6 +31,15 @@ Names such as "Deye", "Sungrow", "Huawei" or "Growatt" are not sufficient driver
 
 IDs are allocated only after the source register map is archived in the project and the read-only mapping has passed a bench test. Writes remain locked until address, unit ID, sign, scale and safety limits are confirmed on the actual device.
 
+## Registered profile
+
+| driver_id | Device | Transport | Status | Build profile |
+|---:|---|---|---|---|
+| 1001 | Deye SUN-100K-G03 string inverter | ESP32 direct UART/RS-485, Modbus RTU | Telemetry implemented; bench validation pending; power writes locked | `esp32-evb-deye-sun100k-g03-rs485` |
+
+See [Deye SUN-100K-G03 RS-485 profile](DEYE_SUN100K_G03_RS485_PROTOCOL.md)
+for the source map, decoding and safety boundary.
+
 ## Required catalog entry
 
 ~~~yaml

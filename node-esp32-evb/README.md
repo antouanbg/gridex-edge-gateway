@@ -48,7 +48,12 @@ validation.
 ```bash
 pio run -e esp32-evb-can
 pio run -e esp32-evb-rs485
+pio run -e esp32-evb-deye-sun100k-g03-rs485
 ```
+
+`esp32-evb-deye-sun100k-g03-rs485` is the first concrete direct RS-485
+telemetry profile. It is for Deye SUN-100K-G03 only and keeps power writes
+locked; see [its protocol profile](../docs/DEYE_SUN100K_G03_RS485_PROTOCOL.md).
 
 The concrete driver build adds `GRIDEX_NODE_TYPE` and `GRIDEX_DRIVER_ID`
 and links only the selected device driver. Credentials, addresses and
@@ -87,6 +92,10 @@ ESP32 няма WireGuard. Modbus TCP сървърът допуска само к
 CAN профилът използва официалните OLIMEX GPIO5/GPIO35. RS485 профилът използва
 UEXT UART GPIO4/GPIO36 и конфигурируем direction GPIO; конкретната carrier
 платка, изолацията, терминирането и защитите трябва да се валидират електрически.
+
+`esp32-evb-deye-sun100k-g03-rs485` е първият конкретен RS485 telemetry профил
+за Deye SUN-100K-G03. Командите за мощност в него са заключени; вижте
+[протоколния профил](../docs/DEYE_SUN100K_G03_RS485_PROTOCOL.md).
 
 Източници:
 
