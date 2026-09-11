@@ -43,6 +43,15 @@ addresses or customer inventory.
    - Bind management services to the approved interface only; never expose
      vendor Modbus port 3200 outside the isolated OT network.
 
+7. **Add the OLIMEX MOD-RS485-ISO ESP32 adapter**
+   - This selected module is a PIC-firmware UEXT bridge, not a direct UART
+     transceiver. Implement its firmware-version-specific RS-232 or I²C host
+     protocol behind `IDownstreamModbusClient`.
+   - Verify the module PIC/firmware revision, host protocol/address and
+     half/full-duplex jumper configuration on the actual unit before build.
+   - Bench-test read-only Modbus RTU, then the permitted write path, while
+     keeping all vendor limits and failsafe behaviour intact.
+
 ## Completion evidence
 
 - PR #2 passes target ARM64 CMake/CTest and review.
