@@ -19,7 +19,8 @@ isolated UEXT/UART transceiver.
 
 ```text
 TELEMETRY
-CAN/RS485 device -> ESP32-EVB -> Ethernet -> site router WireGuard
+CAN/RS485 device -> ESP32-EVB -> OT Ethernet / Modbus TCP -> ROCK Pi E
+                -> site router WireGuard -> private MQTT -> backend
                  -> VPN-only MQTT 8883 -> OpenRemote
 
 CONTROL
@@ -30,7 +31,9 @@ DIRECT BESS
 ROCK Pi E -> OT Ethernet -> Suntech STE-261L Modbus TCP 3200
 ```
 
-ROCK Pi E and ESP32 do not run WireGuard. They use the site router tunnel.
+ROCK Pi E and ESP32 do not run WireGuard. ROCK Pi E is the sole MQTT bridge for
+ESP32 node telemetry and broker commands; ESP32 nodes have no MQTT credentials
+in the default production profile.
 There is no public MQTT listener, no direct cloud route to the OT/BESS network
 and no MQTT command subscription on the node. Every node contains one compiled
 driver for one device type, brand, model and protocol revision.
@@ -75,9 +78,11 @@ write behavior pass bench commissioning.
 UEXT/UART трансивър.
 
 Телеметрията отива директно от нода по MQTT/TLS през WireGuard тунела на site
-router-а. Командите идват през ROCK Pi E и вътрешната Ethernet мрежа. ROCK Pi E
-и ESP32 нямат WireGuard, OT/BESS мрежата не се route-ва към backend, публичен
-MQTT не се използва и ESP32 не приема MQTT команди.
+router-а. ROCK Pi E е единственият MQTT мост за ESP32 телеметрия и broker
+команди; нодовете нямат MQTT credentials в стандартния production профил.
+Командите минават през ROCK Pi E и вътрешната Ethernet мрежа. ROCK Pi E и ESP32
+нямат WireGuard, OT/BESS мрежата не се route-ва към backend, публичен MQTT не
+се използва и ESP32 не приема MQTT команди.
 
 Всеки нод се компилира за точно един тип, бранд, модел и протоколна ревизия.
 При отпадане на командния TTL нодът подава 0 kW. Локалните BMS лимити,

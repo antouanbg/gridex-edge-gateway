@@ -22,7 +22,11 @@ addresses or customer inventory.
    - Set site/gateway identifiers and the private broker URL through deployment
      configuration, not through Git.
    - Use the Site Router’s VPN-only route. Do not use a public listener,
-     WireGuard on ROCK Pi, or a route from backend to the OT/BESS network.
+    WireGuard on ROCK Pi, or a route from backend to the OT/BESS network.
+   - Extend the backend MQTT ingestion service to consume the new node
+     telemetry topics and publish only authorized node-command topics described
+     in `docs/ROCKPI_ESP32_MQTT_BRIDGE.md`. Record audit/result state in
+     PostgreSQL; do not give browser clients broker credentials.
 
 4. **Commission one concrete ESP32-EVB driver at a time**
    - Each node must use one compiled driver for one device type, brand, model

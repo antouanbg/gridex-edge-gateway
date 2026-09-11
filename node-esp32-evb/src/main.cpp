@@ -191,10 +191,10 @@ void setup() {
     driver = std::make_unique<gridex::mbus::UnconfiguredDriver>(node->type(), node->driverId());
 #endif
     driver->begin();
-    cloud = std::make_unique<gridex::mbus::MqttTelemetryService>(
-        loadCloudConfig()
-    );
+#if defined(GRIDEX_NODE_DIRECT_MQTT)
+    cloud = std::make_unique<gridex::mbus::MqttTelemetryService>(loadCloudConfig());
     cloud->begin();
+#endif
     control = std::make_unique<gridex::mbus::EthernetControlServer>(
         *node,
         loadControlConfig()
@@ -203,7 +203,9 @@ void setup() {
 }
 
 void loop() {
+#if defined(GRIDEX_NODE_DIRECT_MQTT)
     cloud->loop();
+#endif
     control->loop();
     applyCommand(millis());
 
@@ -223,15 +225,14 @@ void loop() {
         );
         node->setRegister(
             gridex::mbus::reg::CloudConnected,
-            cloud->connected() ? 1U : 0U
+            false
         );
     }
     if (millis() - lastCloudPublishMs >= 2000U) {
         lastCloudPublishMs = millis();
-        cloud->publish(
-            lastSample,
-            node->registerValue(gridex::mbus::reg::Heartbeat)
-        );
+#if defined(GRIDEX_NODE_DIRECT_MQTT)
+        cloud->publish(lastSample, node->registerValue(gridex::mbus::reg::Heartbeat));
+#endif
     }
     delay(1);
 }

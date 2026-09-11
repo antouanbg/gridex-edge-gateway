@@ -14,8 +14,8 @@ protocol revision. Mixed products on one node are not supported.
 
 ```text
 Sensors / device telemetry
-  ESP32-EVB -> Ethernet -> site router -> site WireGuard tunnel
-            -> VPN-only MQTT 8883 -> OpenRemote
+  ESP32-EVB -> OT Ethernet / Modbus TCP 1502 -> ROCK Pi E
+            -> site router -> site WireGuard tunnel -> private MQTT -> backend
 
 Commands
   OpenRemote -> site WireGuard tunnel -> ROCK Pi E
@@ -23,8 +23,8 @@ Commands
              -> CAN or isolated RS485 -> inverter / BMS / meter / EVSE
 ```
 
-The node has no WireGuard client. It uses the site router's tunnel. MQTT is
-telemetry-only; the firmware does not subscribe to command topics. The local
+The node has no WireGuard or MQTT client in the default firmware. ROCK Pi is
+the only bridge to the private MQTT broker. The local
 Modbus TCP control endpoint accepts clients only from the configured ROCK Pi E
 address, permits writes only to the command register window, requires a
 monotonic sequence and a 1–30 second TTL, and writes a zero-power safe command
@@ -61,13 +61,12 @@ certificates are provisioned after build and are never committed.
 
 ### Provisioned namespaces
 
-- `gridex-cloud`: `enabled`, `mqtt_host`, `mqtt_port`, `realm`,
-  `mqtt_user`, `mqtt_secret`, `client_id`, `asset_id`, `ca_cert`.
 - `gridex-control`: `rockpi_ip`, `port`.
 - `gridex-mbus`: `node_type`, `driver_id`.
 
-No public MQTT listener is supported. In production the broker address must be
-reachable only through the site router's VPN path.
+`gridex-cloud` is retained only for an explicitly built legacy migration
+profile (`GRIDEX_NODE_DIRECT_MQTT`). It is disabled by default and production
+ESP nodes receive no MQTT credentials. No public MQTT listener is supported.
 
 ## Български
 
@@ -80,9 +79,9 @@ UEXT/UART.
 Всеки нод се компилира за точно един тип устройство, производител, модел и
 ревизия на протокола. Смесени продукти върху един нод не се разрешават.
 
-Телеметрията се публикува директно по MQTT/TLS през Ethernet и WireGuard тунела
-на site router-а. Командите не идват по MQTT: OpenRemote ги подава към ROCK Pi
-E, а той ги изпраща по изолираната OT Ethernet мрежа към Modbus TCP endpoint-а
+Телеметрията се чете от ROCK Pi E по Modbus TCP през вътрешната OT Ethernet
+мрежа. Само ROCK Pi E я публикува към private MQTT през Site Router. Backend
+командите отново минават през ROCK Pi E и след това до Modbus TCP endpoint-а
 на нода. Нодът превежда командата към CAN или външния изолиран RS485 канал.
 
 ESP32 няма WireGuard. Modbus TCP сървърът допуска само конфигурирания ROCK Pi E,
