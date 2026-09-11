@@ -29,6 +29,11 @@ addresses or customer inventory.
      and protocol revision.
    - Confirm CAN/RS-485 settings, sign, scale, byte/word order and allowed
      writes from manufacturer documentation before enabling commands.
+   - A Deye “100 kW” RS-485 driver is not a valid driver identity yet: archive
+     the exact Deye model and its manufacturer register map first. Do not
+     derive RS-485 registers from a different Deye family or from the Suntech
+     TCP map. The approved Suntech SunStorage Pro 261 path remains direct
+     ROCK Pi E-to-cabinet Modbus TCP on the isolated OT interface.
 
 5. **Bench-test the ROCK Pi ↔ ESP32 MBUS v4 contract**
    - Validate Modbus TCP port 1502/unit 1, source-IP admission, identity and
