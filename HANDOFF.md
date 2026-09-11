@@ -37,6 +37,9 @@ addresses or customer inventory.
      archived public V118 profile. Bench-validate the actual unit ID, serial
      settings, model/type response, scale and alarms. Active-power writes stay
      locked until Deye supplies and the site validates the exact write map.
+   - Internet/Home Assistant research confirms the read profile but not a
+     100 kW G03 power-limit write. Do not use hybrid-family registers 244/245:
+     their documented range is only 0–8000 W and they are not this device.
    - Do not derive Deye RS-485 writes from another Deye family or from the
      Suntech TCP map. The approved Suntech SunStorage Pro 261 path remains
      direct ROCK Pi E-to-cabinet Modbus TCP on the isolated OT interface.

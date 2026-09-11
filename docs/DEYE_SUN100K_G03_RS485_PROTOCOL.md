@@ -37,6 +37,16 @@ for this exact installed firmware. No Deye write is enabled until the on-site
 manual, unit ID, serial settings, register address, scale, sign and read-back
 test are approved.
 
+### Control research boundary (2026-09-11)
+
+The `deye_string` profile exposes an on/off control at `0x002B`, but does not
+define an active-power limit for this G03 string-inverter family. Community
+references to registers `244/245` concern Deye hybrid energy-management
+profiles and define a maximum export limit of only `8000 W`; they must **not**
+be applied to a 100 kW SUN-100K-G03. Deye's G03 manual describes zero-export
+operation through an energy meter/SUN-Limiter rather than confirming a remote
+Modbus active-power-limit write. The driver therefore supports telemetry only.
+
 ## Български
 
 Това е **read-only telemetry** профилът за Deye `SUN-100K-G03` за ESP32-EVB.
@@ -52,3 +62,12 @@ Ethernet/Modbus TCP мрежа → ESP32‑EVB → локален RS‑485/Modbu
 но не и безопасен write регистър за ограничение на активната мощност на този
 firmware. Преди разрешаване на какъвто и да е запис са нужни документ от Deye,
 проверка на адрес/мащаб/знак и read-back тест на реалния инвертор.
+
+### Граница на проучването за управление (2026-09-11)
+
+Профилът `deye_string` има on/off при `0x002B`, но няма потвърдена команда за
+ограничение на активната мощност за G03 string семейството. Обсъжданите във
+форуми `244/245` са за Deye hybrid режими и са с лимит само `8000 W`; те **не
+трябва** да се използват за 100 kW SUN-100K-G03. Ръководството на Deye описва
+zero-export чрез електромер/SUN-Limiter, а не потвърден remote Modbus write.
+Затова драйверът остава само за телеметрия.

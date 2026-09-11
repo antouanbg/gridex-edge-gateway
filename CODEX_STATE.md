@@ -43,6 +43,8 @@ keeping ESP32 nodes on internal OT Modbus TCP only.
 
 - Deye active-power control is intentionally disabled pending manufacturer and
   on-site validation; the current profile is telemetry-only.
+- Public Home Assistant/forum research did not provide a safe SUN-100K-G03
+  active-power-limit write. Hybrid-only registers 244/245 are excluded.
 
 ## Next action
 
