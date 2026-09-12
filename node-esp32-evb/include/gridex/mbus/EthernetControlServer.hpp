@@ -26,7 +26,8 @@ public:
 
     void begin();
     void loop();
-    [[nodiscard]] bool connected() const;
+    void setRockPiAddress(IPAddress address);
+    [[nodiscard]] bool connected();
     [[nodiscard]] std::uint32_t rejectedClients() const;
 
 private:

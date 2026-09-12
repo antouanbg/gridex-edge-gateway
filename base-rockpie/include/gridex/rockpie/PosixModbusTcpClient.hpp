@@ -27,6 +27,10 @@ public:
     PosixModbusTcpClient& operator=(const PosixModbusTcpClient&) = delete;
 
     std::optional<std::uint16_t> readInput(std::uint16_t address) override;
+    [[nodiscard]] std::optional<std::vector<std::uint16_t>> readInputRange(
+        std::uint16_t start,
+        std::uint16_t count
+    ) override;
     std::optional<std::uint16_t> readHolding(std::uint16_t address) override;
     std::optional<bool> readCoil(std::uint16_t address) override;
     bool writeHolding(std::uint16_t address, std::uint16_t value) override;

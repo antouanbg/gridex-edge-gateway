@@ -21,6 +21,21 @@ public:
                                  : std::optional<std::uint16_t>(it->second);
     }
 
+    std::optional<std::vector<std::uint16_t>> readInputRange(
+        std::uint16_t start,
+        std::uint16_t count
+    ) override {
+        ++inputRangeReads;
+        std::vector<std::uint16_t> values;
+        values.reserve(count);
+        for (std::uint16_t offset = 0; offset < count; ++offset) {
+            const auto it = input.find(static_cast<std::uint16_t>(start + offset));
+            if (it == input.end()) return std::nullopt;
+            values.push_back(it->second);
+        }
+        return values;
+    }
+
     std::optional<std::uint16_t> readHolding(
         std::uint16_t address
     ) override {
@@ -48,6 +63,7 @@ public:
     std::map<std::uint16_t, std::uint16_t> holding;
     std::map<std::uint16_t, bool> coils;
     std::vector<std::pair<std::uint16_t, std::uint16_t>> writeLog;
+    std::uint16_t inputRangeReads{0};
     bool writesSucceed{true};
 };
 
@@ -216,6 +232,7 @@ void testSunStorageDriver() {
     assert(near(value.frequencyHz, 50.0));
     assert(near(value.accumulatedChargeKwh, 1234.5));
     assert(near(value.accumulatedDischargeKwh, 9876.5));
+    assert(modbus.inputRangeReads == 2U);
     assert(near(value.dailyChargeKwh, 12.5));
     assert(near(value.dailyDischargeKwh, 25.0));
     assert(value.pcsStatusCode == 3U);

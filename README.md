@@ -62,6 +62,8 @@ write behavior pass bench commissioning.
 Current deployment status, service ownership and external interface contracts
 are documented in [ROCK Pi E pilot status](docs/ROCKPI_E_PILOT_STATUS.md) and
 [Services and external interfaces](docs/SERVICES_AND_EXTERNAL_INTERFACES.md).
+The temporary read-only ESP32 bench protocol is in
+[ROCK Pi E ↔ ESP32-EVB bench contract](docs/ROCKPI_ESP32_BENCH_CONTRACT.md).
 
 ## Български
 
@@ -93,3 +95,5 @@ software fuse, commissioning lock и heartbeat защитите не могат 
 Статусът на физическия ROCK Pi E пилот, услугите и договорите към външните
 страни са описани в [ROCK Pi E pilot status](docs/ROCKPI_E_PILOT_STATUS.md) и
 [Services and external interfaces](docs/SERVICES_AND_EXTERNAL_INTERFACES.md).
+Временният read-only ESP32 bench протокол е описан в
+[ROCK Pi E ↔ ESP32-EVB bench contract](docs/ROCKPI_ESP32_BENCH_CONTRACT.md).

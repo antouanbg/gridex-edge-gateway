@@ -29,11 +29,12 @@ unsigned long lastCommandMs = 0;
 std::uint16_t lastCommandSequence = 0;
 bool commandArmed = false;
 gridex::mbus::DriverSample lastSample;
+String serialLine;
 
 gridex::mbus::NodeConfig loadConfig() {
     preferences.begin("gridex-mbus", false);
     gridex::mbus::NodeConfig config;
-    config.address = 1;
+    config.address = preferences.getUChar("node_address", 0);
     config.type = static_cast<gridex::mbus::NodeType>(
         preferences.getUShort("node_type", 0)
     );
@@ -41,6 +42,78 @@ gridex::mbus::NodeConfig loadConfig() {
     config.uid = ESP.getEfuseMac();
     preferences.end();
     return config;
+}
+
+void persistNodeConfig() {
+    if (!node || !node->takeConfigurationChanged()) return;
+    preferences.begin("gridex-mbus", false);
+    preferences.putUChar("node_address", node->address());
+    preferences.putUShort(
+        "node_type",
+        static_cast<std::uint16_t>(node->type())
+    );
+    preferences.putUShort("driver_id", node->driverId());
+    preferences.end();
+    Serial.println("GrideX: node identity stored; driver remains locked until a matching firmware build is installed");
+}
+
+void printProvisioningStatus() {
+    cloudPreferences.begin("gridex-control", true);
+    const auto rockPi = cloudPreferences.getString("rockpi_ip", "");
+    cloudPreferences.end();
+    Serial.printf(
+        "GrideX node: uid=%llX address=%u type=%u driver=%u eth=%s rockpi=%s driver=locked\n",
+        static_cast<unsigned long long>(node->uid()),
+        node->address(),
+        static_cast<unsigned>(node->type()),
+        node->driverId(),
+        ETH.localIP().toString().c_str(),
+        rockPi.c_str()
+    );
+}
+
+void processProvisioningLine(String line) {
+    line.trim();
+    if (line == "help") {
+        Serial.println("Commands: status | rockpi <IPv4>. Local provisioning only; no control commands.");
+        return;
+    }
+    if (line == "status") {
+        printProvisioningStatus();
+        return;
+    }
+    if (!line.startsWith("rockpi ")) {
+        Serial.println("GrideX: unsupported provisioning command");
+        return;
+    }
+    const auto value = line.substring(7);
+    IPAddress address;
+    if (!address.fromString(value)) {
+        Serial.println("GrideX: invalid IPv4 address");
+        return;
+    }
+    cloudPreferences.begin("gridex-control", false);
+    cloudPreferences.putString("rockpi_ip", value);
+    cloudPreferences.end();
+    control->setRockPiAddress(address);
+    Serial.println("GrideX: ROCK Pi source saved; Modbus TCP accepts only this address");
+}
+
+void processProvisioningSerial() {
+    while (Serial.available() > 0) {
+        const char value = static_cast<char>(Serial.read());
+        if (value == '\n' || value == '\r') {
+            if (!serialLine.isEmpty()) {
+                processProvisioningLine(serialLine);
+                serialLine = "";
+            }
+        } else if (serialLine.length() < 80U) {
+            serialLine += value;
+        } else {
+            serialLine = "";
+            Serial.println("GrideX: provisioning command too long");
+        }
+    }
 }
 
 gridex::mbus::MqttTelemetryConfig loadCloudConfig() {
@@ -182,9 +255,11 @@ void setup() {
 }
 
 void loop() {
+    processProvisioningSerial();
     cloud->loop();
     control->loop();
     applyCommand(millis());
+    persistNodeConfig();
 
     if (millis() - lastPollMs >= 500U) {
         lastPollMs = millis();

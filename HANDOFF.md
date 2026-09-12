@@ -12,12 +12,12 @@
 
 ### Exact next safe action
 
-Use the currently working management Ethernet only to discover the known
-ESP32-EVB in read-only bench mode. Capture its MAC-independent identity,
-firmware version, Ethernet address supplied by the local DHCP server, canonical
-Modbus TCP `1502` availability and telemetry-only MQTT/TLS prerequisites.
-Do not enable `gridex-rockpie.service`, connect a BESS, add production
-addresses or set any `GRIDEX_APPROVE_*` flag.
+Build and flash the tested ESP32-EVB CAN or RS485 profile only after confirming
+the free downstream bus. On its local USB serial console, run `rockpi
+<ROCK_PI_IPV4>` then `status`. Capture its MAC-independent identity, firmware
+version, Ethernet address supplied by the local DHCP server and canonical
+Modbus TCP `1502` availability. Do not enable `gridex-rockpie.service`, connect
+a BESS, add production addresses or set any `GRIDEX_APPROVE_*` flag.
 
 ### Remaining before service enablement
 
@@ -40,12 +40,13 @@ addresses or set any `GRIDEX_APPROVE_*` flag.
 
 ### Точна следваща безопасна стъпка
 
-Използвай работещия management Ethernet само за read-only bench discovery на
-познатия ESP32-EVB. Запиши MAC-independent identity, firmware version,
-Ethernet адреса от local DHCP, наличност на canonical Modbus TCP `1502` и
-предпоставките за telemetry-only MQTT/TLS. Не enable-вай
-`gridex-rockpie.service`, не свързвай BESS, не добавяй production адреси и не
-задавай `GRIDEX_APPROVE_*` flag.
+Build-ни и flash-ни тествания ESP32-EVB CAN или RS485 profile само след
+потвърждение, че downstream bus е свободен. На local USB serial конзолата
+изпълни `rockpi <ROCK_PI_IPV4>`, след това `status`. Запиши MAC-independent
+identity, firmware version, Ethernet адреса от local DHCP и наличността на
+canonical Modbus TCP `1502`. Не enable-вай `gridex-rockpie.service`, не
+свързвай BESS, не добавяй production адреси и не задавай
+`GRIDEX_APPROVE_*` flag.
 
 ### Остава преди enable на услугата
 

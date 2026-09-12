@@ -116,6 +116,11 @@ int main() {
     assert(
         (*values)[gridex::northbound::input::ExtendedTelemetryValid] == 1U
     );
+    assert((*values)[gridex::northbound::input::PcsPowerOn] == 1U);
+    assert((*values)[gridex::northbound::input::PcsGridTied] == 1U);
+    assert(
+        (*values)[gridex::northbound::input::PcsCurrentSourceMode] == 1U
+    );
 
     gridex::rockpie::MbusNodeTelemetry nodeSample{
         .address = 3,
