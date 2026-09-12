@@ -52,10 +52,16 @@ tests; docs/ROCKPI_PRIVATE_MQTT_HEALTH.md defines the contract.
 MQTT-enabled local CMake/CTest: 5/5 passed, including a local node-polling
 Modbus TCP simulator and MQTT payload tests. `git diff --check` passed.
 No live broker, hardware upload or device write was performed.
+The physical pilot also completed a short loopback-only, read-only preflight:
+the existing listener started and its normalized node slot reported the
+configured ESP32 as online. The process was stopped after the check.
 
 MQTT-enabled локални CMake/CTest: 5/5 успешни, включително local node-polling
 Modbus TCP simulator и MQTT payload тестове. `git diff --check` е успешен.
 Няма тест с live broker, hardware upload или device write.
+Физическият пилот също изпълни кратък loopback-only, read-only preflight:
+съществуващият listener стартира и нормализираният му node slot отчете
+конфигурирания ESP32 като online. Процесът беше спрян след проверката.
 
 ## Known issues
 

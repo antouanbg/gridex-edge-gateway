@@ -30,6 +30,10 @@ Repository / GitHub: `antouanbg/gridex-edge-gateway`
 - The code has local Modbus polling and MQTT payload tests. The physical pilot
   still needs the latest binary, an explicitly configured node endpoint and
   private broker CA/identity before it can publish live health.
+- A temporary, loopback-only read-only preflight on the pilot confirmed that
+  the existing service binary starts its northbound Modbus listener and that a
+  configured ESP32 node appears online in the normalized node slot. It was
+  stopped immediately; it is not yet a persistent deployment.
 
 ### Exact next safe action
 
@@ -86,6 +90,10 @@ addresses or set any `GRIDEX_APPROVE_*` flag.
 - Кодът има локални тестове за Modbus polling и MQTT payload-и. Физическият
   пилот все още изисква последния binary, изрично конфигуриран node endpoint и
   private broker CA/identity, преди да публикува live health.
+- Временен, само loopback и read-only preflight на пилота потвърди, че
+  съществуващият binary стартира northbound Modbus listener-а и че
+  конфигуриран ESP32 нод се вижда като online в нормализирания node slot.
+  Услугата беше спряна веднага; това все още не е постоянен deployment.
 
 ### Точна следваща безопасна стъпка
 
