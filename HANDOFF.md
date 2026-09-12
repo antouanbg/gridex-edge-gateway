@@ -28,12 +28,9 @@ Repository / GitHub: `antouanbg/gridex-edge-gateway`
 - Its private MQTT publisher is outbound-only and TLS-only; it publishes Edge
   health and node telemetry but does not subscribe to MQTT commands.
 - The code has local Modbus polling and MQTT payload tests. The physical pilot
-  still needs the latest binary, an explicitly configured node endpoint and
-  private broker CA/identity before it can publish live health.
-- A temporary, loopback-only read-only preflight on the pilot confirmed that
-  the existing service binary starts its northbound Modbus listener and that a
-  configured ESP32 node appears online in the normalized node slot. It was
-  stopped immediately; it is not yet a persistent deployment.
+  runs the latest locked read-only service with its listener on loopback and a
+  configured temporary bench node. Private broker CA/identity is still needed
+  before it can publish live health.
 - ROCK Pi initiated a verified ESP32 OTA update through the local Ethernet
   path. The ESP32 accepted a per-node token verifier and image SHA-256,
   restarted, and Modbus TCP recovered. This is local bench evidence only; the
@@ -41,11 +38,12 @@ Repository / GitHub: `antouanbg/gridex-edge-gateway`
 
 ### Exact next safe action
 
-PR #3 technical review and relay-test removal are recorded in
-[PR3_TECHNICAL_REVIEW.md](docs/PR3_TECHNICAL_REVIEW.md).
-Before replacing UnconfiguredDriver, add command lifecycle tests for
-disable/reject, TTL expiry, replay and reconnect. The existing command shell
-is not acceptance evidence for a live actuator.
+Follow [the local commissioning sequence](docs/LOCAL_COMMISSIONING_SEQUENCE.md)
+from its first planned step. The current pilot evidence is preserved in
+[live hardware status](docs/LIVE_HARDWARE_STATUS.md). Before replacing
+`UnconfiguredDriver`, add command lifecycle tests for disable/reject, TTL
+expiry, replay and reconnect. The existing command shell is not acceptance
+evidence for a live actuator.
 
 Keep the ESP32 bench driver unconfigured and capture the exact Deye test
 inverter model/revision, RS485 A/B/GND wiring, unit ID and complete
@@ -56,7 +54,7 @@ Do not connect a BESS, add production addresses or set any
 `GRIDEX_APPROVE_*` flag. The active service is commissioning-locked and must
 remain read-only.
 
-### Remaining before service enablement
+### Remaining before production-control enablement
 
 1. Site-specific OT subnet and physical carrier on the second Ethernet port.
 2. Site Router firewall approval for backend-to-management Modbus only.
@@ -97,12 +95,9 @@ remain read-only.
 - Private MQTT publisher-ът му е само outbound и TLS-only; публикува Edge
   health и node telemetry, но не subscribe-ва MQTT команди.
 - Кодът има локални тестове за Modbus polling и MQTT payload-и. Физическият
-  пилот все още изисква последния binary, изрично конфигуриран node endpoint и
-  private broker CA/identity, преди да публикува live health.
-- Временен, само loopback и read-only preflight на пилота потвърди, че
-  съществуващият binary стартира northbound Modbus listener-а и че
-  конфигуриран ESP32 нод се вижда като online в нормализирания node slot.
-  Услугата беше спряна веднага; това все още не е постоянен deployment.
+  пилот изпълнява последната заключена read-only услуга с listener само на
+  loopback и конфигуриран временен bench нод. Private broker CA/identity все
+  още е нужен, преди да публикува live health.
 - ROCK Pi стартира потвърдено ESP32 OTA обновяване по локалния Ethernet път.
   ESP32 прие verifier за отделен token и image SHA-256, рестартира се и
   Modbus TCP се възстанови. Това е само local bench доказателство; ESP32 няма
@@ -110,11 +105,12 @@ remain read-only.
 
 ### Точна следваща безопасна стъпка
 
-Техническият review на PR #3 и премахването на relay теста са записани в
-[PR3_TECHNICAL_REVIEW.md](docs/PR3_TECHNICAL_REVIEW.md).
-Преди замяна на UnconfiguredDriver добави command lifecycle тестове за
-disable/reject, TTL, replay и reconnect. Съществуващата command основа
-не доказва готовност за управление на реално устройство.
+Следвай [последователността за локален commissioning](docs/LOCAL_COMMISSIONING_SEQUENCE.md)
+от първата планирана стъпка. Текущите pilot доказателства са запазени в
+[текущ хардуерен статус](docs/LIVE_HARDWARE_STATUS.md). Преди замяна на
+`UnconfiguredDriver` добави command lifecycle тестове за disable/reject, TTL,
+replay и reconnect. Съществуващата command основа не доказва готовност за
+управление на реално устройство.
 
 Остави ESP32 bench driver-а unconfigured и запиши точния модел/ревизия на Deye
 test инвертора, RS485 A/B/GND wiring, unit ID и пълната manufacturer-approved
@@ -124,7 +120,7 @@ driver. Познатият регистър за power limit при string inver
 `GRIDEX_APPROVE_*` flag. Активната услуга е commissioning-locked и трябва да
 остане read-only.
 
-### Остава преди enable на услугата
+### Остава преди enable на production control
 
 1. Site-specific OT subnet и physical carrier на втория Ethernet порт.
 2. Site Router firewall approval само за backend-to-management Modbus.

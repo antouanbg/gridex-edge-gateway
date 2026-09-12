@@ -4,10 +4,10 @@ Repository / GitHub: antouanbg/gridex-edge-gateway
 
 ## Current task
 
-No active implementation task. The local, ROCK Pi mediated ESP32 OTA change is
-complete and awaiting owner review in Pull Request #8.
-Няма активна имплементационна задача. Локалната ESP32 OTA промяна през ROCK Pi
-е завършена и очаква преглед от собственика в Pull Request #8.
+Reconcile valid documentation from superseded Pull Requests #5 and #7 into a
+clean documentation branch based on current `main`.
+Съгласуване на валидната документация от отменените Pull Request #5 и #7 в
+чист документационен branch от текущия `main`.
 
 ## Completed
 
@@ -36,6 +36,8 @@ simulator тест за постоянен polling и детерминистич
 - The physical pilot completed a ROCK Pi initiated OTA update, ESP32 reboot,
   and Ethernet/Modbus TCP recovery. ROCK Pi service is enabled/active but its
   commissioning lock and every write approval gate remain `0`.
+- Pull Request #8 was merged to `main`; its OTA implementation and separate
+  service inventory are now part of the main branch.
 
 Добавени са ESP32 OTA firmware endpoint с provision-нат ROCK Pi source check,
 SHA-256 verifier за отделен token и firmware digest проверка. Добавен е
@@ -45,19 +47,19 @@ baseline и договора за външни интерфейси.
 Физическият пилот изпълни OTA update, стартирано от ROCK Pi, рестарт на ESP32
 и възстановяване на Ethernet/Modbus TCP. Услугата на ROCK Pi е enabled/active,
 но commissioning lock и всички write approval gate-ове остават `0`.
+Pull Request #8 е слят към `main`; OTA имплементацията и отделният service
+inventory вече са част от main branch.
 
 ## Remaining
 
-- Review the OTA Pull Request. Do not merge/deploy to production until the
-  Site Router ACL, release-signing owner and per-node secret rotation process
-  are approved.
+- Review the clean reconciliation Pull Request, then close the superseded
+  conflicted PRs after its owner-authorized merge.
 - Provision the private MQTT CA/client identity through the backend secret
   store, then confirm health messages at the broker.
 
-Прегледай OTA Pull Request-а. Не merge-вай/внедрявай за production преди да
-са одобрени Site Router ACL, собственикът на release signing и процесът за
-rotation на secret за отделен нод. Provision-ни private MQTT CA/client identity
-чрез backend secret store, след което потвърди health съобщенията.
+Прегледай чистия reconciliation Pull Request, след което затвори отменените
+conflicted PR-и след owner-authorized merge. Provision-ни private MQTT CA/client
+identity чрез backend secret store, след което потвърди health съобщенията.
 
 ## Modified files
 
@@ -98,12 +100,11 @@ secret rotation, release signing, router ACL approval и OT soak тестове�
 
 ## Next action
 
-Owner review of Pull Request #8, then separately approve Site Router ACL,
-release-signing ownership and per-node secret rotation before production use.
+Commit and open the clean reconciliation Pull Request, then merge it to `main`
+under the owner's current authorization. Do not merge the stale PRs directly.
 
-Преглед от собственика на Pull Request #8, след което отделно се одобряват
-Site Router ACL, собственикът на release signing и rotation на secret за
-отделен нод преди production употреба.
+Commit-ни и отвори чистия reconciliation Pull Request, след което го слей към
+`main` по текущото разрешение на собственика. Не сливай директно старите PR-и.
 
 ## Last updated
 
