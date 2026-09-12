@@ -80,6 +80,9 @@ documented in [ROCK Pi E pilot status](docs/ROCKPI_E_PILOT_STATUS.md) and
 [Services and external interfaces](docs/SERVICES_AND_EXTERNAL_INTERFACES.md).
 The temporary read-only ESP32 bench protocol is in
 [ROCK Pi E ↔ ESP32-EVB bench contract](docs/ROCKPI_ESP32_BENCH_CONTRACT.md).
+The reconciled pilot evidence and the required no-backend work order are in
+[Live hardware status](docs/LIVE_HARDWARE_STATUS.md) and
+[Local commissioning sequence](docs/LOCAL_COMMISSIONING_SEQUENCE.md).
 
 ## Project credits / Принос към проекта
 
@@ -131,3 +134,7 @@ provisioning. Образът и тайната за отделния нод се
 Интернет. Виж [ESP32 OTA](docs/ESP32_OTA.md).
 
 Лиценз: MIT.
+
+Съгласуваните pilot доказателства и задължителният ред за работа без backend
+са в [Текущ хардуерен статус](docs/LIVE_HARDWARE_STATUS.md) и
+[Последователност за локален commissioning](docs/LOCAL_COMMISSIONING_SEQUENCE.md).
