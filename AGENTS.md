@@ -104,6 +104,9 @@ The supported node board family is OLIMEX ESP32-EVB / ESP32-EVB-EA-IND.
 
 - Never commit device-specific credentials, VPN keys, customer addresses,
   production IP ranges, inventory identifiers or USB device paths.
+- Never ask a user to send an administrator, SSH or application password in
+  chat. When an approved local action needs one, stop at the prompt and ask the
+  user to type it directly into the local Terminal or graphical password dialog.
 - Maintain English technical documentation with a matching Bulgarian section
   whenever user-facing or operational documentation is changed.
 - Before changing firmware, inspect `git status`; preserve unrelated work.
