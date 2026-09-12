@@ -77,8 +77,10 @@ every control gate remains locked.
 
 Pull Request #12 for the isolated OT DHCP pilot was merged to `main` at
 `6d79295`. The current local journal and ESP32 provisioning/health work is on
-`feat/local-telemetry-provisioning`; create a new Pull Request to `main` after
-final review. Do not merge it automatically.
+`feat/local-telemetry-provisioning` in Pull Request
+[#13](https://github.com/antouanbg/gridex-edge-gateway/pull/13). It is open and
+clean, but has no GitHub checks configured. Review it before deciding whether
+to merge; do not merge it automatically.
 
 Follow [the local commissioning sequence](docs/LOCAL_COMMISSIONING_SEQUENCE.md)
 from its first planned step. The current pilot evidence is preserved in
@@ -189,8 +191,10 @@ gate-ове остават заключени.
 
 Pull Request #12 за isolated OT DHCP пилота е слят към `main` на `6d79295`.
 Текущата работа за local journal и ESP32 provisioning/health е в
-`feat/local-telemetry-provisioning`; след финалния review създай нов Pull
-Request към `main`. Не го сливай автоматично.
+`feat/local-telemetry-provisioning` в Pull Request
+[#13](https://github.com/antouanbg/gridex-edge-gateway/pull/13). Той е open и
+clean, но няма конфигурирани GitHub checks. Прегледай го преди решение за merge;
+не го сливай автоматично.
 
 Следвай [последователността за локален commissioning](docs/LOCAL_COMMISSIONING_SEQUENCE.md)
 от първата планирана стъпка. Текущите pilot доказателства са запазени в

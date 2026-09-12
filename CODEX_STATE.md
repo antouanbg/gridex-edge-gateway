@@ -4,12 +4,14 @@ Repository / GitHub: antouanbg/gridex-edge-gateway
 
 ## Current task
 
-Local telemetry journal and ESP32 provisioning/health are implemented on
-`feat/local-telemetry-provisioning`; final verification, commit, push and a
-Pull Request to `main` remain. Production control remains out of scope.
-Локалният telemetry журнал и ESP32 provisioning/health са имплементирани в
-`feat/local-telemetry-provisioning`; остават финална проверка, commit, push и
-Pull Request към `main`. Production control остава извън обхвата.
+No active implementation task. Local telemetry journal and ESP32
+provisioning/health are ready for review in Pull Request #13 on
+`feat/local-telemetry-provisioning`; no hardware deployment has occurred.
+Production control remains out of scope.
+Няма активна задача по имплементация. Local telemetry журналът и ESP32
+provisioning/health са готови за review в Pull Request #13 на
+`feat/local-telemetry-provisioning`; не е изпълняван hardware deployment.
+Production control остава извън обхвата.
 
 ## Completed
 
@@ -90,11 +92,11 @@ write approval gate-ове са `0`.
 
 ## Remaining
 
-- Review the local-journal/provisioning change, create its Pull Request, then
-  deploy it only through the approved ROCK Pi/ESP32 read-only commissioning
+- Review Pull Request #13, then deploy it only through the approved ROCK
+  Pi/ESP32 read-only commissioning
   procedure. Verify an offline/online journal transition on bench hardware.
-- Прегледай промяната за local journal/provisioning, създай Pull Request и я
-  внедри само по одобрената read-only commissioning процедура за ROCK Pi/ESP32.
+- Прегледай Pull Request #13 и я внедри само по одобрената read-only
+  commissioning процедура за ROCK Pi/ESP32.
   Потвърди offline/online journal transition на bench hardware.
 - Provision the private MQTT CA/client identity through the backend secret
   store, then confirm health messages at the broker.
@@ -180,15 +182,13 @@ secret rotation, release signing, router ACL approval и OT soak тестове�
 
 ## Next action
 
-Run final diff/secret checks, commit and push
-`feat/local-telemetry-provisioning`, create its Pull Request, then wait for
-owner review before any hardware deployment. After merge, use the documented
-read-only bench procedure to install the ROCK Pi service and flash the ESP32.
+Wait for owner review of Pull Request #13. After merge, use the documented
+read-only bench procedure to install the ROCK Pi service and flash the ESP32;
+then verify an actual local journal file and an offline/online transition.
 
-Изпълни final diff/secret проверки, commit и push на
-`feat/local-telemetry-provisioning`, създай неговия Pull Request и изчакай
-owner review преди hardware deployment. След merge използвай описаната
-read-only bench процедура за инсталиране на ROCK Pi service и flash на ESP32.
+Изчакай owner review на Pull Request #13. След merge използвай описаната
+read-only bench процедура за инсталиране на ROCK Pi service и flash на ESP32;
+след това потвърди реален local journal файл и offline/online transition.
 
 ## Last updated
 
