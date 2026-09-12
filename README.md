@@ -85,6 +85,8 @@ The reconciled pilot evidence and the required no-backend work order are in
 [Local commissioning sequence](docs/LOCAL_COMMISSIONING_SEQUENCE.md).
 The persistent, per-site node address and ROCK Pi endpoint procedure is in
 [Node network provisioning](docs/NODE_NETWORK_PROVISIONING.md).
+The isolated dual-Ethernet DHCP procedure is in
+[ROCK Pi isolated OT DHCP](docs/OT_DHCP.md).
 
 ## Project credits / Принос към проекта
 
@@ -142,3 +144,5 @@ provisioning. Образът и тайната за отделния нод се
 [Последователност за локален commissioning](docs/LOCAL_COMMISSIONING_SEQUENCE.md).
 Устойчивата per-site процедура за адреса на нода и endpoint-а на ROCK Pi е в
 [Мрежово provision-ване на нод](docs/NODE_NETWORK_PROVISIONING.md).
+Процедурата за изолирания dual-Ethernet DHCP е в
+[ROCK Pi изолиран OT DHCP](docs/OT_DHCP.md).

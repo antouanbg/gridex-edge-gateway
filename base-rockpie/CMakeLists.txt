@@ -79,5 +79,18 @@ set_tests_properties(gridex_node_tcp_polling_tests PROPERTIES TIMEOUT 15)
 add_test(NAME gridex_ota_apply_self_test COMMAND gridex_ota_apply --self-test)
 
 install(TARGETS gridex_rockpie_service gridex_ota_apply RUNTIME DESTINATION bin)
-install(FILES systemd/gridex-rockpie.service DESTINATION lib/systemd/system)
+install(FILES
+    systemd/gridex-rockpie.service
+    systemd/gridex-ot-dhcp.service
+    DESTINATION lib/systemd/system
+)
+install(PROGRAMS
+    ot-dhcp/gridex-render-ot-dhcp
+    DESTINATION lib/gridex
+)
+install(PROGRAMS
+    install/install-ot-network.sh
+    install/install-ot-dhcp.sh
+    DESTINATION lib/gridex
+)
 install(FILES config/gridex-rockpie.env.example DESTINATION share/gridex)

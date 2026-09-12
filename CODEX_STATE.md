@@ -4,11 +4,10 @@ Repository / GitHub: antouanbg/gridex-edge-gateway
 
 ## Current task
 
-No active implementation task. Persistent node provisioning is documented and
-the physical read-only ROCK Pi/ESP32 recovery check is complete.
-Няма активна задача по имплементация. Устойчивото provision-ване на нод е
-документирано и физическата read-only проверка за възстановяване на
-ROCK Pi/ESP32 е приключена.
+No active implementation task. The isolated OT networking change is ready for
+review as a Pull Request; production control remains out of scope.
+Няма активна задача по имплементация. Промяната за изолираната OT мрежа е
+готова за review като Pull Request; production control остава извън обхвата.
 
 ## Completed
 
@@ -51,6 +50,12 @@ simulator тест за постоянен polling и детерминистич
   SHA-256-verified image and recovered to normal boot mode. ROCK Pi returned
   the normalized node slot to online; commissioning remained locked with every
   write approval gate at `0`.
+- Deployed and verified the isolated dual-Ethernet pilot: management retained
+  the sole default route, the OT interface received a static protected-env
+  address, and interface-bound DHCP issued the ESP32's reserved lease.
+- Locally provisioned the ESP32 trusted ROCK Pi OT source address. The ROCK Pi
+  read-only normalized Modbus slot then reported the node online with a fresh
+  heartbeat. No inverter, BESS or node command was sent.
 
 Добавени са ESP32 OTA firmware endpoint с provision-нат ROCK Pi source check,
 SHA-256 verifier за отделен token и firmware digest проверка. Добавен е
@@ -74,6 +79,12 @@ Modbus TCP input-register отговорът е валиден и OTA client sel
 с проверен SHA-256 и се възстанови в нормален boot режим. ROCK Pi върна
 нормализирания node slot в online; commissioning остана заключен и всички
 write approval gate-ове са `0`.
+- Внедрен и проверен е изолираният dual-Ethernet пилот: management запази
+  единствения default route, OT интерфейсът получи статичен адрес от защитения
+  environment, а DHCP само за този интерфейс издаде резервирания ESP32 lease.
+- Локално е provision-нат довереният ROCK Pi OT source адрес на ESP32.
+  Read-only нормализираният Modbus слот на ROCK Pi отчете node online с нов
+  heartbeat. Не е изпращана команда към инвертор, BESS или нод.
 
 ## Remaining
 
@@ -85,28 +96,39 @@ Provision-ни private MQTT CA/client identity чрез backend secret store, с
 
 ## Modified files
 
-`base-rockpie/` adds `gridex_ota_apply`; `node-esp32-evb/` adds the protected
-OTA endpoint; `docs/ESP32_OTA.md` defines the EN/BG procedure. Existing pilot,
-handoff and project rules reflect the verified recovery.
-`base-rockpie/` добавя `gridex_ota_apply`; `node-esp32-evb/` добавя защитен
-OTA endpoint; `docs/ESP32_OTA.md` описва EN/BG процедурата. Съществуващите
-pilot, handoff и project правила отразяват потвърденото възстановяване.
+`base-rockpie/` now includes a protected OT network installer, an
+interface-bound dnsmasq renderer and systemd unit. `docs/OT_DHCP.md` contains
+the matching EN/BG procedure; project state, handoff and rules reflect the
+verified pilot.
+`base-rockpie/` вече включва защитен OT network installer, dnsmasq renderer,
+ограничен до интерфейс, и systemd unit. `docs/OT_DHCP.md` съдържа съответната
+EN/BG процедура; project state, handoff и правилата отразяват проверения пилот.
 
 ## Tests
 
 MQTT-enabled local CMake/CTest: 5/5 passed, including a local node-polling
-Modbus TCP simulator and MQTT payload tests. `git diff --check` passed.
-No live broker, hardware upload or device write was performed.
+Modbus TCP simulator and MQTT payload tests. The current private-MQTT-disabled
+build also passed 6/6 CTest checks, including the install target.
+`git diff --check` and OT shell/renderer validation passed. No live broker,
+hardware upload or device write was performed.
 The physical pilot also completed a short loopback-only, read-only preflight:
 the existing listener started and its normalized node slot reported the
 configured ESP32 as online. The process was stopped after the check.
+The isolated OT pilot verified both systemd services active, one management
+default route, an ESP32 DHCP lease and an online node slot through a read-only
+Modbus TCP register read. Shell syntax and renderer validation passed locally.
 
 MQTT-enabled локални CMake/CTest: 5/5 успешни, включително local node-polling
-Modbus TCP simulator и MQTT payload тестове. `git diff --check` е успешен.
-Няма тест с live broker, hardware upload или device write.
+Modbus TCP simulator и MQTT payload тестове. Текущият build с изключен
+private-MQTT също мина 6/6 CTest проверки, включително install target.
+`git diff --check` и OT shell/renderer проверките са успешни. Няма тест с live
+broker, hardware upload или device write.
 Физическият пилот също изпълни кратък loopback-only, read-only preflight:
 съществуващият listener стартира и нормализираният му node slot отчете
 конфигурирания ESP32 като online. Процесът беше спрян след проверката.
+Изолираният OT пилот потвърди active и за двете systemd услуги, един management
+default route, ESP32 DHCP lease и online node slot чрез read-only Modbus TCP
+register read. Shell syntax и renderer проверките минаха локално.
 
 ## Known issues
 
@@ -124,13 +146,14 @@ secret rotation, release signing, router ACL approval и OT soak тестове�
 
 Before the next task, read `AGENTS.md`, `CODEX_STATE.md` and `HANDOFF.md`,
 then inspect the actual repository and device state. The next implementation
-priority is private MQTT identity provisioning or a separately authorized
-read-only device-driver task.
+priority is private MQTT identity provisioning, a supervised OT soak test, or
+a separately authorized read-only device-driver task.
 
 Преди следващата задача прочети `AGENTS.md`, `CODEX_STATE.md` и
 `HANDOFF.md`, след което провери действителното състояние на repository-то и
 устройствата. Следващият приоритет за имплементация е private MQTT identity
-provisioning или отделно оторизирана read-only задача за device driver.
+provisioning, наблюдаван OT soak test или отделно оторизирана read-only задача
+за device driver.
 
 ## Last updated
 

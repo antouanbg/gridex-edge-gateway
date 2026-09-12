@@ -1,0 +1,23 @@
+[Unit]
+Description=GrideX isolated OT DHCP service
+After=network-online.target
+Wants=network-online.target
+
+[Service]
+Type=simple
+EnvironmentFile=/etc/gridex/gridex-rockpie.env
+RuntimeDirectory=gridex
+StateDirectory=gridex
+ExecStartPre=/usr/local/lib/gridex/gridex-render-ot-dhcp
+ExecStart=/usr/sbin/dnsmasq --keep-in-foreground --pid-file=/run/gridex/ot-dhcp.pid --conf-file=/run/gridex/ot-dhcp.conf
+Restart=on-failure
+RestartSec=3
+PrivateTmp=true
+ProtectSystem=strict
+ProtectHome=true
+ReadWritePaths=/run/gridex /var/lib/gridex
+CapabilityBoundingSet=CAP_NET_ADMIN CAP_NET_BIND_SERVICE CAP_NET_RAW CAP_SETGID CAP_SETUID
+AmbientCapabilities=CAP_NET_ADMIN CAP_NET_BIND_SERVICE CAP_NET_RAW CAP_SETGID CAP_SETUID
+
+[Install]
+WantedBy=multi-user.target
