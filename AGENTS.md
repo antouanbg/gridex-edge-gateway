@@ -44,6 +44,29 @@ Pin the accepted image and its package/kernel update policy in repository
 documentation after these tests. Never enable an untested kernel upgrade on a
 commissioned site. The Site Router remains the sole WireGuard endpoint.
 
+### Initial microSD provisioning procedure
+
+Use this procedure only on a new or explicitly approved removable microSD card.
+It is destructive: the selected card is erased completely.
+
+1. Download the pinned image and verify its SHA256 before it is written.
+2. Identify the physical removable card by model and capacity using a read-only
+   disk listing. Show the exact disk identifier and obtain explicit user
+   confirmation before erase/write; never infer the target from its name.
+3. Use Balena Etcher on macOS: choose the verified `.img.xz` file, select only
+   the confirmed removable card, start Flash, and wait for Etcher validation to
+   complete. Etcher handles administrator authorisation locally; never request
+   or record that password.
+4. Eject the card cleanly, insert it in the ROCK Pi E, and power the board from
+   a stable 5 V / 2 A or higher supply. USB computer power is acceptable only
+   for a short bench test.
+5. Connect LAN to the Site Router, discover the DHCP lease, and use SSH or the
+   1,500,000 baud UART console for first boot diagnosis. Change initial
+   credentials before installing GrideX services; do not commit credentials or
+   obtained device addresses.
+6. Keep all BESS/PCS writes locked for the first boot. Complete the hardware
+   acceptance procedure above before enabling any command path.
+
 ## OLIMEX ESP32-EVB — verified local bench knowledge
 
 The supported node board family is OLIMEX ESP32-EVB / ESP32-EVB-EA-IND.
