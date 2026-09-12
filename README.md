@@ -29,17 +29,13 @@ OpenRemote Strategy/Control Asset -> Site Router WireGuard tunnel
                                   -> OT Ethernet -> ESP32-EVB Modbus TCP :1502
                                   -> CAN/isolated RS485 -> device
 
-NODE COMMAND (where a backend service uses MQTT)
-GrideX backend -> private MQTT broker -> Site Router WireGuard tunnel
-               -> ROCK Pi E command bridge -> OT Ethernet -> ESP32-EVB
-
 DIRECT BESS
 ROCK Pi E -> OT Ethernet -> Suntech STE-261L Modbus TCP 3200
 ```
 
 ROCK Pi E and ESP32 do not run WireGuard. ROCK Pi E is the sole MQTT bridge for
-ESP32 node telemetry and broker commands; ESP32 nodes have no MQTT credentials
-in the default production profile.
+ESP32 node telemetry and Edge health; ESP32 nodes have no MQTT credentials in
+the default production profile.
 There is no public MQTT listener, direct ESP32-to-cloud telemetry path, direct
 cloud route to the OT/BESS network or MQTT command subscription on a node.
 Every node contains one compiled driver for one device type, brand, model and

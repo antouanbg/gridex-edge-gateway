@@ -4,8 +4,10 @@ Repository / GitHub: antouanbg/gridex-edge-gateway
 
 ## Current task
 
-Technical review, corrections and user-authorized merge of PR #3.
-Технически преглед, корекции и разрешено от потребителя сливане на PR #3.
+Implement ROCK Pi continuous node polling, northbound Modbus listener and
+private MQTT health/telemetry.
+Имплементиране на постоянен node polling, northbound Modbus listener и private
+MQTT health/telemetry на ROCK Pi.
 
 ## Completed
 
@@ -15,53 +17,69 @@ Technical review, corrections and user-authorized merge of PR #3.
 - Disabled legacy direct ESP32 MQTT; synchronized the affected EN/BG data paths.
 - Added register-range boundary validation and TCP/serial regression tests.
 - Recorded findings and operational limits in docs/PR3_TECHNICAL_REVIEW.md.
+- Added a TLS-only, outbound-only MQTT publisher for Edge health and normalized
+  node telemetry. It has no MQTT command subscription.
+- Added a local Modbus TCP simulator test for continuous node polling and
+  deterministic MQTT payload tests.
 
 Запазени са документите от PR #4, премахнат е relay тестът, поправени са
 серийният вход и NVS потвърждението, изключен е директният ESP32 MQTT.
 Добавени са range проверки и TCP/serial тестове; EN/BG документацията е обновена.
+Добавен е TLS-only, outbound-only MQTT publisher за Edge health и нормализирана
+node telemetry без MQTT command subscription. Добавени са локален Modbus TCP
+simulator тест за постоянен polling и детерминистични MQTT payload тестове.
 
 ## Remaining
 
-- Complete the approved GitHub merge; verify its state and main commit.
-- Commissioning and MQTT forwarding remain tracked in HANDOFF.md.
+- Build/deploy the latest ROCK Pi service with the explicit bench-node endpoint
+  and keep all write gates locked.
+- Provision the private MQTT CA/client identity through the backend secret
+  store, then confirm health messages at the broker.
 
-Завърши разрешеното сливане в GitHub и провери main. Commissioning и MQTT
-препращането остават описани в HANDOFF.md.
+Изгради/внедри последната ROCK Pi услуга с изричния bench-node endpoint и
+запази всички write gate-ове заключени. Provision-ни private MQTT CA/client
+identity чрез backend secret store, след което потвърди health съобщенията.
 
 ## Modified files
 
-See the PR #3 diff and docs/PR3_TECHNICAL_REVIEW.md for the reviewed scope.
-Виж diff на PR #3 и docs/PR3_TECHNICAL_REVIEW.md за прегледания обхват.
+`base-rockpie/` adds the private MQTT publisher, configuration and focused
+tests; docs/ROCKPI_PRIVATE_MQTT_HEALTH.md defines the contract.
+`base-rockpie/` добавя private MQTT publisher, конфигурация и фокусирани
+тестове; docs/ROCKPI_PRIVATE_MQTT_HEALTH.md описва договора.
 
 ## Tests
 
-Fresh local Debug CMake/CTest: base/core 3/3, node 1/1 passed.
-PlatformIO CAN and RS485 builds: both passed. Local TCP simulator only.
-git diff --check passed. No live hardware tests or uploads in this review.
+MQTT-enabled local CMake/CTest: 5/5 passed, including a local node-polling
+Modbus TCP simulator and MQTT payload tests. `git diff --check` passed.
+No live broker, hardware upload or device write was performed.
+The physical pilot also completed a short loopback-only, read-only preflight:
+the existing listener started and its normalized node slot reported the
+configured ESP32 as online. The process was stopped after the check.
 
-Нови локални Debug CMake/CTest: base/core 3/3, node 1/1 успешни.
-PlatformIO CAN и RS485: успешни. TCP тестът ползва само локален симулатор.
-git diff --check е успешен. Няма тестове на жив хардуер или upload в този review.
+MQTT-enabled локални CMake/CTest: 5/5 успешни, включително local node-polling
+Modbus TCP simulator и MQTT payload тестове. `git diff --check` е успешен.
+Няма тест с live broker, hardware upload или device write.
+Физическият пилот също изпълни кратък loopback-only, read-only preflight:
+съществуващият listener стартира и нормализираният му node slot отчете
+конфигурирания ESP32 като online. Процесът беше спрян след проверката.
 
 ## Known issues
 
-UnconfiguredDriver remains deliberate. Before implementing a live driver,
-validate vendor maps, wiring and command lifecycle. ROCK Pi MQTT forwarding,
-OT network commissioning and soak tests remain incomplete. Earlier physical
-pilot evidence does not validate the latest reviewed binaries.
+UnconfiguredDriver remains deliberate. A private MQTT broker CA/client identity
+has not been provisioned, and the physical pilot has not received this binary.
+OT commissioning and soak tests remain incomplete.
 
-UnconfiguredDriver е умишлен. Преди реален driver валидирай картите,
-окабеляването и command lifecycle. ROCK Pi MQTT, OT commissioning и soak
-тестовете остават незавършени. Старите физически тестове не валидират
-последните прегледани бинарни файлове.
+UnconfiguredDriver е умишлен. Private MQTT broker CA/client identity още не е
+provision-нат, а физическият пилот не е получил този binary. OT commissioning
+и soak тестовете остават незавършени.
 
 ## Next action
 
-After merging PR #3, read AGENTS.md and HANDOFF.md and select the next
-commissioning/driver milestone. Keep device writes locked.
+Deploy the built service read-only to the pilot with node polling enabled;
+after broker provisioning, verify the two documented MQTT topic families.
 
-След сливане на PR #3 прочети AGENTS.md и HANDOFF.md и избери следващия
-commissioning/driver етап. Запази блокираните записи към устройства.
+Внедри built услугата read-only на пилота с включен node polling; след broker
+provisioning потвърди двете описани MQTT topic семейства.
 
 ## Last updated
 

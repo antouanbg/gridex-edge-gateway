@@ -15,6 +15,12 @@ Linux/ARM64 executable for the GrideX base module.
 the canonical identity and telemetry blocks and publishes them into the
 northbound map. One non-responsive node does not interrupt the others.
 
+When private MQTT is configured, the same service publishes Edge health every
+`GRIDEX_HEALTH_PUBLISH_SECONDS` and each normalized node sample every
+`GRIDEX_NODE_TELEMETRY_PUBLISH_SECONDS`. It accepts TLS-only `mqtts://` broker
+URLs with `GRIDEX_MQTT_CA_FILE`; telemetry is outbound-only and has no command
+subscription. See [the MQTT health bridge](../docs/ROCKPI_PRIVATE_MQTT_HEALTH.md).
+
 The OT interface must not have a default gateway. Linux IP forwarding remains disabled and the firewall blocks forwarding between OT and WAN.
 
 `GRIDEX_MAX_CHARGE_KW` and `GRIDEX_MAX_DISCHARGE_KW` are optional operator caps. They can only reduce the live limits read from BMS registers 127/128; leaving them empty uses the BMS limits unchanged.
@@ -54,6 +60,10 @@ For the first bench run leave all `GRIDEX_APPROVE_*` values at zero. This permit
 registers 122–125 after the on-site check. The manufacturer confirmed ABCD /
 high-order word first and signed Int32 divided by 10.
 
+The package `libmosquitto-dev` enables the private MQTT publisher at build time.
+Without it, the executable still runs the Modbus listener and node poller but
+does not publish MQTT.
+
 ## Safe-state
 
 Heartbeat registers 5301/5302 are refreshed locally only after commissioning approval. If Linux, the service or the OT link fails, the cabinet's own heartbeat timeout returns PCS power to zero. The strategy/cloud path is not part of this safety chain.
@@ -73,6 +83,12 @@ Linux/ARM64 изпълним модул за базовото GrideX устро�
 `gridex-rockpie-service` обхожда постоянно endpoint-ите от
 `GRIDEX_NODE_ENDPOINTS` по OT Ethernet през `GRIDEX_NODE_POLL_MS`. Един
 неотговарящ нод не прекъсва останалите.
+
+Когато private MQTT е конфигуриран, същата услуга публикува Edge health през
+`GRIDEX_HEALTH_PUBLISH_SECONDS` и нормализираните стойности за всеки нод през
+`GRIDEX_NODE_TELEMETRY_PUBLISH_SECONDS`. Приема само TLS `mqtts://` broker URL
+с `GRIDEX_MQTT_CA_FILE`; telemetry е само outbound и няма command subscription.
+Виж [MQTT health bridge](../docs/ROCKPI_PRIVATE_MQTT_HEALTH.md).
 
 OT интерфейсът няма default gateway. Linux IP forwarding е изключен, а firewall-ът блокира препращането между OT и WAN.
 
@@ -104,6 +120,10 @@ cmake --build build-rockpie
 `GRIDEX_APPROVE_INT32_WORD_ORDER` отключва accumulated-energy телеметрията от
 регистри 122–125 след проверка на място. Производителят потвърди ABCD /
 high-order word first и signed Int32 ÷10.
+
+Пакетът `libmosquitto-dev` включва private MQTT publisher-а при build. Без него
+изпълнимият модул продължава да работи като Modbus listener и node poller, но
+не публикува MQTT.
 
 ### Безопасно състояние
 
