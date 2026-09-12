@@ -135,12 +135,14 @@ register read. Shell syntax и renderer проверките минаха лок
 UnconfiguredDriver remains deliberate. A private MQTT broker CA/client identity
 has not been provisioned. The OTA pilot used a temporary owner-only bench token;
 production secret rotation, release signing, router ACL approval and OT soak
-tests remain incomplete.
+tests remain incomplete. The OT pilot deployment lessons are recorded in
+`docs/OT_DHCP.md` and `HANDOFF.md`; apply them to every future site.
 
 UnconfiguredDriver е умишлен. Private MQTT broker CA/client identity още не е
 provision-нат. OTA pilot-ът използва временен owner-only bench token; production
 secret rotation, release signing, router ACL approval и OT soak тестовете
-остават незавършени.
+остават незавършени. Уроците от OT pilot deployment-а са записани в
+`docs/OT_DHCP.md` и `HANDOFF.md`; прилагай ги за всеки бъдещ site.
 
 ## Next action
 

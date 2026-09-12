@@ -57,6 +57,15 @@ Pi source was provisioned over USB serial, and ROCK Pi polling returned the
 normalized node slot online. Management remains the sole default route and
 every control gate remains locked.
 
+### OT deployment lessons
+
+- Use only shell-valid deployment environment assignments, without
+  angle-bracket placeholders.
+- Preserve vendor networking files; the dedicated native OT network match
+  intentionally takes precedence over their wildcard DHCP rule.
+- If an ESP32 is moved to OT, update its trusted ROCK Pi source over local USB
+  serial before expecting Modbus TCP polling or local OTA to recover.
+
 ### Review artifact
 
 The implementation is on branch `feat/ot-dhcp-static-node` in Pull Request
@@ -152,6 +161,15 @@ environment. ESP32 получи резервирания OT lease; довере�
 provision-нат през USB serial, а ROCK Pi polling върна нормализирания node slot
 в online. Management остава с единствения default route, а всички control
 gate-ове остават заключени.
+
+### Уроци от OT внедряването
+
+- Използвай само shell-валидни deployment environment записи, без placeholders
+  в ъглови скоби.
+- Запази vendor мрежовите файлове; отделният native OT network match умишлено
+  има приоритет над wildcard DHCP правилото им.
+- Ако ESP32 се премести в OT, обнови trusted ROCK Pi source през local USB
+  serial, преди да очакваш възстановяване на Modbus TCP polling или local OTA.
 
 ### Артефакт за review
 

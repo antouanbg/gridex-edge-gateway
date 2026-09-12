@@ -165,6 +165,11 @@ Do not add relay commands or automatic relay pulses to EMS firmware.
 - Management/WAN retains the sole default route. OT has no default route,
   forwarding or NAT; advertising ROCK Pi as node gateway must not create
   Internet access for OT devices.
+- Deployment environment values must be shell-valid `KEY=value` assignments;
+  never place angle-bracket placeholders in a deployed environment file.
+- A node moved from a bench network to OT must have its trusted ROCK Pi source
+  updated locally over USB serial after its OT address is ready; otherwise its
+  Modbus TCP source check correctly rejects the new path.
 - Never commit actual OT addresses, leases, MAC addresses or customer inventory.
 
 - gridex-ot-dhcp.service раздава DHCP само на отделния ROCK Pi OT интерфейс.
@@ -173,6 +178,12 @@ Do not add relay commands or automatic relay pulses to EMS firmware.
 - Management/WAN пази единствения default route. OT няма default route,
   forwarding или NAT; обявяването на ROCK Pi за node gateway не трябва да
   създава Интернет достъп за OT устройства.
+- Deployment environment стойностите трябва да са shell-валидни `KEY=value`
+  записи; никога не поставяй placeholders в ъглови скоби във внедрен
+  environment файл.
+- Нод, преместен от bench мрежа към OT, трябва локално през USB serial да
+  обнови trusted ROCK Pi source след готов OT адрес; иначе Modbus TCP source
+  проверката правилно отказва новия път.
 - Никога не commit-вай реални OT адреси, lease-ове, MAC адреси или клиентски
   inventory.
 

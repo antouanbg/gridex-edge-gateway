@@ -26,6 +26,21 @@ on the physical ROCK Pi. Verify that management retains the sole default route,
 the ROCK Pi OT interface has no default route, and DHCP listens only on OT.
 Restart the read-only Edge service and confirm the node slot becomes online.
 
+### Pilot findings
+
+- The protected environment file is sourced by POSIX shell tooling. Values must
+  be valid `KEY=value` assignments; never use angle-bracket placeholders in a
+  deployed file. Leave an unset deployment value empty until it is provisioned.
+- Some Armbian images install a vendor wildcard DHCP rule that wins over a
+  later Netplan fragment. The dedicated `systemd-networkd` match is therefore
+  required for the OT interface; do not edit the vendor file.
+- `dnsmasq` needs its PID file in the service runtime directory and the normal
+  capability set needed to bind the OT interface and drop to its restricted
+  account. Do not replace the hardened unit with a host-wide distro service.
+- When an ESP32 moves from a temporary bench network to OT, update its trusted
+  ROCK Pi source locally over USB serial after the OT address is ready. Until
+  that setting changes, the ESP32 correctly rejects the new source.
+
 ## Български
 
 ROCK Pi има две Ethernet роли. Management/WAN достига Site Router и е
@@ -52,3 +67,20 @@ deployment файл.
 единствения default route, OT интерфейсът на ROCK Pi няма default route и DHCP
 слуша само на OT. Рестартирай read-only Edge услугата и потвърди, че node slot
 става online.
+
+### Констатации от пилота
+
+- Защитеният environment файл се зарежда от POSIX shell инструменти. Стойностите
+  трябва да са валидни `KEY=value` записи; не използвай placeholders в ъглови
+  скоби във внедрен файл. Остави непопълнена deployment стойност празна, докато
+  бъде provision-ната.
+- Някои Armbian образи инсталират vendor wildcard DHCP правило, което има
+  приоритет пред по-късен Netplan fragment. Затова е необходим отделният
+  `systemd-networkd` match за OT интерфейса; не променяй vendor файла.
+- `dnsmasq` изисква PID файлът му да е в runtime директорията на услугата и
+  нормалния capability set, за да върже OT интерфейса и да премине към
+  ограничения си account. Не заменяй hardened unit-а с distro услуга за целия
+  хост.
+- Когато ESP32 се премести от временна bench мрежа към OT, обнови trusted ROCK
+  Pi source локално през USB serial, след като OT адресът е готов. До тази
+  промяна ESP32 правилно отказва новия source.
