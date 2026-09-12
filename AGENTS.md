@@ -14,13 +14,16 @@
 
 The current **pilot** operating-system candidate for the Radxa ROCK Pi E is:
 
-- Armbian Minimal CLI, Debian 12 (Bookworm), ARM64;
-- a pinned image using the `current` / Linux 6.6 LTS Rockchip kernel line;
+- Armbian 26.8.1 Minimal CLI, Debian 13 (Trixie), ARM64;
+- `Armbian_26.8.1_Rockpi-e_trixie_current_6.18.43_minimal.img.xz`;
+- SHA256 `85def0ac69ed7f5d1c1a43d6d0830db0ff92ca698b4bb5c62880ee8cad384813`;
+- the Armbian `current` / Linux 6.18.43 Rockchip kernel line.
 - no desktop environment and no Docker workload on the ROCK Pi E.
 
 This choice is made because the GrideX base service needs CMake 3.20+, a
-C++20-capable compiler and current MQTT packages. Do not use the vendor Debian
-Buster image as a GrideX production operating system: it is useful only as a
+C++20-capable compiler and current MQTT packages. Armbian lists this ROCK Pi E
+minimal image as tested and stable. Do not use the vendor Debian Buster image
+as a GrideX production operating system: it is useful only as a
 hardware-reference image for vendor dual-Ethernet validation and its userspace
 is end of life.
 
