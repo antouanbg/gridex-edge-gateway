@@ -153,6 +153,8 @@ used as evidence by future work; they are not production approval:
 - An OLIMEX ESP32-EVB RS485/Ethernet build was flashed over USB at 115200 bps.
 - ROCK Pi performed read-only Modbus TCP identity and telemetry reads from the
   ESP32 over the temporary management-LAN bench path.
+- A physical ESP32 Ethernet disconnect/reconnect test made the normalized node
+  state transition offline to online while the ROCK Pi service remained active.
 - The ESP32 driver is still unconfigured. No RS485 downstream command, BESS
   connection or production control action has been enabled.
 
@@ -166,6 +168,8 @@ used as evidence by future work; they are not production approval:
 - RS485/Ethernet build за OLIMEX ESP32-EVB е flash-нат през USB на 115200 bps.
 - ROCK Pi е направил read-only Modbus TCP identity и telemetry четене от ESP32
   през временния management-LAN bench path.
+- Физически ESP32 Ethernet disconnect/reconnect тест преведе нормализирания
+  node state от offline към online, докато ROCK Pi услугата остана active.
 - ESP32 driver-ът все още е unconfigured. Няма разрешена RS485 downstream
   команда, BESS връзка или production control действие.
 

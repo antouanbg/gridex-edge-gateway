@@ -38,6 +38,9 @@ Repository / GitHub: `antouanbg/gridex-edge-gateway`
 - **Recovery check passed:** an ESP32 reset returned the configured node to
   `online=1`; a controlled ROCK Pi reboot then returned the systemd service,
   loopback-only listener and configured node to their expected read-only state.
+- **Physical link recovery passed:** a controlled ESP32 Ethernet disconnect
+  changed the normalized node state from offline to online after reconnect;
+  ROCK Pi service and its loopback-only listener stayed active throughout.
 
 ### Ordered local commissioning sequence — no backend required
 
@@ -50,11 +53,11 @@ production approval.
    built natively on ROCK Pi; its service is enabled with an explicit bench-node
    endpoint, loopback northbound listener, no live PCS endpoint and every
    `GRIDEX_APPROVE_*` value at `0`.
-2. **[Partially verified] Confirm continuous local polling.** ESP32 reset and
-   ROCK Pi reboot recovery are confirmed: the node returned online and the
-   service continued normally. Next, unplug/reconnect one node and record the
-   transition to `online=false`; one failed node must not block the remaining
-   node slots.
+2. **[Done] Confirm continuous local polling for one bench node.** ESP32 reset,
+   physical Ethernet disconnect/reconnect and ROCK Pi reboot recovery are
+   confirmed: the node transitions offline to online and the service continues
+   normally. Multi-node isolation remains a future test when another node is
+   available.
 3. **[Planned] Commission the two Ethernet roles.** Keep management/WAN behind
    the Site Router. Configure the separate OT interface without a default
    gateway, IP forwarding or WAN-to-OT forwarding; move the temporary bench
@@ -150,6 +153,9 @@ enable any command path.
   към `online=1`; контролиран reboot на ROCK Pi след това възстанови systemd
   услугата, listener-а само на loopback и конфигурирания нод в очакваното
   read-only състояние.
+- **Physical link recovery проверката е успешна:** контролиран ESP32 Ethernet
+  disconnect промени нормализирания node state от offline към online след
+  reconnect; ROCK Pi услугата и listener-ът само на loopback останаха active.
 
 ### Последователност за локален commissioning — без backend
 
@@ -162,11 +168,11 @@ safety gate. Отметката означава code/bench доказателс
    изграден native на ROCK Pi; услугата е enabled с изричен bench-node endpoint,
    loopback northbound listener, без live PCS endpoint и всички
    `GRIDEX_APPROVE_*` стойности на `0`.
-2. **[Частично потвърдено] Потвърди постоянния локален polling.** Reset на
-   ESP32 и recovery след ROCK Pi reboot са потвърдени: нодът отново е online,
-   а услугата продължава нормално. Следва да изключиш/свържеш един нод и да
-   запишеш прехода към `online=false`; един отпаднал нод не трябва да блокира
-   останалите node slot-ове.
+2. **[Готово] Потвърди постоянния локален polling за един bench нод.** Reset
+   на ESP32, физически Ethernet disconnect/reconnect и recovery след ROCK Pi
+   reboot са потвърдени: нодът преминава offline → online, а услугата
+   продължава нормално. Multi-node изолацията остава бъдещ тест, когато има
+   втори нод.
 3. **[Планирано] Commission-ни двете Ethernet роли.** Остави management/WAN
    зад Site Router. Конфигурирай отделния OT интерфейс без default gateway, IP
    forwarding или WAN-to-OT forwarding; премести временния bench нод от

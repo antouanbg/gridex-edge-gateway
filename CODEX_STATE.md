@@ -4,8 +4,8 @@ Repository / GitHub: antouanbg/gridex-edge-gateway
 
 ## Current task
 
-Verify controlled recovery of the locked, read-only ROCK Pi and ESP32 pilot.
-Потвърждаване на контролирано възстановяване на заключения read-only ROCK Pi и ESP32 пилот.
+No active task.
+Няма активна задача.
 
 ## Completed
 
@@ -34,6 +34,9 @@ Verify controlled recovery of the locked, read-only ROCK Pi and ESP32 pilot.
 - Completed a controlled ROCK Pi reboot recovery check: systemd automatically
   restarted the service, restored the loopback-only listener and reported the
   configured ESP32 node online.
+- Completed the physical ESP32 Ethernet disconnect/reconnect test: the
+  normalized node state changed offline to online while the ROCK Pi service
+  and loopback-only listener remained active.
 
 Запазени са документите от PR #4, премахнат е relay тестът, поправени са
 серийният вход и NVS потвърждението, изключен е директният ESP32 MQTT.
@@ -54,16 +57,17 @@ loopback, включен ESP32 node polling и заключени всички B
 Изпълнена е контролирана recovery проверка след ROCK Pi reboot: systemd
 автоматично стартира услугата, възстанови listener-а само на loopback и отчете
 конфигурирания ESP32 нод като online.
+Изпълнен е физическият ESP32 Ethernet disconnect/reconnect тест:
+нормализираният node state премина offline → online, докато ROCK Pi услугата
+и listener-ът само на loopback останаха active.
 
 ## Remaining
 
-- Complete the remaining step-2 physical Ethernet disconnect/reconnect test
-  and record `online=false` followed by recovery, without disrupting the
-  service or enabling any device command.
+- Multi-node isolation test: verify that a second node can transition offline
+  without blocking the other configured node slots. This needs a second node.
 
-Завърши оставащия физически Ethernet disconnect/reconnect тест от стъпка 2 и
-запиши `online=false`, последвано от recovery, без прекъсване на услугата или
-разрешаване на device команда.
+Multi-node изолационен тест: провери, че втори нод може да премине offline,
+без да блокира другите конфигурирани node slot-ове. Нужен е втори нод.
 
 ## Modified files
 
@@ -78,34 +82,35 @@ MQTT-enabled local CMake/CTest: 5/5 passed, including a local node-polling
 Modbus TCP simulator and MQTT payload tests. `git diff --check` passed.
 No live broker, hardware upload or device write was performed.
 The physical pilot completed loopback-only, read-only recovery checks: ESP32
-reset, ROCK Pi reboot, systemd automatic recovery and the normalized node slot
-returning online all passed. No device write was performed.
+reset, Ethernet disconnect/reconnect, ROCK Pi reboot, systemd automatic
+recovery and the normalized node slot returning online all passed. No device
+write was performed.
 
 MQTT-enabled локални CMake/CTest: 5/5 успешни, включително local node-polling
 Modbus TCP simulator и MQTT payload тестове. `git diff --check` е успешен.
 Няма тест с live broker, hardware upload или device write.
 Физическият пилот изпълни loopback-only, read-only recovery проверки: ESP32
-reset, ROCK Pi reboot, автоматично възстановяване от systemd и връщане на
-нормализирания node slot към online са успешни. Не е извършвана device write
-операция.
+reset, Ethernet disconnect/reconnect, ROCK Pi reboot, автоматично
+възстановяване от systemd и връщане на нормализирания node slot към online са
+успешни. Не е извършвана device write операция.
 
 ## Known issues
 
 UnconfiguredDriver remains deliberate. A private MQTT broker CA/client identity
-has not been provisioned. OT commissioning, a physical Ethernet disconnect test
-and soak tests remain incomplete.
+has not been provisioned. OT commissioning, multi-node isolation and soak tests
+remain incomplete.
 
 UnconfiguredDriver е умишлен. Private MQTT broker CA/client identity още не е
-provision-нат. OT commissioning, физически Ethernet disconnect тест и soak
-тестовете остават незавършени.
+provision-нат. OT commissioning, multi-node изолация и soak тестовете остават
+незавършени.
 
 ## Next action
 
-Perform the remaining physical ESP32 Ethernet disconnect/reconnect test from
-step 2, then record the observed node-offline and recovery transitions.
+When a second ESP32 node is available, perform the multi-node isolation test;
+otherwise proceed only with the documented OT-network commissioning sequence.
 
-Изпълни оставащия физически ESP32 Ethernet disconnect/reconnect тест от
-стъпка 2, след което запиши наблюдаваните node-offline и recovery преходи.
+Когато има втори ESP32 нод, изпълни multi-node изолационния тест; иначе
+продължи единствено с документираната последователност за OT commissioning.
 
 ## Last updated
 
