@@ -32,3 +32,24 @@ Read this file, `CODEX_STATE.md` and `HANDOFF.md` when present, then inspect
 `git status` before a change. Every `HANDOFF.md` must identify its repository
 directly under the title as `Repository / GitHub: <owner>/<repository>` and be
 updated for all incomplete, untested or uncommissioned work.
+
+## Mandatory Pull Request workflow / Задължителен Pull Request процес
+
+- Every completed change set must be committed on a named branch, pushed to
+  `origin` and given a Pull Request before it is reported as ready for review.
+- Target `main` unless an explicitly documented dependency requires another
+  base branch. State scope, tests and commissioning limits in the PR.
+- Never merge automatically. Report the URL and wait for the project owner's
+  review/merge decision.
+- If PR creation is blocked, record the branch, commit SHA and exact blocker
+  in `CODEX_STATE.md` and `HANDOFF.md` where applicable.
+
+- Всяка завършена промяна се commit-ва в именуван branch, push-ва се към
+  `origin` и получава Pull Request, преди да бъде докладвана като готова за
+  review.
+- Целта е `main`, освен ако документирана зависимост не изисква друга base
+  branch. В PR-а се описват обхватът, тестовете и commissioning ограниченията.
+- Не merge-вай автоматично. Докладвай URL и изчакай review/merge решение на
+  собственика на проекта.
+- При блокиран PR запиши branch-а, commit SHA и точното препятствие в
+  `CODEX_STATE.md` и при нужда в `HANDOFF.md`.
