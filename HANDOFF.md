@@ -36,12 +36,12 @@ Repository / GitHub: `antouanbg/gridex-edge-gateway`
   restarted, and Modbus TCP recovered. This is local bench evidence only; the
   ESP32 has no WireGuard, public Internet or direct MQTT OTA route.
 
-### Exact next safe action
+### Current validated state
 
-Follow [node network provisioning](docs/NODE_NETWORK_PROVISIONING.md) to
-verify the root-owned `GRIDEX_NODE_ENDPOINTS` entry for the restored stable
-ESP32 identity, then restart the locked read-only service and confirm the
-normalized slot returns online.
+The node network recovery is complete: the protected endpoint setting was
+verified, the locked read-only service was restarted and its normalized node
+slot is online. The local listener and OTA client also passed non-mutating
+readiness checks. See [node network provisioning](docs/NODE_NETWORK_PROVISIONING.md).
 
 Follow [the local commissioning sequence](docs/LOCAL_COMMISSIONING_SEQUENCE.md)
 from its first planned step. The current pilot evidence is preserved in
@@ -108,12 +108,13 @@ remain read-only.
   Modbus TCP се възстанови. Това е само local bench доказателство; ESP32 няма
   WireGuard, публичен Интернет или direct MQTT OTA маршрут.
 
-### Точна следваща безопасна стъпка
+### Текущо валидирано състояние
 
-Следвай [мрежово provision-ване на нод](docs/NODE_NETWORK_PROVISIONING.md), за
-да провериш root-owned `GRIDEX_NODE_ENDPOINTS` стойността за възстановената
-устойчива ESP32 идентичност, след което рестартирай заключената read-only
-услуга и потвърди, че нормализираният slot се връща online.
+Възстановяването на мрежовата конфигурация на нода е приключено: защитената
+endpoint настройка е проверена, заключената read-only услуга е рестартирана и
+нормализираният node slot е online. Локалният listener и OTA client-ът също
+минаха проверки без промяна на състояние. Виж
+[мрежово provision-ване на нод](docs/NODE_NETWORK_PROVISIONING.md).
 
 Следвай [последователността за локален commissioning](docs/LOCAL_COMMISSIONING_SEQUENCE.md)
 от първата планирана стъпка. Текущите pilot доказателства са запазени в

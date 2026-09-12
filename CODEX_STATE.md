@@ -4,11 +4,11 @@ Repository / GitHub: antouanbg/gridex-edge-gateway
 
 ## Current task
 
-Document and apply the per-site node network provisioning convention, then
-verify the protected ROCK Pi endpoint setting with a local administrator.
-Документиране и прилагане на per-site convention за мрежово provision-ване на
-нод, след което проверка на защитената ROCK Pi endpoint настройка с локален
-администратор.
+No active implementation task. Persistent node provisioning is documented and
+the physical read-only ROCK Pi/ESP32 recovery check is complete.
+Няма активна задача по имплементация. Устойчивото provision-ване на нод е
+документирано и физическата read-only проверка за възстановяване на
+ROCK Pi/ESP32 е приключена.
 
 ## Completed
 
@@ -42,8 +42,11 @@ simulator тест за постоянен polling и детерминистич
 - Pull Request #9 reconciled the valid evidence from superseded PR #5 and #7
   into `main`; both conflicted original PRs are closed.
 - Verified the restored ESP32 stable address answers to direct ROCK Pi Modbus
-  TCP reads, while the protected active ROCK Pi polling configuration still
-  requires administrator inspection because its normalized node slot is offline.
+  TCP reads. An administrator verified the protected endpoint setting and
+  restarted the service; the normalized ROCK Pi node slot is online.
+- Verified after that restart that the service remains enabled/active, its
+  loopback Modbus TCP input-register response is valid and the OTA client
+  self-test succeeds. No field-device write or OTA flash was issued.
 
 Добавени са ESP32 OTA firmware endpoint с provision-нат ROCK Pi source check,
 SHA-256 verifier за отделен token и firmware digest проверка. Добавен е
@@ -58,20 +61,19 @@ inventory вече са част от main branch.
 Pull Request #9 съгласува валидните доказателства от отменените PR #5 и #7 в
 `main`; и двата конфликтни оригинални PR-а са затворени.
 Потвърдено е, че възстановеният устойчив ESP32 адрес отговаря на директни ROCK
-Pi Modbus TCP reads, докато защитената активна ROCK Pi polling конфигурация още
-изисква проверка от администратор, защото нормализираният node slot е offline.
+Pi Modbus TCP reads. Администратор провери защитената endpoint настройка и
+рестартира услугата; нормализираният ROCK Pi node slot е online.
+След този рестарт е потвърдено, че услугата остава enabled/active, loopback
+Modbus TCP input-register отговорът е валиден и OTA client self-test е успешен.
+Не е изпратен field-device write и не е изпълнен OTA flash.
 
 ## Remaining
 
 - Provision the private MQTT CA/client identity through the backend secret
   store, then confirm health messages at the broker.
-- With a local administrator, verify/update `GRIDEX_NODE_ENDPOINTS`, restart
-  the locked read-only service and confirm the node slot returns online.
 
 Provision-ни private MQTT CA/client identity чрез backend secret store, след
 което потвърди health съобщенията.
-С локален администратор провери/обнови `GRIDEX_NODE_ENDPOINTS`, рестартирай
-заключената read-only услуга и потвърди, че node slot-ът се връща online.
 
 ## Modified files
 
@@ -112,12 +114,15 @@ secret rotation, release signing, router ACL approval и OT soak тестове�
 
 ## Next action
 
-Use the local administrator session to inspect/update the protected
-`GRIDEX_NODE_ENDPOINTS` entry, restart the service and re-read slot `0x0100`.
+Before the next task, read `AGENTS.md`, `CODEX_STATE.md` and `HANDOFF.md`,
+then inspect the actual repository and device state. The next implementation
+priority is private MQTT identity provisioning or a separately authorized
+read-only device-driver task.
 
-Използвай локална администраторска сесия, за да провериш/обновиш защитената
-`GRIDEX_NODE_ENDPOINTS` стойност, рестартираш услугата и прочетеш отново slot
-`0x0100`.
+Преди следващата задача прочети `AGENTS.md`, `CODEX_STATE.md` и
+`HANDOFF.md`, след което провери действителното състояние на repository-то и
+устройствата. Следващият приоритет за имплементация е private MQTT identity
+provisioning или отделно оторизирана read-only задача за device driver.
 
 ## Last updated
 

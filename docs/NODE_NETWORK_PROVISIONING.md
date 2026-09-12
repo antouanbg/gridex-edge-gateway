@@ -62,13 +62,15 @@ and generic names such as `node-01.ot.internal`.
 - Site Router remains the WireGuard endpoint. VPN policy may reach ROCK Pi
   management only; it must not route directly to ESP32, Modbus TCP or OTA.
 
-### Current pilot corrective action
+### Current pilot confirmation
 
 The current pilot restored the ESP32 stable address after a DHCP-address change.
-ESP32 Modbus TCP responds, but the active ROCK Pi node slot is offline until an
-administrator verifies the protected `GRIDEX_NODE_ENDPOINTS` value and restarts
-the read-only service. This is configuration recovery, not a field-device
-control action.
+An administrator verified the protected `GRIDEX_NODE_ENDPOINTS` value and
+restarted the locked read-only service. The ROCK Pi normalized node slot is now
+online; the local Modbus TCP listener, the ESP32 Modbus TCP path and the
+non-listening OTA client all respond. No BESS/PCS or node control command was
+sent. This is configuration recovery evidence, not production-control
+acceptance.
 
 ## Български
 
@@ -132,10 +134,12 @@ Repository-то съдържа само `base-rockpie/config/gridex-rockpie.env.
   management-а на ROCK Pi; не трябва да route-ва директно до ESP32, Modbus TCP
   или OTA.
 
-### Текущо pilot коригиращо действие
+### Текущо потвърждение от pilot
 
 Текущият pilot възстанови устойчивия адрес на ESP32 след промяна на DHCP
-адрес. ESP32 Modbus TCP отговаря, но активният ROCK Pi node slot е offline,
-докато администратор не провери защитената `GRIDEX_NODE_ENDPOINTS` стойност и
-не рестартира read-only услугата. Това е възстановяване на конфигурация, а не
-field-device control действие.
+адрес. Администратор провери защитената `GRIDEX_NODE_ENDPOINTS` стойност и
+рестартира заключената read-only услуга. Нормализираният ROCK Pi node slot вече
+е online; отговарят локалният Modbus TCP listener, ESP32 Modbus TCP пътят и
+OTA client-ът без listener. Не е изпратена команда към BESS/PCS или нод. Това
+е доказателство за възстановена конфигурация, а не приемане на production
+управление.
