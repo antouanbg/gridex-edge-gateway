@@ -117,3 +117,35 @@ The supported node board family is OLIMEX ESP32-EVB / ESP32-EVB-EA-IND.
   must not be used to reach a BESS or issue device commands, and must be
   removed from the configuration when the isolated OT port is commissioned.
 - Before changing firmware, inspect `git status`; preserve unrelated work.
+
+## Verified pilot checkpoint / Потвърден пилотен checkpoint
+
+The following results are verified on the current physical pilot and may be
+used as evidence by future work; they are not production approval:
+
+- ROCK Pi E completed a native ARM64 build and both repository CTest suites.
+- The installed ROCK Pi service remains disabled and inactive, with all write
+  approval gates set to `0`.
+- An OLIMEX ESP32-EVB RS485/Ethernet build was flashed over USB at 115200 bps.
+- ROCK Pi performed read-only Modbus TCP identity and telemetry reads from the
+  ESP32 over the temporary management-LAN bench path.
+- The ESP32 driver is still unconfigured. No RS485 downstream command, BESS
+  connection or production control action has been enabled.
+
+Тези резултати са потвърдени на текущия физически пилот и могат да се ползват
+като доказателство при следваща работа; те не са production одобрение:
+
+- ROCK Pi E е изпълнил native ARM64 build и двата CTest пакета в repository-то.
+- Инсталираната ROCK Pi услуга остава disabled и inactive, а всички write
+  approval gate-ове са `0`.
+- RS485/Ethernet build за OLIMEX ESP32-EVB е flash-нат през USB на 115200 bps.
+- ROCK Pi е направил read-only Modbus TCP identity и telemetry четене от ESP32
+  през временния management-LAN bench path.
+- ESP32 driver-ът все още е unconfigured. Няма разрешена RS485 downstream
+  команда, BESS връзка или production control действие.
+
+Before resuming a hardware task, read `HANDOFF.md`, `CODEX_STATE.md` and
+`docs/ROCKPI_E_PILOT_STATUS.md`, then inspect the actual repository state.
+Преди продължаване на хардуерна задача прочети `HANDOFF.md`, `CODEX_STATE.md`
+и `docs/ROCKPI_E_PILOT_STATUS.md`, след което провери реалното състояние на
+repository-то.

@@ -23,6 +23,12 @@ customer network addresses, credentials, VPN details or production endpoints.
 - ROCK Pi completed read-only Modbus TCP identity and telemetry reads from the
   ESP32 canonical endpoint. The node correctly reports an unconfigured driver,
   so no RS485 inverter command can be sent.
+- The identity and telemetry-range checks returned successfully from the
+  canonical node map. The telemetry values were the expected zero values for
+  an unconfigured node; no downstream RS485 transaction was attempted.
+- The Suntech cumulative-energy implementation has been updated and code-tested
+  to read registers 122–125 together in one `0x04` request. It is not yet a
+  physical Suntech-cabinet verification.
 - The systemd unit is deliberately **disabled** and **inactive**.
 - The commissioning configuration binds northbound Modbus to localhost only,
   defines no BESS/node endpoint and keeps every `GRIDEX_APPROVE_*` write gate
@@ -75,6 +81,12 @@ controlled commissioning only.
 - ROCK Pi извърши read-only Modbus TCP identity и telemetry четене от ESP32
   canonical endpoint-а. Нодът коректно показва unconfigured driver, така че
   RS485 команда към инвертора не може да бъде изпратена.
+- Identity и telemetry-range проверките са отговорили успешно от canonical
+  node картата. Telemetry стойностите са очакваните нули за unconfigured node;
+  не е направена downstream RS485 транзакция.
+- Suntech cumulative-energy имплементацията е обновена и code-tested да чете
+  регистри 122–125 заедно с една `0x04` заявка. Това все още не е физическа
+  проверка към Suntech кабинет.
 - systemd услугата е умишлено **disabled** и **inactive**.
 - Commissioning конфигурацията слуша northbound Modbus само на localhost,
   няма BESS/node endpoint и държи всеки `GRIDEX_APPROVE_*` write gate на `0`.
