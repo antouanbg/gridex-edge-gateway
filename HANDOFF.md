@@ -35,6 +35,10 @@ Repository / GitHub: `antouanbg/gridex-edge-gateway`
   path. The ESP32 accepted a per-node token verifier and image SHA-256,
   restarted, and Modbus TCP recovered. This is local bench evidence only; the
   ESP32 has no WireGuard, public Internet or direct MQTT OTA route.
+- A repeat OTA revalidation completed on 2026-09-12. The ESP32 accepted the
+  verified image, then returned to normal boot mode; its local endpoints became
+  reachable and the ROCK Pi normalized polling slot returned online. The
+  commissioning lock and all write approval gates remained at `0`.
 
 ### Current validated state
 
@@ -107,6 +111,10 @@ remain read-only.
   ESP32 прие verifier за отделен token и image SHA-256, рестартира се и
   Modbus TCP се възстанови. Това е само local bench доказателство; ESP32 няма
   WireGuard, публичен Интернет или direct MQTT OTA маршрут.
+- Повторната OTA проверка приключи на 2026-09-12. ESP32 прие проверения образ,
+  след което се върна в нормален boot режим; локалните му endpoint-и станаха
+  достъпни и нормализираният polling slot на ROCK Pi се върна online.
+  Commissioning lock и всички write approval gate-ове останаха `0`.
 
 ### Текущо валидирано състояние
 

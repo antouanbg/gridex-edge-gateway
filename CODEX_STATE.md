@@ -47,6 +47,10 @@ simulator тест за постоянен polling и детерминистич
 - Verified after that restart that the service remains enabled/active, its
   loopback Modbus TCP input-register response is valid and the OTA client
   self-test succeeds. No field-device write or OTA flash was issued.
+- Revalidated a real local OTA update on 2026-09-12: ESP32 accepted the
+  SHA-256-verified image and recovered to normal boot mode. ROCK Pi returned
+  the normalized node slot to online; commissioning remained locked with every
+  write approval gate at `0`.
 
 Добавени са ESP32 OTA firmware endpoint с provision-нат ROCK Pi source check,
 SHA-256 verifier за отделен token и firmware digest проверка. Добавен е
@@ -66,6 +70,10 @@ Pi Modbus TCP reads. Администратор провери защитена�
 След този рестарт е потвърдено, че услугата остава enabled/active, loopback
 Modbus TCP input-register отговорът е валиден и OTA client self-test е успешен.
 Не е изпратен field-device write и не е изпълнен OTA flash.
+На 2026-09-12 е повторена реална локална OTA актуализация: ESP32 прие образа
+с проверен SHA-256 и се възстанови в нормален boot режим. ROCK Pi върна
+нормализирания node slot в online; commissioning остана заключен и всички
+write approval gate-ове са `0`.
 
 ## Remaining
 
