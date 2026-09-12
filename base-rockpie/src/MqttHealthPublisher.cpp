@@ -189,7 +189,16 @@ std::string MqttHealthPublisher::nodeTelemetryPayload(
            << ",\"energyWh\":" << sample.energyWh
            << ",\"deviceState\":" << sample.deviceState
            << ",\"alarmBits\":" << sample.alarmBits
-           << ",\"heartbeat\":" << sample.heartbeat << "}";
+           << ",\"heartbeat\":" << sample.heartbeat
+           << ",\"pollStatus\":" << static_cast<std::uint16_t>(sample.pollStatus)
+           << ",\"consecutiveFailures\":" << sample.consecutiveFailures
+           << ",\"ethernetStatus\":" << sample.ethernetStatus
+           << ",\"modbusTcpStatus\":" << sample.modbusTcpStatus
+           << ",\"driverReady\":" << sample.driverReady
+           << ",\"deviceBusStatus\":" << sample.deviceBusStatus
+           << ",\"watchdogStatus\":" << sample.watchdogStatus
+           << ",\"recoveryCount\":" << sample.recoveryCount
+           << ",\"lastError\":" << sample.lastError << "}";
     return output.str();
 }
 

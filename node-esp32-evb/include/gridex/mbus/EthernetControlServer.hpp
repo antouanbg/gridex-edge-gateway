@@ -25,9 +25,11 @@ public:
     EthernetControlServer(MbusNode& node, EthernetControlConfig config);
 
     void begin();
+    void restart();
     void loop();
     void setRockPiAddress(IPAddress address);
     [[nodiscard]] bool connected();
+    [[nodiscard]] bool listening() const;
     [[nodiscard]] std::uint32_t rejectedClients() const;
 
 private:

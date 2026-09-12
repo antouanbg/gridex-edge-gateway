@@ -11,11 +11,14 @@
 #include <Arduino.h>
 #include <ETH.h>
 #include <Preferences.h>
+#include <esp_task_wdt.h>
+#include <esp_idf_version.h>
 #if defined(GRIDEX_DEVICE_BUS_CAN)
 #include <driver/twai.h>
 #endif
 
 #include <memory>
+#include <cstdio>
 
 namespace {
 
@@ -31,6 +34,16 @@ unsigned long lastCloudPublishMs = 0;
 unsigned long lastCommandMs = 0;
 std::uint16_t lastCommandSequence = 0;
 bool commandArmed = false;
+bool ethernetSeen = false;
+bool ethernetUp = false;
+bool deviceBusReady = false;
+bool driverReady = false;
+bool watchdogReady = false;
+volatile bool restartControlRequested = false;
+std::uint16_t ethernetRecoveries = 0;
+std::uint16_t busRecoveries = 0;
+std::uint16_t lastError = 0;
+unsigned long lastBusRecoveryMs = 0;
 gridex::mbus::DriverSample lastSample;
 gridex::mbus::ProvisioningLine serialLine;
 
@@ -66,21 +79,46 @@ void printProvisioningStatus() {
     const bool otaEnabled = cloudPreferences.getString("ota_token_hash", "").length() == 64U;
     cloudPreferences.end();
     Serial.printf(
-        "GrideX node: uid=%llX address=%u type=%u driver=%u eth=%s rockpi=%s ota=%s driver=locked\n",
+        "GrideX node: uid=%llX address=%u type=%u driver=%u ip=%s eth=%s modbus=%s bus=%s watchdog=%s rockpi=%s ota=%s driver=%s\n",
         static_cast<unsigned long long>(node->uid()),
         node->address(),
         static_cast<unsigned>(node->type()),
         node->driverId(),
         ETH.localIP().toString().c_str(),
+        ethernetUp ? "up" : "down",
+        control && control->listening() ? "listening" : "down",
+        deviceBusReady ? "ready" : "not-ready",
+        watchdogReady ? "enabled" : "disabled",
         rockPi.c_str(),
-        otaEnabled ? "enabled" : "disabled"
+        otaEnabled ? "enabled" : "disabled",
+        driverReady ? "ready" : "locked"
     );
+}
+
+void provisionNode(String arguments) {
+    unsigned address = 0;
+    unsigned type = 0;
+    unsigned driverId = 0;
+    if (sscanf(arguments.c_str(), "%u %u %u", &address, &type, &driverId) != 3 ||
+        address > 247U || type > static_cast<unsigned>(gridex::mbus::NodeType::SecondCabinet) ||
+        driverId > 65535U ||
+        !node->provision(static_cast<std::uint8_t>(address),
+                         static_cast<gridex::mbus::NodeType>(type),
+                         static_cast<std::uint16_t>(driverId))) {
+        Serial.println("GrideX: invalid node provisioning; use node <1-247> <type 1-6> <driver-id>");
+        return;
+    }
+    persistNodeConfig();
+    driver = std::make_unique<gridex::mbus::UnconfiguredDriver>(
+        node->type(), node->driverId());
+    driverReady = false;
+    Serial.println("GrideX: node identity stored; install a matching signed driver build before it can become active");
 }
 
 void processProvisioningLine(String line) {
     line.trim();
     if (line == "help") {
-        Serial.println("Commands: status | rockpi <IPv4> | ota-key <32+ chars> | ota-clear. Local provisioning only; no control commands.");
+        Serial.println("Commands: status | node <1-247> <type 1-6> <driver-id> | rockpi <IPv4> | ota-key <32+ chars> | ota-clear. Local provisioning only; no control commands.");
         return;
     }
     if (line == "status") {
@@ -97,6 +135,10 @@ void processProvisioningLine(String line) {
         Serial.println("GrideX: OTA secret cleared; restarting");
         delay(100U);
         ESP.restart();
+        return;
+    }
+    if (line.startsWith("node ")) {
+        provisionNode(line.substring(5));
         return;
     }
     if (line.startsWith("ota-key ")) {
@@ -222,6 +264,52 @@ bool initializeDeviceBus() {
 #endif
 }
 
+bool initializeWatchdog() {
+#if ESP_IDF_VERSION_MAJOR >= 5
+    const esp_task_wdt_config_t config{
+        .timeout_ms = 8000U,
+        .idle_core_mask = 0U,
+        .trigger_panic = true,
+    };
+    const auto initialized = esp_task_wdt_init(&config);
+#else
+    const auto initialized = esp_task_wdt_init(8U, true);
+#endif
+    if (initialized != ESP_OK && initialized != ESP_ERR_INVALID_STATE) {
+        return false;
+    }
+    const auto subscribed = esp_task_wdt_add(nullptr);
+    return subscribed == ESP_OK || subscribed == ESP_ERR_INVALID_ARG;
+}
+
+void publishHealthRegisters() {
+    const auto totalRecoveries = static_cast<std::uint16_t>(
+        ethernetRecoveries + busRecoveries);
+    node->setRegister(gridex::mbus::reg::EthernetStatus, ethernetUp ? 2U : 0U);
+    node->setRegister(gridex::mbus::reg::ModbusTcpStatus,
+                      control && control->listening() ? 1U : 0U);
+    node->setRegister(gridex::mbus::reg::DriverReady, driverReady ? 1U : 0U);
+    node->setRegister(gridex::mbus::reg::DeviceBusStatus, deviceBusReady ? 1U : 0U);
+    node->setRegister(gridex::mbus::reg::WatchdogStatus, watchdogReady ? 1U : 0U);
+    node->setRegister(gridex::mbus::reg::RecoveryCount, totalRecoveries);
+    node->setRegister(gridex::mbus::reg::EthernetRecoveryCount, ethernetRecoveries);
+    node->setRegister(gridex::mbus::reg::BusRecoveryCount, busRecoveries);
+    node->setRegister(gridex::mbus::reg::LastError, lastError);
+}
+
+void superviseDeviceBus(unsigned long nowMs) {
+    if (!driver->requiresDeviceBus() || (driverReady && driver->healthy()) ||
+        nowMs - lastBusRecoveryMs < 30000U) {
+        return;
+    }
+    lastBusRecoveryMs = nowMs;
+    deviceBusReady = initializeDeviceBus();
+    driverReady = deviceBusReady && driver->begin();
+    ++busRecoveries;
+    lastError = driverReady ? 0U : 2U;
+    Serial.printf("GrideX: device-bus recovery %s\n", driverReady ? "ready" : "failed");
+}
+
 void publishDriverSample(const gridex::mbus::DriverSample& sample) {
     node->setRegister(
         gridex::mbus::reg::ActualPowerKwX10,
@@ -284,8 +372,16 @@ void setup() {
     Serial.println("GrideX: booting read-only node firmware");
     WiFi.onEvent([](WiFiEvent_t event) {
         if (event == ARDUINO_EVENT_ETH_GOT_IP) {
+            const bool recovered = ethernetSeen && !ethernetUp;
+            ethernetSeen = true;
+            ethernetUp = true;
+            if (recovered) ++ethernetRecoveries;
+            restartControlRequested = true;
             Serial.printf("GrideX: Ethernet ready at %s\n", ETH.localIP().toString().c_str());
         } else if (event == ARDUINO_EVENT_ETH_DISCONNECTED) {
+            ethernetUp = false;
+            lastError = 1U;
+            restartControlRequested = true;
             Serial.println("GrideX: Ethernet disconnected");
         }
     });
@@ -293,8 +389,10 @@ void setup() {
     // failures after reset.
     delay(2000);
     ETH.begin();
-    if (!initializeDeviceBus()) {
+    deviceBusReady = initializeDeviceBus();
+    if (!deviceBusReady) {
         Serial.println("GrideX: device bus initialization failed");
+        lastError = 2U;
     }
 
     node = std::make_unique<gridex::mbus::MbusNode>(loadConfig());
@@ -302,7 +400,7 @@ void setup() {
         node->type(),
         node->driverId()
     );
-    driver->begin();
+    driverReady = deviceBusReady && driver->begin();
     cloud = std::make_unique<gridex::mbus::MqttTelemetryService>(
         loadCloudConfig()
     );
@@ -314,6 +412,13 @@ void setup() {
     control->begin();
     ota = std::make_unique<gridex::mbus::EspOtaService>(loadOtaConfig());
     ota->begin();
+    watchdogReady = initializeWatchdog();
+    if (!watchdogReady) {
+        Serial.println("GrideX: task watchdog unavailable");
+        lastError = 3U;
+    }
+    ethernetUp = ETH.linkUp();
+    publishHealthRegisters();
     Serial.printf("GrideX: OTA endpoint %s\n", ota->enabled() ? "enabled" : "disabled");
 }
 
@@ -321,9 +426,14 @@ void loop() {
     processProvisioningSerial();
     cloud->loop();
     control->loop();
+    if (restartControlRequested && control) {
+        restartControlRequested = false;
+        control->restart();
+    }
     ota->loop();
     applyCommand(millis());
     persistNodeConfig();
+    superviseDeviceBus(millis());
 
     if (millis() - lastPollMs >= 500U) {
         lastPollMs = millis();
@@ -333,6 +443,7 @@ void loop() {
             gridex::mbus::reg::UptimeLow,
             static_cast<std::uint16_t>(millis() / 1000U)
         );
+        publishHealthRegisters();
         node->setRegister(
             gridex::mbus::reg::Heartbeat,
             static_cast<std::uint16_t>(
@@ -350,6 +461,9 @@ void loop() {
             lastSample,
             node->registerValue(gridex::mbus::reg::Heartbeat)
         );
+    }
+    if (watchdogReady) {
+        (void)esp_task_wdt_reset();
     }
     delay(1);
 }

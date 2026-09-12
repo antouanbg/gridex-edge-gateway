@@ -20,6 +20,10 @@ public:
     virtual bool begin() = 0;
     virtual DriverSample poll() = 0;
     virtual bool applyPowerCommand(std::int16_t powerKwX10) = 0;
+    // A compiled driver opts in before the generic supervisor may retry its
+    // physical bus. The unconfigured driver deliberately never touches RS485.
+    [[nodiscard]] virtual bool requiresDeviceBus() const { return false; }
+    [[nodiscard]] virtual bool healthy() const { return true; }
 };
 
 class UnconfiguredDriver final : public IDeviceDriver {
@@ -37,6 +41,7 @@ public:
         return sample;
     }
     bool applyPowerCommand(std::int16_t) override { return false; }
+    [[nodiscard]] bool healthy() const override { return false; }
 
 private:
     NodeType type_;

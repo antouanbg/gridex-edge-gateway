@@ -102,19 +102,11 @@ void MbusNode::applyPendingConfiguration() {
     const auto requestedAddress = registers_[reg::RequestedAddress];
     const auto requestedType = registers_[reg::RequestedNodeType];
     const auto requestedDriverId = registers_[reg::RequestedDriverId];
-    if (requestedAddress < 1U || requestedAddress > 247U ||
-        !validType(requestedType) || requestedDriverId == 0U) {
+    if (requestedAddress > 247U) {
         return;
     }
-    config_.address = static_cast<std::uint8_t>(requestedAddress);
-    config_.type = static_cast<NodeType>(requestedType);
-    config_.driverId = requestedDriverId;
-    registers_[reg::NodeAddress] = config_.address;
-    registers_[reg::NodeType] = requestedType;
-    registers_[reg::DriverId] = requestedDriverId;
-    registers_[reg::NodeState] =
-        static_cast<std::uint16_t>(NodeState::DriverMissing);
-    configurationChanged_ = true;
+    (void)provision(static_cast<std::uint8_t>(requestedAddress),
+                    static_cast<NodeType>(requestedType), requestedDriverId);
 }
 
 std::vector<std::uint8_t> MbusNode::processFrame(
@@ -221,6 +213,27 @@ bool MbusNode::takeConfigurationChanged() {
     const bool value = configurationChanged_;
     configurationChanged_ = false;
     return value;
+}
+
+bool MbusNode::provision(std::uint8_t address, NodeType type,
+                         std::uint16_t driverId) {
+    if (address < 1U || address > 247U ||
+        !validType(static_cast<std::uint16_t>(type)) || driverId == 0U) {
+        return false;
+    }
+    config_.address = address;
+    config_.type = type;
+    config_.driverId = driverId;
+    registers_[reg::RequestedAddress] = address;
+    registers_[reg::RequestedNodeType] = static_cast<std::uint16_t>(type);
+    registers_[reg::RequestedDriverId] = driverId;
+    registers_[reg::NodeAddress] = address;
+    registers_[reg::NodeType] = static_cast<std::uint16_t>(type);
+    registers_[reg::DriverId] = driverId;
+    registers_[reg::NodeState] =
+        static_cast<std::uint16_t>(NodeState::DriverMissing);
+    configurationChanged_ = true;
+    return true;
 }
 
 void MbusNode::setRegister(std::uint16_t address, std::uint16_t value) {

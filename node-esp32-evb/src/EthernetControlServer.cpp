@@ -42,6 +42,13 @@ EthernetControlServer::EthernetControlServer(
 }
 
 void EthernetControlServer::begin() {
+    restart();
+}
+
+void EthernetControlServer::restart() {
+    client_.stop();
+    rx_.clear();
+    server_.end();
     server_.begin();
     server_.setNoDelay(true);
 }
@@ -162,6 +169,10 @@ void EthernetControlServer::loop() {
 
 bool EthernetControlServer::connected() {
     return client_ && client_.connected();
+}
+
+bool EthernetControlServer::listening() const {
+    return config_.port != 0U;
 }
 
 std::uint32_t EthernetControlServer::rejectedClients() const {

@@ -59,7 +59,16 @@ inline constexpr std::uint16_t DriverSpecificStart = 0x0050;
 
 inline constexpr std::size_t HoldingCount = 0x0080;
 inline constexpr std::uint16_t MagicValue = 0x4758;  // GX
-inline constexpr std::uint16_t MapVersionValue = 0x0004;
+inline constexpr std::uint16_t EthernetStatus = 0x0046;
+inline constexpr std::uint16_t ModbusTcpStatus = 0x0047;
+inline constexpr std::uint16_t DriverReady = 0x0048;
+inline constexpr std::uint16_t DeviceBusStatus = 0x0049;
+inline constexpr std::uint16_t WatchdogStatus = 0x004A;
+inline constexpr std::uint16_t RecoveryCount = 0x004B;
+inline constexpr std::uint16_t EthernetRecoveryCount = 0x004C;
+inline constexpr std::uint16_t BusRecoveryCount = 0x004D;
+inline constexpr std::uint16_t LastError = 0x004E;
+inline constexpr std::uint16_t MapVersionValue = 0x0005;
 inline constexpr std::uint16_t ApplyKey = 0xA55A;
 }  // namespace reg
 

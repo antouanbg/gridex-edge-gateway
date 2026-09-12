@@ -16,7 +16,8 @@ no addresses, identifiers, credentials or production endpoints.
 | Northbound listener | Loopback-only, read-only pilot configuration. It is not published to the site LAN, VPN or Internet. |
 | Management Ethernet | Used only for the temporary local bench connection. |
 | OT Ethernet | Present but not commissioned for production; it has no approved OT route, carrier, address or firewall policy. |
-| ESP32 Ethernet / Modbus TCP | ROCK Pi completed repeated read-only identity and telemetry reads from the canonical map (map version 4). The loop heartbeat advanced across samples. |
+| ESP32 Ethernet / Modbus TCP | ROCK Pi completed repeated read-only identity and telemetry reads from the canonical map (map version 4). The loop heartbeat advanced across samples. Map version 5 provisioning/health/watchdog firmware is built and tested but has not yet been flashed to this pilot. |
+| Local telemetry journal | Code-tested only. It has not yet been installed or observed on the physical ROCK Pi; it records local snapshots and state transitions without control payloads. |
 | ESP32 field driver | `UnconfiguredDriver` / DriverMissing evidence; sampled power and energy are not inverter measurements, and no downstream RS485/CAN transaction is approved. |
 | Recovery | ESP32 reset, Ethernet disconnect/reconnect and controlled ROCK Pi reboot returned the normalized node state from offline to online while the locked service stayed active. |
 | OTA update service | ROCK Pi initiated a verified local ESP32 firmware update. The node verified the per-node token verifier and image SHA-256, rebooted, and Ethernet/Modbus TCP recovered. |
@@ -42,7 +43,8 @@ future release identity process.
 | Northbound listener | Само на loopback в read-only pilot конфигурация. Не е публикуван към site LAN, VPN или Интернет. |
 | Management Ethernet | Използва се само за временната локална bench връзка. |
 | OT Ethernet | Наличен, но не е production-commissioned; няма одобрен OT route, carrier, адрес или firewall policy. |
-| ESP32 Ethernet / Modbus TCP | ROCK Pi направи повторяеми read-only identity и telemetry reads от canonical картата (map version 4). Loop heartbeat-ът се увеличаваше между пробите. |
+| ESP32 Ethernet / Modbus TCP | ROCK Pi направи повторяеми read-only identity и telemetry reads от canonical картата (map version 4). Loop heartbeat-ът се увеличаваше между пробите. Firmware-ът за map version 5 provisioning/health/watchdog е build-нат и тестван, но още не е flash-нат на този пилот. |
+| Local telemetry journal | Само code-tested. Още не е инсталиран или наблюдаван на физическия ROCK Pi; записва локални snapshots и state transitions без control payload-и. |
 | ESP32 field driver | Има доказателство за `UnconfiguredDriver` / DriverMissing; sample power и energy не са inverter measurements и не е одобрена downstream RS485/CAN транзакция. |
 | Recovery | Reset на ESP32, Ethernet disconnect/reconnect и контролиран ROCK Pi reboot върнаха нормализирания node state offline → online, докато заключената услуга остана active. |
 | OTA услуга | ROCK Pi стартира потвърдено локално ESP32 firmware обновяване. Нодът провери verifier-а за token на отделния нод и SHA-256 на образа, рестартира се и Ethernet/Modbus TCP се възстанови. |

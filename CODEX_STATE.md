@@ -4,10 +4,12 @@ Repository / GitHub: antouanbg/gridex-edge-gateway
 
 ## Current task
 
-No active implementation task. The isolated OT networking change is ready for
-review as a Pull Request; production control remains out of scope.
-Няма активна задача по имплементация. Промяната за изолираната OT мрежа е
-готова за review като Pull Request; production control остава извън обхвата.
+Local telemetry journal and ESP32 provisioning/health are implemented on
+`feat/local-telemetry-provisioning`; final verification, commit, push and a
+Pull Request to `main` remain. Production control remains out of scope.
+Локалният telemetry журнал и ESP32 provisioning/health са имплементирани в
+`feat/local-telemetry-provisioning`; остават финална проверка, commit, push и
+Pull Request към `main`. Production control остава извън обхвата.
 
 ## Completed
 
@@ -88,6 +90,12 @@ write approval gate-ове са `0`.
 
 ## Remaining
 
+- Review the local-journal/provisioning change, create its Pull Request, then
+  deploy it only through the approved ROCK Pi/ESP32 read-only commissioning
+  procedure. Verify an offline/online journal transition on bench hardware.
+- Прегледай промяната за local journal/provisioning, създай Pull Request и я
+  внедри само по одобрената read-only commissioning процедура за ROCK Pi/ESP32.
+  Потвърди offline/online journal transition на bench hardware.
 - Provision the private MQTT CA/client identity through the backend secret
   store, then confirm health messages at the broker.
 
@@ -95,6 +103,16 @@ Provision-ни private MQTT CA/client identity чрез backend secret store, с
 което потвърди health съобщенията.
 
 ## Modified files
+
+`base-rockpie/` adds the bounded local NDJSON journal, explicit polling failure
+status and map-v5 node-health ingestion. `node-esp32-evb/` adds local logical
+identity provisioning, health registers, watchdog status and recovery hooks.
+`docs/LOCAL_TELEMETRY_AND_NODE_PROVISIONING.md` is the matching EN/BG contract.
+`base-rockpie/` добавя ограничения local NDJSON журнал, изрично polling failure
+състояние и map-v5 node-health ingestion. `node-esp32-evb/` добавя local
+logical identity provisioning, health регистри, watchdog статус и recovery
+hooks. `docs/LOCAL_TELEMETRY_AND_NODE_PROVISIONING.md` е съответният EN/BG
+договор.
 
 `base-rockpie/` now includes a protected OT network installer, an
 interface-bound dnsmasq renderer and systemd unit. `docs/OT_DHCP.md` contains
@@ -105,6 +123,15 @@ verified pilot.
 EN/BG процедура; project state, handoff и правилата отразяват проверения пилот.
 
 ## Tests
+
+The private-MQTT-disabled ROCK Pi CMake/CTest suite passed 7/7, including the
+new local journal and Modbus node-health simulator checks. Both PlatformIO
+profiles (`esp32-evb-can` and `esp32-evb-rs485`) built successfully. No
+firmware upload, live broker connection or device write was performed.
+Private-MQTT-disabled ROCK Pi CMake/CTest пакетът мина 7/7, включително новите
+проверки за local journal и Modbus node-health simulator. И двата PlatformIO
+профила (`esp32-evb-can` и `esp32-evb-rs485`) се build-наха успешно. Не е
+изпълняван firmware upload, live broker връзка или device write.
 
 MQTT-enabled local CMake/CTest: 5/5 passed, including a local node-polling
 Modbus TCP simulator and MQTT payload tests. The current private-MQTT-disabled
@@ -153,16 +180,15 @@ secret rotation, release signing, router ACL approval и OT soak тестове�
 
 ## Next action
 
-Before the next task, read `AGENTS.md`, `CODEX_STATE.md` and `HANDOFF.md`,
-then inspect the actual repository and device state. The next implementation
-priority is private MQTT identity provisioning, a supervised OT soak test, or
-a separately authorized read-only device-driver task.
+Run final diff/secret checks, commit and push
+`feat/local-telemetry-provisioning`, create its Pull Request, then wait for
+owner review before any hardware deployment. After merge, use the documented
+read-only bench procedure to install the ROCK Pi service and flash the ESP32.
 
-Преди следващата задача прочети `AGENTS.md`, `CODEX_STATE.md` и
-`HANDOFF.md`, след което провери действителното състояние на repository-то и
-устройствата. Следващият приоритет за имплементация е private MQTT identity
-provisioning, наблюдаван OT soak test или отделно оторизирана read-only задача
-за device driver.
+Изпълни final diff/secret проверки, commit и push на
+`feat/local-telemetry-provisioning`, създай неговия Pull Request и изчакай
+owner review преди hardware deployment. След merge използвай описаната
+read-only bench процедура за инсталиране на ROCK Pi service и flash на ESP32.
 
 ## Last updated
 
