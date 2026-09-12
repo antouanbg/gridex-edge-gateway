@@ -109,4 +109,11 @@ The supported node board family is OLIMEX ESP32-EVB / ESP32-EVB-EA-IND.
   user to type it directly into the local Terminal or graphical password dialog.
 - Maintain English technical documentation with a matching Bulgarian section
   whenever user-facing or operational documentation is changed.
+- Record material unfinished deployment work in `HANDOFF.md`, naming this
+  repository and the exact next safe action. Update it before ending a
+  substantial hardware or deployment task.
+- A temporary ESP32 bench connection through the ROCK Pi management Ethernet
+  is read-only telemetry testing only. It is never the production OT topology,
+  must not be used to reach a BESS or issue device commands, and must be
+  removed from the configuration when the isolated OT port is commissioned.
 - Before changing firmware, inspect `git status`; preserve unrelated work.

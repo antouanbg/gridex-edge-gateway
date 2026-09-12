@@ -15,7 +15,7 @@ protocol revision. Mixed products on one node are not supported.
 ```text
 Sensors / device telemetry
   ESP32-EVB -> Ethernet -> site router -> site WireGuard tunnel
-            -> VPN-only MQTT 8883 -> OpenRemote
+            -> private MQTT broker -> GrideX backend ingestion -> OpenRemote
 
 Commands
   OpenRemote -> site WireGuard tunnel -> ROCK Pi E
@@ -75,10 +75,11 @@ UEXT/UART.
 Всеки нод се компилира за точно един тип устройство, производител, модел и
 ревизия на протокола. Смесени продукти върху един нод не се разрешават.
 
-Телеметрията се публикува директно по MQTT/TLS през Ethernet и WireGuard тунела
-на site router-а. Командите не идват по MQTT: OpenRemote ги подава към ROCK Pi
-E, а той ги изпраща по изолираната OT Ethernet мрежа към Modbus TCP endpoint-а
-на нода. Нодът превежда командата към CAN или външния изолиран RS485 канал.
+Телеметрията се публикува по MQTT/TLS през Ethernet и WireGuard тунела на site
+router-а към private broker, след което GrideX backend ingestion я подава към
+OpenRemote. Командите не идват по MQTT: OpenRemote ги подава към ROCK Pi E, а
+той ги изпраща по изолираната OT Ethernet мрежа към Modbus TCP endpoint-а на
+нода. Нодът превежда командата към CAN или външния изолиран RS485 канал.
 
 ESP32 няма WireGuard. Modbus TCP сървърът допуска само конфигурирания ROCK Pi E,
 само командните регистри, последователен sequence и TTL 1–30 секунди. При

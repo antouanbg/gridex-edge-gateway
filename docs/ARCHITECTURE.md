@@ -19,7 +19,8 @@ ROCK Pi E northbound Modbus TCP :1502
                                     \-- isolated UEXT RS485 -> one device
 
 ESP32-EVB telemetry -> Ethernet -> site-router WireGuard
-                    -> VPN-only MQTT :8883 -> OpenRemote
+                    -> private MQTT broker -> GrideX backend ingestion
+                    -> OpenRemote
 ```
 
 The browser never reaches OpenRemote or Edge directly. ROCK Pi E and ESP32 do
@@ -39,7 +40,8 @@ ROCK Pi E получава команди от OpenRemote през WireGuard т�
 конкретния ESP32-EVB. Нодът превежда към вградения CAN или към външен изолиран
 RS485 трансивър.
 
-Телеметрията се публикува директно от нода към VPN-only MQTT. Няма MQTT
+Телеметрията се публикува от нода към private MQTT broker през Site Router
+VPN, а GrideX backend ingestion я преобразува към OpenRemote. Няма MQTT
 команди, WireGuard върху ROCK Pi/ESP32, site-to-site routing или директен route
 от backend към OT/BESS мрежата.
 

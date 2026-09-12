@@ -20,7 +20,7 @@ isolated UEXT/UART transceiver.
 ```text
 TELEMETRY
 CAN/RS485 device -> ESP32-EVB -> Ethernet -> site router WireGuard
-                 -> VPN-only MQTT 8883 -> OpenRemote
+                 -> private MQTT broker -> GrideX backend ingestion -> OpenRemote
 
 CONTROL
 OpenRemote -> site router WireGuard -> ROCK Pi E -> OT Ethernet
@@ -59,6 +59,10 @@ The Suntech SunStorage Pro 261 / STE-261L map is manufacturer-confirmed. Other
 drivers remain read-only or reference status until their exact hardware and
 write behavior pass bench commissioning.
 
+Current deployment status, service ownership and external interface contracts
+are documented in [ROCK Pi E pilot status](docs/ROCKPI_E_PILOT_STATUS.md) and
+[Services and external interfaces](docs/SERVICES_AND_EXTERNAL_INTERFACES.md).
+
 ## Български
 
 Това е open-source Edge runtime за индустриални обекти. Избраната архитектура
@@ -85,3 +89,7 @@ software fuse, commissioning lock и heartbeat защитите не могат 
 заобиколени от облачната стратегия.
 
 Лиценз: MIT.
+
+Статусът на физическия ROCK Pi E пилот, услугите и договорите към външните
+страни са описани в [ROCK Pi E pilot status](docs/ROCKPI_E_PILOT_STATUS.md) и
+[Services and external interfaces](docs/SERVICES_AND_EXTERNAL_INTERFACES.md).
