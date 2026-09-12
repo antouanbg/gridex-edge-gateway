@@ -4,8 +4,11 @@ Repository / GitHub: antouanbg/gridex-edge-gateway
 
 ## Current task
 
-No active implementation task.
-Няма активна имплементационна задача.
+No active implementation task. Persistent node provisioning is documented and
+the physical read-only ROCK Pi/ESP32 recovery check is complete.
+Няма активна задача по имплементация. Устойчивото provision-ване на нод е
+документирано и физическата read-only проверка за възстановяване на
+ROCK Pi/ESP32 е приключена.
 
 ## Completed
 
@@ -38,6 +41,16 @@ simulator тест за постоянен polling и детерминистич
   service inventory are now part of the main branch.
 - Pull Request #9 reconciled the valid evidence from superseded PR #5 and #7
   into `main`; both conflicted original PRs are closed.
+- Verified the restored ESP32 stable address answers to direct ROCK Pi Modbus
+  TCP reads. An administrator verified the protected endpoint setting and
+  restarted the service; the normalized ROCK Pi node slot is online.
+- Verified after that restart that the service remains enabled/active, its
+  loopback Modbus TCP input-register response is valid and the OTA client
+  self-test succeeds. No field-device write or OTA flash was issued.
+- Revalidated a real local OTA update on 2026-09-12: ESP32 accepted the
+  SHA-256-verified image and recovered to normal boot mode. ROCK Pi returned
+  the normalized node slot to online; commissioning remained locked with every
+  write approval gate at `0`.
 
 Добавени са ESP32 OTA firmware endpoint с provision-нат ROCK Pi source check,
 SHA-256 verifier за отделен token и firmware digest проверка. Добавен е
@@ -51,6 +64,16 @@ Pull Request #8 е слят към `main`; OTA имплементацията и
 inventory вече са част от main branch.
 Pull Request #9 съгласува валидните доказателства от отменените PR #5 и #7 в
 `main`; и двата конфликтни оригинални PR-а са затворени.
+Потвърдено е, че възстановеният устойчив ESP32 адрес отговаря на директни ROCK
+Pi Modbus TCP reads. Администратор провери защитената endpoint настройка и
+рестартира услугата; нормализираният ROCK Pi node slot е online.
+След този рестарт е потвърдено, че услугата остава enabled/active, loopback
+Modbus TCP input-register отговорът е валиден и OTA client self-test е успешен.
+Не е изпратен field-device write и не е изпълнен OTA flash.
+На 2026-09-12 е повторена реална локална OTA актуализация: ESP32 прие образа
+с проверен SHA-256 и се възстанови в нормален boot режим. ROCK Pi върна
+нормализирания node slot в online; commissioning остана заключен и всички
+write approval gate-ове са `0`.
 
 ## Remaining
 
@@ -99,12 +122,15 @@ secret rotation, release signing, router ACL approval и OT soak тестове�
 
 ## Next action
 
-Read `AGENTS.md`, `HANDOFF.md`, the live hardware status and the local
-commissioning sequence before selecting the next safe task.
+Before the next task, read `AGENTS.md`, `CODEX_STATE.md` and `HANDOFF.md`,
+then inspect the actual repository and device state. The next implementation
+priority is private MQTT identity provisioning or a separately authorized
+read-only device-driver task.
 
-Прочети `AGENTS.md`, `HANDOFF.md`, текущия хардуерен статус и
-последователността за локален commissioning, преди да избереш следващата
-безопасна задача.
+Преди следващата задача прочети `AGENTS.md`, `CODEX_STATE.md` и
+`HANDOFF.md`, след което провери действителното състояние на repository-то и
+устройствата. Следващият приоритет за имплементация е private MQTT identity
+provisioning или отделно оторизирана read-only задача за device driver.
 
 ## Last updated
 

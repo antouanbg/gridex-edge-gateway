@@ -83,6 +83,8 @@ The temporary read-only ESP32 bench protocol is in
 The reconciled pilot evidence and the required no-backend work order are in
 [Live hardware status](docs/LIVE_HARDWARE_STATUS.md) and
 [Local commissioning sequence](docs/LOCAL_COMMISSIONING_SEQUENCE.md).
+The persistent, per-site node address and ROCK Pi endpoint procedure is in
+[Node network provisioning](docs/NODE_NETWORK_PROVISIONING.md).
 
 ## Project credits / Принос към проекта
 
@@ -138,3 +140,5 @@ provisioning. Образът и тайната за отделния нод се
 Съгласуваните pilot доказателства и задължителният ред за работа без backend
 са в [Текущ хардуерен статус](docs/LIVE_HARDWARE_STATUS.md) и
 [Последователност за локален commissioning](docs/LOCAL_COMMISSIONING_SEQUENCE.md).
+Устойчивата per-site процедура за адреса на нода и endpoint-а на ROCK Pi е в
+[Мрежово provision-ване на нод](docs/NODE_NETWORK_PROVISIONING.md).
