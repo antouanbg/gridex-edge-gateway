@@ -147,8 +147,9 @@ The following results are verified on the current physical pilot and may be
 used as evidence by future work; they are not production approval:
 
 - ROCK Pi E completed a native ARM64 build and both repository CTest suites.
-- The installed ROCK Pi service remains disabled and inactive, with all write
-  approval gates set to `0`.
+- The installed ROCK Pi service is enabled and active with all write approval
+  gates set to `0`; its listener is loopback-only and it is a bench-only,
+  read-only deployment.
 - An OLIMEX ESP32-EVB RS485/Ethernet build was flashed over USB at 115200 bps.
 - ROCK Pi performed read-only Modbus TCP identity and telemetry reads from the
   ESP32 over the temporary management-LAN bench path.
@@ -159,8 +160,9 @@ used as evidence by future work; they are not production approval:
 като доказателство при следваща работа; те не са production одобрение:
 
 - ROCK Pi E е изпълнил native ARM64 build и двата CTest пакета в repository-то.
-- Инсталираната ROCK Pi услуга остава disabled и inactive, а всички write
-  approval gate-ове са `0`.
+- Инсталираната ROCK Pi услуга е enabled и active с всички write approval
+  gate-ове на `0`; listener-ът е само loopback и това е bench-only,
+  read-only внедряване.
 - RS485/Ethernet build за OLIMEX ESP32-EVB е flash-нат през USB на 115200 bps.
 - ROCK Pi е направил read-only Modbus TCP identity и telemetry четене от ESP32
   през временния management-LAN bench path.

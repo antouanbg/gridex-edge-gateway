@@ -8,7 +8,7 @@ Repository / GitHub: `antouanbg/gridex-edge-gateway`
 
 - Native ARM64 build and both CTest suites passed on the physical board.
 - Systemd unit and locked commissioning configuration installed; service is
-  disabled and inactive.
+  enabled and active with a loopback-only listener.
 - Management Ethernet is working. The OT Ethernet exists but has no carrier;
   no OT address, route or firewall rule has been applied.
 - ESP32-EVB RS485/Ethernet firmware is flashed and ROCK Pi has verified
@@ -30,15 +30,14 @@ Repository / GitHub: `antouanbg/gridex-edge-gateway`
 - The code has local Modbus polling and MQTT payload tests. The physical pilot
   still needs the latest binary, an explicitly configured node endpoint and
   private broker CA/identity before it can publish live health.
-- A temporary, loopback-only read-only preflight on the pilot confirmed that
-  the existing service binary starts its northbound Modbus listener and that a
-  configured ESP32 node appears online in the normalized node slot. It was
-  stopped immediately; it is not yet a persistent deployment.
 - **Deployed on the pilot:** the current merged ROCK Pi source was built
   natively and its five CTest tests passed. `gridex-rockpie.service` is now
   enabled and active with the locked read-only profile. The listener binds only
   to loopback, the configured ESP32 node is online in its normalized slot, and
   the journal reports `commissioning_locked`.
+- **Recovery check passed:** an ESP32 reset returned the configured node to
+  `online=1`; a controlled ROCK Pi reboot then returned the systemd service,
+  loopback-only listener and configured node to their expected read-only state.
 
 ### Ordered local commissioning sequence — no backend required
 
@@ -51,10 +50,11 @@ production approval.
    built natively on ROCK Pi; its service is enabled with an explicit bench-node
    endpoint, loopback northbound listener, no live PCS endpoint and every
    `GRIDEX_APPROVE_*` value at `0`.
-2. **[Next] Confirm continuous local polling.** Verify each configured node
-   appears in the normalized Modbus node slot, then unplug/reconnect one node
-   and record the transition to `online=false`. One failed node must not block
-   the remaining node slots.
+2. **[Partially verified] Confirm continuous local polling.** ESP32 reset and
+   ROCK Pi reboot recovery are confirmed: the node returned online and the
+   service continued normally. Next, unplug/reconnect one node and record the
+   transition to `online=false`; one failed node must not block the remaining
+   node slots.
 3. **[Planned] Commission the two Ethernet roles.** Keep management/WAN behind
    the Site Router. Configure the separate OT interface without a default
    gateway, IP forwarding or WAN-to-OT forwarding; move the temporary bench
@@ -119,7 +119,7 @@ enable any command path.
 
 - Native ARM64 build и двата CTest пакета са минали на физическата платка.
 - Инсталирани са systemd unit и заключена commissioning конфигурация; услугата
-  е disabled и inactive.
+  е enabled и active с listener само на loopback.
 - Management Ethernet работи. OT Ethernet е наличен, но няма carrier; няма
   приложени OT адрес, route или firewall правило.
 - ESP32-EVB RS485/Ethernet firmware е flash-нат и ROCK Pi е потвърдил
@@ -141,15 +141,15 @@ enable any command path.
 - Кодът има локални тестове за Modbus polling и MQTT payload-и. Физическият
   пилот все още изисква последния binary, изрично конфигуриран node endpoint и
   private broker CA/identity, преди да публикува live health.
-- Временен, само loopback и read-only preflight на пилота потвърди, че
-  съществуващият binary стартира northbound Modbus listener-а и че
-  конфигуриран ESP32 нод се вижда като online в нормализирания node slot.
-  Услугата беше спряна веднага; това все още не е постоянен deployment.
 - **Внедрено на пилота:** текущият merge-нат ROCK Pi source е изграден native
   и петте CTest теста са успешни. `gridex-rockpie.service` вече е enabled и
   active със заключен read-only профил. Listener-ът е само на loopback,
   конфигурираният ESP32 нод е online в нормализирания си slot, а journal-ът
   отчита `commissioning_locked`.
+- **Recovery проверката е успешна:** reset на ESP32 върна конфигурирания нод
+  към `online=1`; контролиран reboot на ROCK Pi след това възстанови systemd
+  услугата, listener-а само на loopback и конфигурирания нод в очакваното
+  read-only състояние.
 
 ### Последователност за локален commissioning — без backend
 
@@ -162,10 +162,11 @@ safety gate. Отметката означава code/bench доказателс
    изграден native на ROCK Pi; услугата е enabled с изричен bench-node endpoint,
    loopback northbound listener, без live PCS endpoint и всички
    `GRIDEX_APPROVE_*` стойности на `0`.
-2. **[Следва] Потвърди постоянния локален polling.** Провери, че всеки
-   конфигуриран нод се вижда в нормализирания Modbus node slot, след това
-   изключи/свържи един нод и запиши прехода към `online=false`. Един отпаднал
-   нод не трябва да блокира останалите node slot-ове.
+2. **[Частично потвърдено] Потвърди постоянния локален polling.** Reset на
+   ESP32 и recovery след ROCK Pi reboot са потвърдени: нодът отново е online,
+   а услугата продължава нормално. Следва да изключиш/свържеш един нод и да
+   запишеш прехода към `online=false`; един отпаднал нод не трябва да блокира
+   останалите node slot-ове.
 3. **[Планирано] Commission-ни двете Ethernet роли.** Остави management/WAN
    зад Site Router. Конфигурирай отделния OT интерфейс без default gateway, IP
    forwarding или WAN-to-OT forwarding; премести временния bench нод от

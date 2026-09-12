@@ -4,8 +4,8 @@ Repository / GitHub: antouanbg/gridex-edge-gateway
 
 ## Current task
 
-Deploy the current ROCK Pi service in a locked, read-only node-polling mode.
-Внедряване на текущата ROCK Pi услуга в заключен read-only режим за node polling.
+Verify controlled recovery of the locked, read-only ROCK Pi and ESP32 pilot.
+Потвърждаване на контролирано възстановяване на заключения read-only ROCK Pi и ESP32 пилот.
 
 ## Completed
 
@@ -29,6 +29,11 @@ Deploy the current ROCK Pi service in a locked, read-only node-polling mode.
   loopback, ESP32 node polling enabled and every BESS write approval locked.
   Systemd enablement, active status and the online normalized node slot were
   verified.
+- Completed an ESP32 reset recovery check: the configured node returned to
+  `online=1` without enabling any device write path.
+- Completed a controlled ROCK Pi reboot recovery check: systemd automatically
+  restarted the service, restored the loopback-only listener and reported the
+  configured ESP32 node online.
 
 Запазени са документите от PR #4, премахнат е relay тестът, поправени са
 серийният вход и NVS потвърждението, изключен е директният ESP32 MQTT.
@@ -44,16 +49,21 @@ commissioning view, recovery тестове и read-only soak.
 Услугата е инсталирана с non-production local конфигурация: listener само на
 loopback, включен ESP32 node polling и заключени всички BESS write разрешения.
 Потвърдени са systemd enablement, active status и online нормализиран node slot.
+Изпълнена е recovery проверка след reset на ESP32: конфигурираният нод се върна
+към `online=1`, без да се разрешава device write път.
+Изпълнена е контролирана recovery проверка след ROCK Pi reboot: systemd
+автоматично стартира услугата, възстанови listener-а само на loopback и отчете
+конфигурирания ESP32 нод като online.
 
 ## Remaining
 
-- Execute step 2 of the ordered local commissioning sequence: controlled
-  disconnect/reconnect of the ESP32 and evidence that its status changes to
-  `online=false` without disrupting the service.
+- Complete the remaining step-2 physical Ethernet disconnect/reconnect test
+  and record `online=false` followed by recovery, without disrupting the
+  service or enabling any device command.
 
-Изпълни стъпка 2 от последователния local commissioning: контролирано
-изключване/свързване на ESP32 и доказателство, че статусът му става
-`online=false`, без да се прекъсва услугата.
+Завърши оставащия физически Ethernet disconnect/reconnect тест от стъпка 2 и
+запиши `online=false`, последвано от recovery, без прекъсване на услугата или
+разрешаване на device команда.
 
 ## Modified files
 
@@ -67,34 +77,35 @@ tests; docs/ROCKPI_PRIVATE_MQTT_HEALTH.md defines the contract.
 MQTT-enabled local CMake/CTest: 5/5 passed, including a local node-polling
 Modbus TCP simulator and MQTT payload tests. `git diff --check` passed.
 No live broker, hardware upload or device write was performed.
-The physical pilot also completed a short loopback-only, read-only preflight:
-the existing listener started and its normalized node slot reported the
-configured ESP32 as online. The process was stopped after the check.
+The physical pilot completed loopback-only, read-only recovery checks: ESP32
+reset, ROCK Pi reboot, systemd automatic recovery and the normalized node slot
+returning online all passed. No device write was performed.
 
 MQTT-enabled локални CMake/CTest: 5/5 успешни, включително local node-polling
 Modbus TCP simulator и MQTT payload тестове. `git diff --check` е успешен.
 Няма тест с live broker, hardware upload или device write.
-Физическият пилот също изпълни кратък loopback-only, read-only preflight:
-съществуващият listener стартира и нормализираният му node slot отчете
-конфигурирания ESP32 като online. Процесът беше спрян след проверката.
+Физическият пилот изпълни loopback-only, read-only recovery проверки: ESP32
+reset, ROCK Pi reboot, автоматично възстановяване от systemd и връщане на
+нормализирания node slot към online са успешни. Не е извършвана device write
+операция.
 
 ## Known issues
 
 UnconfiguredDriver remains deliberate. A private MQTT broker CA/client identity
-has not been provisioned, and the physical pilot has not received this binary.
-OT commissioning and soak tests remain incomplete.
+has not been provisioned. OT commissioning, a physical Ethernet disconnect test
+and soak tests remain incomplete.
 
 UnconfiguredDriver е умишлен. Private MQTT broker CA/client identity още не е
-provision-нат, а физическият пилот не е получил този binary. OT commissioning
-и soak тестовете остават незавършени.
+provision-нат. OT commissioning, физически Ethernet disconnect тест и soak
+тестовете остават незавършени.
 
 ## Next action
 
-Perform the controlled ESP32 disconnect/reconnect test from step 2, then record
-the observed node-offline transition in the pilot evidence.
+Perform the remaining physical ESP32 Ethernet disconnect/reconnect test from
+step 2, then record the observed node-offline and recovery transitions.
 
-Изпълни контролирания ESP32 disconnect/reconnect тест от стъпка 2, след което
-запиши наблюдавания node-offline преход в pilot evidence.
+Изпълни оставащия физически ESP32 Ethernet disconnect/reconnect тест от
+стъпка 2, след което запиши наблюдаваните node-offline и recovery преходи.
 
 ## Last updated
 
