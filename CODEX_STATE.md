@@ -4,10 +4,8 @@ Repository / GitHub: antouanbg/gridex-edge-gateway
 
 ## Current task
 
-Reconcile valid documentation from superseded Pull Requests #5 and #7 into a
-clean documentation branch based on current `main`.
-Съгласуване на валидната документация от отменените Pull Request #5 и #7 в
-чист документационен branch от текущия `main`.
+No active implementation task.
+Няма активна имплементационна задача.
 
 ## Completed
 
@@ -38,6 +36,8 @@ simulator тест за постоянен polling и детерминистич
   commissioning lock and every write approval gate remain `0`.
 - Pull Request #8 was merged to `main`; its OTA implementation and separate
   service inventory are now part of the main branch.
+- Pull Request #9 reconciled the valid evidence from superseded PR #5 and #7
+  into `main`; both conflicted original PRs are closed.
 
 Добавени са ESP32 OTA firmware endpoint с provision-нат ROCK Pi source check,
 SHA-256 verifier за отделен token и firmware digest проверка. Добавен е
@@ -49,17 +49,16 @@ baseline и договора за външни интерфейси.
 но commissioning lock и всички write approval gate-ове остават `0`.
 Pull Request #8 е слят към `main`; OTA имплементацията и отделният service
 inventory вече са част от main branch.
+Pull Request #9 съгласува валидните доказателства от отменените PR #5 и #7 в
+`main`; и двата конфликтни оригинални PR-а са затворени.
 
 ## Remaining
 
-- Review the clean reconciliation Pull Request, then close the superseded
-  conflicted PRs after its owner-authorized merge.
 - Provision the private MQTT CA/client identity through the backend secret
   store, then confirm health messages at the broker.
 
-Прегледай чистия reconciliation Pull Request, след което затвори отменените
-conflicted PR-и след owner-authorized merge. Provision-ни private MQTT CA/client
-identity чрез backend secret store, след което потвърди health съобщенията.
+Provision-ни private MQTT CA/client identity чрез backend secret store, след
+което потвърди health съобщенията.
 
 ## Modified files
 
@@ -100,11 +99,12 @@ secret rotation, release signing, router ACL approval и OT soak тестове�
 
 ## Next action
 
-Commit and open the clean reconciliation Pull Request, then merge it to `main`
-under the owner's current authorization. Do not merge the stale PRs directly.
+Read `AGENTS.md`, `HANDOFF.md`, the live hardware status and the local
+commissioning sequence before selecting the next safe task.
 
-Commit-ни и отвори чистия reconciliation Pull Request, след което го слей към
-`main` по текущото разрешение на собственика. Не сливай директно старите PR-и.
+Прочети `AGENTS.md`, `HANDOFF.md`, текущия хардуерен статус и
+последователността за локален commissioning, преди да избереш следващата
+безопасна задача.
 
 ## Last updated
 
