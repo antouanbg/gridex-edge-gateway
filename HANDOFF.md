@@ -35,23 +35,71 @@ Repository / GitHub: `antouanbg/gridex-edge-gateway`
   configured ESP32 node appears online in the normalized node slot. It was
   stopped immediately; it is not yet a persistent deployment.
 
+### Ordered local commissioning sequence — no backend required
+
+The following sequence is the authoritative order for work possible without a
+running GrideX backend, OpenRemote instance or private MQTT broker. Do not skip
+a safety gate. A checkmark means code/bench evidence exists; it does not mean
+production approval.
+
+1. **[Next] Deploy the current service read-only.** Build the merged source on
+   ROCK Pi, use an explicit bench-node endpoint, bind northbound Modbus to
+   loopback, keep `GRIDEX_PCS_HOST` away from a live cabinet and keep every
+   `GRIDEX_APPROVE_*` value at `0`. Enable the systemd service only with this
+   locked configuration and verify restart-on-failure.
+2. **[Next] Confirm continuous local polling.** Verify each configured node
+   appears in the normalized Modbus node slot, then unplug/reconnect one node
+   and record the transition to `online=false`. One failed node must not block
+   the remaining node slots.
+3. **[Planned] Commission the two Ethernet roles.** Keep management/WAN behind
+   the Site Router. Configure the separate OT interface without a default
+   gateway, IP forwarding or WAN-to-OT forwarding; move the temporary bench
+   node off management Ethernet when OT carrier is available.
+4. **[Planned] Provision ESP32 nodes locally.** Assign a unique local endpoint,
+   node role and one compiled driver per device type/brand/model/revision. Keep
+   an unknown or unvalidated device on `UnconfiguredDriver` and reject commands.
+5. **[Planned] Validate vendor telemetry read-only.** Capture the exact device
+   model, revision, serial/CAN/RS485 wiring, unit ID and manufacturer register
+   map. Compare sampled values with the local device display before adding any
+   write mapping.
+6. **[Planned] Add local telemetry retention.** Implement a bounded, disk-backed
+   journal on ROCK Pi for node state, heartbeat, power, energy and disconnects.
+   It is a local diagnostic/replay buffer, not the future PostgreSQL source of
+   record and it must not contain credentials.
+7. **[Planned] Add a local commissioning view.** Provide a read-only CLI or
+   loopback-only status page using the northbound map: node list, online state,
+   driver, heartbeat, quality, power, energy and alarm bits.
+8. **[Planned] Run failure and recovery tests.** Test ESP32 power loss, Ethernet
+   disconnect, ROCK Pi service restart, ROCK Pi reboot and power-loss recovery.
+   Confirm no device command is emitted and the node status is reported stale or
+   offline as appropriate.
+9. **[Planned] Run a 24-hour read-only soak.** Record uptime, reconnect count,
+   polling latency, data-age and memory/temperature. Keep physical controls and
+   all vendor writes disabled.
+10. **[Later, after local acceptance] Provision backend connectivity.** Add the
+    Site Router VPN route/ACL, private broker CA and a per-site client identity;
+    then verify the documented outbound-only MQTT health/telemetry topics.
+11. **[Later] Connect backend ingestion, PostgreSQL and OpenRemote mappings.**
+    Only after the preceding stages can backend alarms, history, assets and
+    browser DTOs be commissioned.
+
+The read-only service in step 1 is allowed. What remains prohibited is enabling
+a configuration that reaches a live BESS/PCS, setting a write approval flag, or
+activating a vendor control path before the corresponding commissioning record.
+
 ### Exact next safe action
 
-PR #3 technical review and relay-test removal are recorded in
-[PR3_TECHNICAL_REVIEW.md](docs/PR3_TECHNICAL_REVIEW.md).
-Before replacing UnconfiguredDriver, add command lifecycle tests for
-disable/reject, TTL expiry, replay and reconnect. The existing command shell
-is not acceptance evidence for a live actuator.
+Perform step 1, then step 2, of the ordered local commissioning sequence. The
+service may be enabled only with its loopback-only, node-polling configuration.
+Do not connect a BESS/PCS, add production addresses or set any
+`GRIDEX_APPROVE_*` flag.
 
-Keep the ESP32 bench driver unconfigured and capture the exact Deye test
-inverter model/revision, RS485 A/B/GND wiring, unit ID and complete
-manufacturer-approved read-register map. Only then create and bench-test a
-read-only Deye driver. The known string-inverter power-limit register is not
-authorization to enable any command path.
-Do not enable `gridex-rockpie.service`, connect a BESS, add production
-addresses or set any `GRIDEX_APPROVE_*` flag.
+The Deye driver remains a step-5 read-only task: first record exact model,
+revision, RS485 A/B/GND wiring, unit ID and the manufacturer-approved register
+map. The known string-inverter power-limit register is not authorization to
+enable any command path.
 
-### Remaining before service enablement
+### Remaining before production-control enablement
 
 1. Site-specific OT subnet and physical carrier on the second Ethernet port.
 2. Site Router firewall approval for backend-to-management Modbus only.
@@ -95,22 +143,73 @@ addresses or set any `GRIDEX_APPROVE_*` flag.
   конфигуриран ESP32 нод се вижда като online в нормализирания node slot.
   Услугата беше спряна веднага; това все още не е постоянен deployment.
 
+### Последователност за локален commissioning — без backend
+
+Следната последователност е авторитетният ред за работа, възможна без работещ
+GrideX backend, OpenRemote instance или private MQTT broker. Не прескачай
+safety gate. Отметката означава code/bench доказателство, а не production
+одобрение.
+
+1. **[Следва] Внедри текущата услуга в read-only режим.** Изгради merge-натия
+   source на ROCK Pi, използвай изричен bench-node endpoint, свържи northbound
+   Modbus към loopback, остави `GRIDEX_PCS_HOST` далеч от жив шкаф и всички
+   `GRIDEX_APPROVE_*` стойности на `0`. Enable-ни systemd услугата само с тази
+   заключена конфигурация и провери restart-on-failure.
+2. **[Следва] Потвърди постоянния локален polling.** Провери, че всеки
+   конфигуриран нод се вижда в нормализирания Modbus node slot, след това
+   изключи/свържи един нод и запиши прехода към `online=false`. Един отпаднал
+   нод не трябва да блокира останалите node slot-ове.
+3. **[Планирано] Commission-ни двете Ethernet роли.** Остави management/WAN
+   зад Site Router. Конфигурирай отделния OT интерфейс без default gateway, IP
+   forwarding или WAN-to-OT forwarding; премести временния bench нод от
+   management Ethernet, когато има OT carrier.
+4. **[Планирано] Provision-ни ESP32 нодовете локално.** Задай уникален local
+   endpoint, node роля и един compiled driver за device type/brand/model/revision.
+   Остави непознато или непотвърдено устройство на `UnconfiguredDriver` и
+   отказвай команди.
+5. **[Планирано] Валидирай vendor telemetry само за четене.** Запиши точните
+   device model, revision, serial/CAN/RS485 wiring, unit ID и manufacturer
+   register map. Сравни измерените стойности с local device display, преди да
+   се добави write mapping.
+6. **[Планирано] Добави local telemetry retention.** Имплементирай ограничен
+   disk-backed journal на ROCK Pi за node state, heartbeat, power, energy и
+   прекъсвания. Това е local diagnostic/replay buffer, не бъдещият PostgreSQL
+   source of record и не съдържа credentials.
+7. **[Планирано] Добави local commissioning view.** Направи read-only CLI или
+   loopback-only status page през northbound картата: node списък, online state,
+   driver, heartbeat, quality, power, energy и alarm bits.
+8. **[Планирано] Изпълни тестове за отказ и възстановяване.** Тествай загуба
+   на захранване на ESP32, Ethernet disconnect, ROCK Pi service restart, ROCK
+   Pi reboot и power-loss recovery. Потвърди, че няма device command и node
+   status се отчита като stale или offline според случая.
+9. **[Планирано] Изпълни 24-часов read-only soak.** Запиши uptime, reconnect
+   count, polling latency, data-age и memory/temperature. Остави physical
+   control-ите и всички vendor write операции изключени.
+10. **[По-късно, след local acceptance] Provision-ни backend connectivity.**
+    Добави Site Router VPN route/ACL, private broker CA и client identity за
+    всеки Обект; после потвърди описаните outbound-only MQTT health/telemetry
+    topics.
+11. **[По-късно] Свържи backend ingestion, PostgreSQL и OpenRemote mappings.**
+    Едва след предходните етапи могат да се commission-нат backend alarms,
+    history, assets и browser DTOs.
+
+Read-only услугата от стъпка 1 е разрешена. Забранено остава enable на
+конфигурация, която достига жив BESS/PCS, задаването на write approval flag или
+активирането на vendor control path преди съответния commissioning запис.
+
 ### Точна следваща безопасна стъпка
 
-Техническият review на PR #3 и премахването на relay теста са записани в
-[PR3_TECHNICAL_REVIEW.md](docs/PR3_TECHNICAL_REVIEW.md).
-Преди замяна на UnconfiguredDriver добави command lifecycle тестове за
-disable/reject, TTL, replay и reconnect. Съществуващата command основа
-не доказва готовност за управление на реално устройство.
+Изпълни стъпка 1, след това стъпка 2 от последователността за local
+commissioning. Услугата може да е enabled само с loopback-only
+node-polling конфигурацията. Не свързвай BESS/PCS, не добавяй production
+адреси и не задавай `GRIDEX_APPROVE_*` flag.
 
-Остави ESP32 bench driver-а unconfigured и запиши точния модел/ревизия на Deye
-test инвертора, RS485 A/B/GND wiring, unit ID и пълната manufacturer-approved
-read-register карта. Едва тогава се създава и bench-тества read-only Deye
-driver. Познатият регистър за power limit при string inverter не е разрешение
-за command path. Не enable-вай `gridex-rockpie.service`, не свързвай BESS, не
-добавяй production адреси и не задавай `GRIDEX_APPROVE_*` flag.
+Deye driver-ът остава read-only задача от стъпка 5: първо запиши точния
+model, revision, RS485 A/B/GND wiring, unit ID и manufacturer-approved register
+map. Познатият string-inverter power-limit регистър не е разрешение за
+активиране на command path.
 
-### Остава преди enable на услугата
+### Остава преди enable на production control
 
 1. Site-specific OT subnet и physical carrier на втория Ethernet порт.
 2. Site Router firewall approval само за backend-to-management Modbus.

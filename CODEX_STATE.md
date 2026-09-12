@@ -4,10 +4,10 @@ Repository / GitHub: antouanbg/gridex-edge-gateway
 
 ## Current task
 
-Implement ROCK Pi continuous node polling, northbound Modbus listener and
-private MQTT health/telemetry.
-Имплементиране на постоянен node polling, northbound Modbus listener и private
-MQTT health/telemetry на ROCK Pi.
+Document the ordered local commissioning sequence that does not require a
+running backend.
+Документиране на последователния локален commissioning, който не изисква
+работещ backend.
 
 ## Completed
 
@@ -21,6 +21,9 @@ MQTT health/telemetry на ROCK Pi.
   node telemetry. It has no MQTT command subscription.
 - Added a local Modbus TCP simulator test for continuous node polling and
   deterministic MQTT payload tests.
+- Reconciled `HANDOFF.md` with the local-only work list: deployment, polling
+  verification, OT isolation, ESP provisioning, telemetry validation, local
+  retention, commissioning view, recovery tests and read-only soak testing.
 
 Запазени са документите от PR #4, премахнат е relay тестът, поправени са
 серийният вход и NVS потвърждението, изключен е директният ESP32 MQTT.
@@ -28,17 +31,17 @@ MQTT health/telemetry на ROCK Pi.
 Добавен е TLS-only, outbound-only MQTT publisher за Edge health и нормализирана
 node telemetry без MQTT command subscription. Добавени са локален Modbus TCP
 simulator тест за постоянен polling и детерминистични MQTT payload тестове.
+`HANDOFF.md` е синхронизиран с local-only списъка: deployment, проверка на
+polling, OT изолация, ESP provisioning, telemetry validation, local retention,
+commissioning view, recovery тестове и read-only soak.
 
 ## Remaining
 
-- Build/deploy the latest ROCK Pi service with the explicit bench-node endpoint
-  and keep all write gates locked.
-- Provision the private MQTT CA/client identity through the backend secret
-  store, then confirm health messages at the broker.
+- Review and merge the documentation PR, then perform step 1 of the ordered
+  local commissioning sequence with all write gates locked.
 
-Изгради/внедри последната ROCK Pi услуга с изричния bench-node endpoint и
-запази всички write gate-ове заключени. Provision-ни private MQTT CA/client
-identity чрез backend secret store, след което потвърди health съобщенията.
+Прегледай и merge-ни документационния PR, след което изпълни стъпка 1 от
+последователния local commissioning със заключени write gate-ове.
 
 ## Modified files
 
@@ -75,11 +78,11 @@ provision-нат, а физическият пилот не е получил т
 
 ## Next action
 
-Deploy the built service read-only to the pilot with node polling enabled;
-after broker provisioning, verify the two documented MQTT topic families.
+Review the ordered sequence in `HANDOFF.md`, then deploy the read-only service
+from step 1 with node polling enabled.
 
-Внедри built услугата read-only на пилота с включен node polling; след broker
-provisioning потвърди двете описани MQTT topic семейства.
+Прегледай последователността в `HANDOFF.md`, след което внедри read-only
+услугата от стъпка 1 с включен node polling.
 
 ## Last updated
 
