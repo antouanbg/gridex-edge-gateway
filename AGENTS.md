@@ -157,6 +157,36 @@ Do not add relay commands or automatic relay pulses to EMS firmware.
   конфигурацията в една контролирана промяна, рестартирай само заключената
   read-only услуга и провери нормализирания slot преди следваща стъпка.
 
+## Isolated OT DHCP / Изолиран OT DHCP
+
+- gridex-ot-dhcp.service serves DHCP only on the dedicated ROCK Pi OT
+  interface. Its interface, range and optional reservations come only from
+  the protected deployment environment file.
+- Management/WAN retains the sole default route. OT has no default route,
+  forwarding or NAT; advertising ROCK Pi as node gateway must not create
+  Internet access for OT devices.
+- Deployment environment values must be shell-valid `KEY=value` assignments;
+  never place angle-bracket placeholders in a deployed environment file.
+- A node moved from a bench network to OT must have its trusted ROCK Pi source
+  updated locally over USB serial after its OT address is ready; otherwise its
+  Modbus TCP source check correctly rejects the new path.
+- Never commit actual OT addresses, leases, MAC addresses or customer inventory.
+
+- gridex-ot-dhcp.service раздава DHCP само на отделния ROCK Pi OT интерфейс.
+  Интерфейсът, диапазонът и незадължителните reservation-и идват само от
+  защитения deployment environment файл.
+- Management/WAN пази единствения default route. OT няма default route,
+  forwarding или NAT; обявяването на ROCK Pi за node gateway не трябва да
+  създава Интернет достъп за OT устройства.
+- Deployment environment стойностите трябва да са shell-валидни `KEY=value`
+  записи; никога не поставяй placeholders в ъглови скоби във внедрен
+  environment файл.
+- Нод, преместен от bench мрежа към OT, трябва локално през USB serial да
+  обнови trusted ROCK Pi source след готов OT адрес; иначе Modbus TCP source
+  проверката правилно отказва новия път.
+- Никога не commit-вай реални OT адреси, lease-ове, MAC адреси или клиентски
+  inventory.
+
 ## Mandatory Pull Request workflow / Задължителен Pull Request процес
 
 - Every completed change set must be committed on a named branch, pushed to
@@ -205,6 +235,16 @@ used as evidence by future work; they are not production approval:
 - An OLIMEX ESP32-EVB RS485/Ethernet build was flashed over USB at 115200 bps.
 - ROCK Pi performed read-only Modbus TCP identity and telemetry reads from the
   ESP32 over the temporary management-LAN bench path.
+- The isolated dual-Ethernet pilot is now verified: management keeps the sole
+  default route; a narrowly matched `systemd-networkd` OT override and
+  interface-bound DHCP service restore the ESP32 reserved lease. The ESP32
+  trusted ROCK Pi OT source is set only through local serial provisioning.
+- After this change, the locked ROCK Pi service again reported the normalized
+  ESP32 slot online through a read-only Modbus TCP register read.
+- Some local execution sandboxes prohibit loopback TCP binds. When native
+  Modbus CTest servers fail only with `Operation not permitted` on bind, rerun
+  the same suite on an approved host-network execution path before diagnosing
+  a code regression.
 - The ESP32 driver is still unconfigured. No RS485 downstream command, BESS
   connection or production control action has been enabled.
 
@@ -217,6 +257,17 @@ used as evidence by future work; they are not production approval:
 - RS485/Ethernet build за OLIMEX ESP32-EVB е flash-нат през USB на 115200 bps.
 - ROCK Pi е направил read-only Modbus TCP identity и telemetry четене от ESP32
   през временния management-LAN bench path.
+- Изолираният dual-Ethernet пилот вече е потвърден: management пази
+  единствения default route; тясно ограничен `systemd-networkd` OT override и
+  DHCP услуга само за интерфейса възстановяват резервирания ESP32 lease.
+  Довереният ROCK Pi OT source на ESP32 се задава само чрез local serial
+  provisioning.
+- След тази промяна заключената ROCK Pi услуга отново отчете нормализирания
+  ESP32 slot online чрез read-only Modbus TCP register read.
+- Някои локални execution sandbox-и забраняват loopback TCP bind. Ако native
+  Modbus CTest server-ите паднат само с `Operation not permitted` при bind,
+  повтори същия пакет през одобрен host-network execution path, преди да
+  диагностицираш code regression.
 - ESP32 driver-ът все още е unconfigured. Няма разрешена RS485 downstream
   команда, BESS връзка или production control действие.
 

@@ -9,8 +9,9 @@ Repository / GitHub: `antouanbg/gridex-edge-gateway`
 - Native ARM64 build and both CTest suites passed on the physical board.
 - Systemd unit and locked commissioning configuration installed; service is
   enabled and active, while all write approval gates remain at `0`.
-- Management Ethernet is working. The OT Ethernet exists but has no carrier;
-  no OT address, route or firewall rule has been applied.
+- Management Ethernet is working and remains the sole default route. The OT
+  Ethernet is isolated with a static address from the protected deployment
+  environment; its interface-bound DHCP service issued the ESP32 reservation.
 - ESP32-EVB RS485/Ethernet firmware is flashed and ROCK Pi has verified
   read-only identity and telemetry reads through the management bench LAN.
 - The ESP32 canonical Modbus TCP map responded to an identity read and a
@@ -47,6 +48,31 @@ verified, the locked read-only service was restarted and its normalized node
 slot is online. The local listener and OTA client also passed non-mutating
 readiness checks. See [node network provisioning](docs/NODE_NETWORK_PROVISIONING.md).
 
+### Validated OT networking pilot
+
+The physical second Ethernet link is active. Static OT addressing and the
+interface-bound DHCP service are deployed from the protected deployment
+environment. The ESP32 received its reserved OT lease; its local trusted ROCK
+Pi source was provisioned over USB serial, and ROCK Pi polling returned the
+normalized node slot online. Management remains the sole default route and
+every control gate remains locked.
+
+### OT deployment lessons
+
+- Use only shell-valid deployment environment assignments, without
+  angle-bracket placeholders.
+- Preserve vendor networking files; the dedicated native OT network match
+  intentionally takes precedence over their wildcard DHCP rule.
+- If an ESP32 is moved to OT, update its trusted ROCK Pi source over local USB
+  serial before expecting Modbus TCP polling or local OTA to recover.
+
+### Review artifact
+
+The implementation is on branch `feat/ot-dhcp-static-node` in Pull Request
+[#12](https://github.com/antouanbg/gridex-edge-gateway/pull/12). Review the
+diff and test evidence before deciding whether to merge; do not merge it
+automatically.
+
 Follow [the local commissioning sequence](docs/LOCAL_COMMISSIONING_SEQUENCE.md)
 from its first planned step. The current pilot evidence is preserved in
 [live hardware status](docs/LIVE_HARDWARE_STATUS.md). Before replacing
@@ -65,7 +91,9 @@ remain read-only.
 
 ### Remaining before production-control enablement
 
-1. Site-specific OT subnet and physical carrier on the second Ethernet port.
+1. Repeat the protected-environment OT configuration and read-only recovery
+   test during each site commissioning; do not place site addresses or MACs in
+   Git.
 2. Site Router firewall approval for backend-to-management Modbus only.
 3. ESP32 production driver provisioning and a read-only telemetry soak.
    Provision the ROCK Pi private MQTT TLS CA/identity through a secret store
@@ -85,8 +113,9 @@ remain read-only.
 - Native ARM64 build и двата CTest пакета са минали на физическата платка.
 - Инсталирани са systemd unit и заключена commissioning конфигурация; услугата
   е enabled и active, а всички write approval gate-ове остават на `0`.
-- Management Ethernet работи. OT Ethernet е наличен, но няма carrier; няма
-  приложени OT адрес, route или firewall правило.
+- Management Ethernet работи и остава с единствения default route. OT Ethernet
+  е изолиран със статичен адрес от защитения deployment environment; DHCP
+  услугата само за този интерфейс издаде ESP32 reservation.
 - ESP32-EVB RS485/Ethernet firmware е flash-нат и ROCK Pi е потвърдил
   read-only identity и telemetry reads през management bench LAN.
 - ESP32 canonical Modbus TCP картата е отговорила на identity read и
@@ -124,6 +153,31 @@ endpoint настройка е проверена, заключената read-o
 минаха проверки без промяна на състояние. Виж
 [мрежово provision-ване на нод](docs/NODE_NETWORK_PROVISIONING.md).
 
+### Проверен пилот за OT мрежата
+
+Физическият втори Ethernet линк е активен. Статичното OT адресиране и DHCP
+услугата, ограничена до този интерфейс, са внедрени от защитения deployment
+environment. ESP32 получи резервирания OT lease; довереният ROCK Pi source е
+provision-нат през USB serial, а ROCK Pi polling върна нормализирания node slot
+в online. Management остава с единствения default route, а всички control
+gate-ове остават заключени.
+
+### Уроци от OT внедряването
+
+- Използвай само shell-валидни deployment environment записи, без placeholders
+  в ъглови скоби.
+- Запази vendor мрежовите файлове; отделният native OT network match умишлено
+  има приоритет над wildcard DHCP правилото им.
+- Ако ESP32 се премести в OT, обнови trusted ROCK Pi source през local USB
+  serial, преди да очакваш възстановяване на Modbus TCP polling или local OTA.
+
+### Артефакт за review
+
+Имплементацията е в branch `feat/ot-dhcp-static-node` и Pull Request
+[#12](https://github.com/antouanbg/gridex-edge-gateway/pull/12). Прегледай
+diff-а и тестовите доказателства преди решение за merge; не го сливай
+автоматично.
+
 Следвай [последователността за локален commissioning](docs/LOCAL_COMMISSIONING_SEQUENCE.md)
 от първата планирана стъпка. Текущите pilot доказателства са запазени в
 [текущ хардуерен статус](docs/LIVE_HARDWARE_STATUS.md). Преди замяна на
@@ -141,7 +195,9 @@ driver. Познатият регистър за power limit при string inver
 
 ### Остава преди enable на production control
 
-1. Site-specific OT subnet и physical carrier на втория Ethernet порт.
+1. Повтори OT конфигурацията от защитения environment и read-only recovery
+   теста при commissioning на всеки site; не записвай site адреси или MAC в
+   Git.
 2. Site Router firewall approval само за backend-to-management Modbus.
 3. ESP32 production driver provisioning и read-only telemetry soak.
    Provision-ни private MQTT TLS CA/identity за ROCK Pi чрез secret store и
