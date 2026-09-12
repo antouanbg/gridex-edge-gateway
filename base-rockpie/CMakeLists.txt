@@ -8,10 +8,26 @@ add_library(gridex_rockpie_transport
     src/NorthboundModbusTcpServer.cpp
     src/NorthboundRegisterBank.cpp
     src/PosixModbusTcpClient.cpp
+    src/MqttHealthPublisher.cpp
 )
 target_include_directories(gridex_rockpie_transport PUBLIC include)
 target_link_libraries(gridex_rockpie_transport PUBLIC gridex_edge)
 target_compile_features(gridex_rockpie_transport PUBLIC cxx_std_20)
+
+find_package(PkgConfig QUIET)
+if(PkgConfig_FOUND)
+    pkg_check_modules(MOSQUITTO QUIET IMPORTED_TARGET libmosquitto)
+    pkg_check_modules(CJSON QUIET IMPORTED_TARGET libcjson)
+endif()
+if(TARGET PkgConfig::MOSQUITTO)
+    target_link_libraries(gridex_rockpie_transport PRIVATE PkgConfig::MOSQUITTO)
+    # Some package managers expose cJSON through mosquitto headers without
+    # forwarding its include directory. Link its pkg-config target explicitly.
+    if(TARGET PkgConfig::CJSON)
+        target_link_libraries(gridex_rockpie_transport PRIVATE PkgConfig::CJSON)
+    endif()
+    target_compile_definitions(gridex_rockpie_transport PRIVATE GRIDEX_WITH_MOSQUITTO=1)
+endif()
 
 if(MSVC)
     target_compile_options(gridex_rockpie_transport PRIVATE /W4 /permissive-)

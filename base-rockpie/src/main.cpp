@@ -2,8 +2,10 @@
 #include "gridex/rockpie/NodeTcpPollingService.hpp"
 #include "gridex/rockpie/NorthboundModbusTcpServer.hpp"
 #include "gridex/rockpie/PosixModbusTcpClient.hpp"
+#include "gridex/rockpie/MqttHealthPublisher.hpp"
 
 #include <atomic>
+#include <algorithm>
 #include <chrono>
 #include <csignal>
 #include <cstdlib>
@@ -159,6 +161,13 @@ int main() {
         ),
     });
     nodePolling.start();
+    gridex::rockpie::MqttHealthPublisher healthPublisher(
+        envString("GRIDEX_MQTT_BROKER_URL", ""),
+        envString("GRIDEX_MQTT_TOPIC_PREFIX", "gridex/v1")
+    );
+    const auto healthInterval = std::chrono::seconds(envInt("GRIDEX_HEALTH_PUBLISH_SECONDS", 10));
+    auto nextHealthPublish = std::chrono::steady_clock::now();
+    auto nextNodeTelemetryPublish = std::chrono::steady_clock::now();
 
     std::cout << "GrideX ROCK Pi E service started; writes_enabled="
               << (driver.writesEnabled() ? "true" : "false") << '\n';
@@ -219,6 +228,17 @@ int main() {
                       << ",\"accepted\":"
                       << (accepted ? "true" : "false") << "}\n";
         }
+        while (const auto mqttCommand = healthPublisher.takeNodeCommand()) {
+            const bool accepted = nodePolling.applyPowerCommand(
+                mqttCommand->slot - 1U,
+                mqttCommand->requestedPowerKw,
+                mqttCommand->enabled,
+                mqttCommand->sequence,
+                mqttCommand->ttlSeconds
+            );
+            std::cout << "{\"mqtt_node_command_slot\":" << mqttCommand->slot
+                      << ",\"accepted\":" << (accepted ? "true" : "false") << "}\n";
+        }
         northboundBank.publish(snapshot, controllerConfig.configuredLimit);
         const auto nodeSamples = nodePolling.samples();
         for (std::size_t slot = 0; slot < nodeSamples.size(); ++slot) {
@@ -231,6 +251,30 @@ int main() {
                   << ",\"heartbeat_ok\":"
                   << (snapshot.heartbeatOk ? "true" : "false")
                   << ",\"reason\":\"" << snapshot.command.reason << "\"}\n";
+        if (std::chrono::steady_clock::now() >= nextHealthPublish) {
+            const auto onlineNodes = static_cast<std::size_t>(std::count_if(
+                nodeSamples.begin(), nodeSamples.end(), [](const auto& node) { return node.online; }
+            ));
+            const bool safeMode = snapshot.state == gridex::EdgeState::SafeMode;
+            const bool controlReady = snapshot.state == gridex::EdgeState::Ready;
+            healthPublisher.publish({
+                .siteId = envString("GRIDEX_SITE_ID", ""), .gatewayId = envString("GRIDEX_GATEWAY_ID", ""),
+                .state = safeMode ? "safe_mode" : (controlReady ? "ready" : "degraded"),
+                .pcsHeartbeatOk = snapshot.heartbeatOk, .controlReady = controlReady, .safeMode = safeMode,
+                .northboundReady = true, .nodeOnlineCount = onlineNodes, .nodeTotal = nodeSamples.size(),
+            });
+            nextHealthPublish = std::chrono::steady_clock::now() + healthInterval;
+        }
+        if (std::chrono::steady_clock::now() >= nextNodeTelemetryPublish) {
+            const auto siteId = envString("GRIDEX_SITE_ID", "");
+            const auto gatewayId = envString("GRIDEX_GATEWAY_ID", "");
+            for (std::size_t slot = 0; slot < nodeSamples.size(); ++slot) {
+                (void)healthPublisher.publishNodeTelemetry(
+                    siteId, gatewayId, slot + 1U, nodeSamples[slot]
+                );
+            }
+            nextNodeTelemetryPublish = std::chrono::steady_clock::now() + std::chrono::seconds(2);
+        }
         std::this_thread::sleep_for(std::chrono::milliseconds(
             envInt("GRIDEX_TICK_MS", 1000)
         ));

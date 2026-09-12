@@ -26,7 +26,7 @@ public:
 
     void begin();
     void loop();
-    [[nodiscard]] bool connected() const;
+    [[nodiscard]] bool connected();
     [[nodiscard]] std::uint32_t rejectedClients() const;
 
 private:

@@ -17,6 +17,20 @@ northbound map. One non-responsive node does not interrupt the others.
 
 The OT interface must not have a default gateway. Linux IP forwarding remains disabled and the firewall blocks forwarding between OT and WAN.
 
+## Edge health over VPN-only MQTT
+
+When `GRIDEX_MQTT_BROKER_URL`, `GRIDEX_SITE_ID` and `GRIDEX_GATEWAY_ID` are set,
+the service publishes a non-secret health envelope every ten seconds to
+`gridex/v1/sites/<site-id>/edge/<gateway-id>/health`. The broker is reached
+through the **Site Router's WireGuard route**. ROCK Pi does not run WireGuard,
+does not publish to a public MQTT listener, and never forwards the OT/BESS
+network. The health message includes only service state, PCS heartbeat state,
+safe-mode/control readiness and node availability.
+
+The binary enables MQTT publishing when `libmosquitto` is available at build
+time. Commissioned production images must install that package and configure
+certificate/credential secrets outside this repository.
+
 `GRIDEX_MAX_CHARGE_KW` and `GRIDEX_MAX_DISCHARGE_KW` are optional operator caps. They can only reduce the live limits read from BMS registers 127/128; leaving them empty uses the BMS limits unchanged.
 
 ## OpenRemote northbound endpoint
@@ -75,6 +89,16 @@ Linux/ARM64 изпълним модул за базовото GrideX устро�
 неотговарящ нод не прекъсва останалите.
 
 OT интерфейсът няма default gateway. Linux IP forwarding е изключен, а firewall-ът блокира препращането между OT и WAN.
+
+### Edge health през MQTT само по VPN
+
+При зададени `GRIDEX_MQTT_BROKER_URL`, `GRIDEX_SITE_ID` и
+`GRIDEX_GATEWAY_ID` услугата публикува несекретен health пакет на всеки десет
+секунди към `gridex/v1/sites/<site-id>/edge/<gateway-id>/health`. Брокерът се
+достига през WireGuard маршрута на **Site Router**. ROCK Pi не изпълнява
+WireGuard, не публикува към публичен MQTT listener и не препраща OT/BESS
+мрежата. Пакетът съдържа само състояние на услугата, PCS heartbeat, safe-mode /
+control readiness и наличност на нодовете.
 
 `GRIDEX_MAX_CHARGE_KW` и `GRIDEX_MAX_DISCHARGE_KW` са опционални операторски лимити. Те могат само да намалят текущите BMS лимити от регистри 127/128; празни стойности използват BMS лимитите без промяна.
 
