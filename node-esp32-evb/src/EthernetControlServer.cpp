@@ -46,6 +46,12 @@ void EthernetControlServer::begin() {
     server_.setNoDelay(true);
 }
 
+void EthernetControlServer::setRockPiAddress(IPAddress address) {
+    // A changed source invalidates any existing client connection.
+    client_.stop();
+    config_.rockPiAddress = address;
+}
+
 bool EthernetControlServer::sourceAllowed(const WiFiClient& client) const {
     return config_.rockPiAddress != IPAddress() &&
            client.remoteIP() == config_.rockPiAddress;
@@ -154,7 +160,7 @@ void EthernetControlServer::loop() {
     }
 }
 
-bool EthernetControlServer::connected() const {
+bool EthernetControlServer::connected() {
     return client_ && client_.connected();
 }
 

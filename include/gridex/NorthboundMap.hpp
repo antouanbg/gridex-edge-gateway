@@ -73,6 +73,10 @@ inline constexpr std::uint16_t FrequencyHzX100 = 28;
 inline constexpr std::uint16_t SocUpperLimitPct = 29;
 inline constexpr std::uint16_t SocLowerLimitPct = 30;
 inline constexpr std::uint16_t ExtendedTelemetryValid = 31;
+// Read-only Suntech operating configuration observed by the Edge driver.
+inline constexpr std::uint16_t PcsPowerOn = 32;
+inline constexpr std::uint16_t PcsGridTied = 33;
+inline constexpr std::uint16_t PcsCurrentSourceMode = 34;
 }  // namespace input
 
 namespace node {

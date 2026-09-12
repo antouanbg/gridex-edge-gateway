@@ -72,14 +72,12 @@ BatteryTelemetry SunStoragePro261Driver::poll() {
     const auto soh = client_.readInput(Registers::BmsSoh);
     const auto voltage = client_.readInput(Registers::BmsVoltage);
     const auto status = client_.readInput(Registers::BmsStatus);
-    const auto accumulatedChargeHigh =
-        client_.readInput(Registers::BmsAccumulatedChargeEnergy);
-    const auto accumulatedChargeLow =
-        client_.readInput(Registers::BmsAccumulatedChargeEnergy + 1U);
-    const auto accumulatedDischargeHigh =
-        client_.readInput(Registers::BmsAccumulatedDischargeEnergy);
-    const auto accumulatedDischargeLow =
-        client_.readInput(Registers::BmsAccumulatedDischargeEnergy + 1U);
+    // Suntech requires registers 122-125 in one FC04 request so both Int32
+    // counters represent the same instant. Do not split this into word reads.
+    const auto accumulatedEnergy = client_.readInputRange(
+        Registers::BmsAccumulatedChargeEnergy,
+        4U
+    );
     const auto systemFlags = client_.readInput(Registers::BmsSystemFlags);
     const auto maxCharge = client_.readInput(Registers::BmsMaxChargePower);
     const auto maxDischarge =
@@ -138,25 +136,25 @@ BatteryTelemetry SunStoragePro261Driver::poll() {
     value.socLowerLimitPct = socLowerLimit
         ? decodeSigned(*socLowerLimit, 1.0)
         : 0.0;
-    if (accumulatedChargeHigh && accumulatedChargeLow) {
+    if (accumulatedEnergy && accumulatedEnergy->size() == 4U) {
         value.accumulatedChargeKwh = decodeSigned32(
             approval_.int32HighWordFirst
-                ? *accumulatedChargeHigh
-                : *accumulatedChargeLow,
+                ? (*accumulatedEnergy)[0]
+                : (*accumulatedEnergy)[1],
             approval_.int32HighWordFirst
-                ? *accumulatedChargeLow
-                : *accumulatedChargeHigh,
+                ? (*accumulatedEnergy)[1]
+                : (*accumulatedEnergy)[0],
             10.0
         );
     }
-    if (accumulatedDischargeHigh && accumulatedDischargeLow) {
+    if (accumulatedEnergy && accumulatedEnergy->size() == 4U) {
         value.accumulatedDischargeKwh = decodeSigned32(
             approval_.int32HighWordFirst
-                ? *accumulatedDischargeHigh
-                : *accumulatedDischargeLow,
+                ? (*accumulatedEnergy)[2]
+                : (*accumulatedEnergy)[3],
             approval_.int32HighWordFirst
-                ? *accumulatedDischargeLow
-                : *accumulatedDischargeHigh,
+                ? (*accumulatedEnergy)[3]
+                : (*accumulatedEnergy)[2],
             10.0
         );
     }
@@ -169,8 +167,7 @@ BatteryTelemetry SunStoragePro261Driver::poll() {
     value.extendedTelemetryValid =
         pcsWarning && bmsAlarm && socUpperLimit && socLowerLimit &&
         reactivePower && dcPower && frequency && commandedPower && pcsStatus &&
-        accumulatedChargeHigh && accumulatedChargeLow &&
-        accumulatedDischargeHigh && accumulatedDischargeLow &&
+        accumulatedEnergy && accumulatedEnergy->size() == 4U &&
         dailyCharge && dailyDischarge && approval_.int32WordOrderConfirmed;
     const double decodedMaxChargeKw = decodeSigned(*maxCharge, 10.0);
     const double decodedMaxDischargeKw = decodeSigned(*maxDischarge, 10.0);

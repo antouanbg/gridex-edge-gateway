@@ -1,4 +1,6 @@
-# Handoff — `antouanbg/gridex-edge-gateway`
+# Handoff — GrideX Edge Gateway
+
+Repository / GitHub: `antouanbg/gridex-edge-gateway`
 
 ## English
 
@@ -21,6 +23,12 @@
 
 ### Exact next safe action
 
+PR #3 technical review and relay-test removal are recorded in
+[PR3_TECHNICAL_REVIEW.md](docs/PR3_TECHNICAL_REVIEW.md).
+Before replacing UnconfiguredDriver, add command lifecycle tests for
+disable/reject, TTL expiry, replay and reconnect. The existing command shell
+is not acceptance evidence for a live actuator.
+
 Keep the ESP32 bench driver unconfigured and capture the exact Deye test
 inverter model/revision, RS485 A/B/GND wiring, unit ID and complete
 manufacturer-approved read-register map. Only then create and bench-test a
@@ -33,8 +41,9 @@ addresses or set any `GRIDEX_APPROVE_*` flag.
 
 1. Site-specific OT subnet and physical carrier on the second Ethernet port.
 2. Site Router firewall approval for backend-to-management Modbus only.
-3. ESP32 production driver provisioning, TLS credentials via a secret store
-   and a read-only telemetry soak.
+3. ESP32 production driver provisioning and a read-only telemetry soak.
+   Implement ROCK Pi MQTT forwarding and provision its TLS credentials through
+   a secret store. The ESP32 direct MQTT path is disabled.
 4. Suntech readback and complete checklist in `docs/COMMISSIONING.md`.
 5. Backend MQTT ingestion/OpenRemote asset mapping and frontend backend API.
 
@@ -59,6 +68,12 @@ addresses or set any `GRIDEX_APPROVE_*` flag.
 
 ### Точна следваща безопасна стъпка
 
+Техническият review на PR #3 и премахването на relay теста са записани в
+[PR3_TECHNICAL_REVIEW.md](docs/PR3_TECHNICAL_REVIEW.md).
+Преди замяна на UnconfiguredDriver добави command lifecycle тестове за
+disable/reject, TTL, replay и reconnect. Съществуващата command основа
+не доказва готовност за управление на реално устройство.
+
 Остави ESP32 bench driver-а unconfigured и запиши точния модел/ревизия на Deye
 test инвертора, RS485 A/B/GND wiring, unit ID и пълната manufacturer-approved
 read-register карта. Едва тогава се създава и bench-тества read-only Deye
@@ -70,7 +85,8 @@ driver. Познатият регистър за power limit при string inver
 
 1. Site-specific OT subnet и physical carrier на втория Ethernet порт.
 2. Site Router firewall approval само за backend-to-management Modbus.
-3. ESP32 production driver provisioning, TLS credentials през secret store и
-   read-only telemetry soak.
+3. ESP32 production driver provisioning и read-only telemetry soak.
+   Имплементирай MQTT препращането от ROCK Pi и provision-ни неговите TLS
+   credentials през secret store. Директният MQTT от ESP32 е изключен.
 4. Suntech readback и пълният checklist в `docs/COMMISSIONING.md`.
 5. Backend MQTT ingestion/OpenRemote asset mapping и frontend backend API.

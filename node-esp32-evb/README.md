@@ -14,8 +14,8 @@ protocol revision. Mixed products on one node are not supported.
 
 ```text
 Sensors / device telemetry
-  ESP32-EVB -> Ethernet -> site router -> site WireGuard tunnel
-            -> VPN-only MQTT 8883 -> OpenRemote
+  ESP32-EVB -> OT Modbus TCP -> ROCK Pi E
+            -> Site Router VPN -> private MQTT -> backend ingestion -> OpenRemote
 
 Commands
   OpenRemote -> site WireGuard tunnel -> ROCK Pi E
@@ -23,8 +23,9 @@ Commands
              -> CAN or isolated RS485 -> inverter / BMS / meter / EVSE
 ```
 
-The node has no WireGuard client. It uses the site router's tunnel. MQTT is
-telemetry-only; the firmware does not subscribe to command topics. The local
+The node exposes telemetry for ROCK Pi polling. Direct node MQTT is disabled,
+even with a legacy enabled flag in NVS. ROCK Pi MQTT forwarding remains a
+separate implementation task; it was not part of the pilot verification. The local
 Modbus TCP control endpoint accepts clients only from the configured ROCK Pi E
 address, permits writes only to the command register window, requires a
 monotonic sequence and a 1–30 second TTL, and writes a zero-power safe command
@@ -50,16 +51,16 @@ pio run -e esp32-evb-can
 pio run -e esp32-evb-rs485
 ```
 
-The concrete driver build adds `GRIDEX_NODE_TYPE` and `GRIDEX_DRIVER_ID`
-and links only the selected device driver. Credentials, addresses and
-certificates are provisioned after build and are never committed.
+Both current profiles instantiate only UnconfiguredDriver and reject all power
+commands. A concrete vendor driver and its commissioning tests are still needed.
+Setting a type or driver ID does not implement a driver. Local source addresses
+are provisioned after build and are never committed.
 
 ### Provisioned namespaces
 
-- `gridex-cloud`: `enabled`, `mqtt_host`, `mqtt_port`, `realm`,
-  `mqtt_user`, `mqtt_secret`, `client_id`, `asset_id`, `ca_cert`.
+- `gridex-cloud`: legacy namespace only; cannot activate MQTT in these builds.
 - `gridex-control`: `rockpi_ip`, `port`.
-- `gridex-mbus`: `node_type`, `driver_id`.
+- `gridex-mbus`: `node_address`, `node_type`, `driver_id`.
 
 No public MQTT listener is supported. In production the broker address must be
 reachable only through the site router's VPN path.
@@ -75,10 +76,12 @@ UEXT/UART.
 Всеки нод се компилира за точно един тип устройство, производител, модел и
 ревизия на протокола. Смесени продукти върху един нод не се разрешават.
 
-Телеметрията се публикува директно по MQTT/TLS през Ethernet и WireGuard тунела
-на site router-а. Командите не идват по MQTT: OpenRemote ги подава към ROCK Pi
-E, а той ги изпраща по изолираната OT Ethernet мрежа към Modbus TCP endpoint-а
-на нода. Нодът превежда командата към CAN или външния изолиран RS485 канал.
+ROCK Pi чете телеметрията на ESP32 по OT Modbus TCP. Планираното препращане
+е ROCK Pi → Site Router VPN → private MQTT → backend ingestion → OpenRemote.
+Директният MQTT от ESP32 е изключен дори при стар enabled флаг в NVS.
+MQTT препращането от ROCK Pi остава отделна имплементационна задача. Командите не идват по MQTT: OpenRemote ги подава към ROCK Pi E, а
+той ги изпраща по изолираната OT Ethernet мрежа към Modbus TCP endpoint-а на
+нода. Нодът превежда командата към CAN или външния изолиран RS485 канал.
 
 ESP32 няма WireGuard. Modbus TCP сървърът допуска само конфигурирания ROCK Pi E,
 само командните регистри, последователен sequence и TTL 1–30 секунди. При
@@ -87,6 +90,12 @@ ESP32 няма WireGuard. Modbus TCP сървърът допуска само к
 CAN профилът използва официалните OLIMEX GPIO5/GPIO35. RS485 профилът използва
 UEXT UART GPIO4/GPIO36 и конфигурируем direction GPIO; конкретната carrier
 платка, изолацията, терминирането и защитите трябва да се валидират електрически.
+
+И двата текущи профила използват само UnconfiguredDriver и отказват всички
+power команди. Изборът на type или driver ID не имплементира vendor driver.
+Необходими са конкретен драйвер и commissioning тестове. NVS използва
+`gridex-control` (`rockpi_ip`, `port`) и `gridex-mbus` (`node_address`,
+`node_type`, `driver_id`); `gridex-cloud` е неактивна наследена конфигурация.
 
 Източници:
 

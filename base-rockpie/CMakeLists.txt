@@ -1,7 +1,9 @@
 cmake_minimum_required(VERSION 3.20)
 project(gridex_rockpie_base VERSION 0.1.0 LANGUAGES CXX)
 
-add_subdirectory(.. ${CMAKE_BINARY_DIR}/gridex-core EXCLUDE_FROM_ALL)
+# The core project registers its own CTest target.  Do not exclude it from the
+# default build here, otherwise CTest sees gridex_edge_tests but cannot run it.
+add_subdirectory(.. ${CMAKE_BINARY_DIR}/gridex-core)
 
 add_library(gridex_rockpie_transport
     src/NodeTcpPollingService.cpp
@@ -26,6 +28,12 @@ enable_testing()
 add_executable(gridex_rockpie_tests tests/test_northbound.cpp)
 target_link_libraries(gridex_rockpie_tests PRIVATE gridex_rockpie_transport)
 add_test(NAME gridex_rockpie_tests COMMAND gridex_rockpie_tests)
+
+find_package(Threads REQUIRED)
+add_executable(gridex_input_range_tests tests/test_input_range.cpp)
+target_link_libraries(gridex_input_range_tests PRIVATE gridex_rockpie_transport Threads::Threads)
+add_test(NAME gridex_input_range_tests COMMAND gridex_input_range_tests)
+set_tests_properties(gridex_input_range_tests PROPERTIES TIMEOUT 15)
 
 install(TARGETS gridex_rockpie_service RUNTIME DESTINATION bin)
 install(FILES systemd/gridex-rockpie.service DESTINATION lib/systemd/system)

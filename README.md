@@ -69,6 +69,12 @@ The Suntech SunStorage Pro 261 / STE-261L map is manufacturer-confirmed. Other
 drivers remain read-only or reference status until their exact hardware and
 write behavior pass bench commissioning.
 
+Current pilot status, service ownership and external interface contracts are
+documented in [ROCK Pi E pilot status](docs/ROCKPI_E_PILOT_STATUS.md) and
+[Services and external interfaces](docs/SERVICES_AND_EXTERNAL_INTERFACES.md).
+The temporary read-only ESP32 bench protocol is in
+[ROCK Pi E ↔ ESP32-EVB bench contract](docs/ROCKPI_ESP32_BENCH_CONTRACT.md).
+
 ## Project credits / Принос към проекта
 
 Created and led by **Dr. Eng. Antuan Hristov Angelov** — product concept, EMS

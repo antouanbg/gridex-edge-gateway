@@ -270,6 +270,12 @@ void NorthboundRegisterBank::publish(
         encodeUnsigned(snapshot.battery.socLowerLimitPct, 1.0);
     input_[northbound::input::ExtendedTelemetryValid] =
         snapshot.battery.extendedTelemetryValid ? 1U : 0U;
+    input_[northbound::input::PcsPowerOn] =
+        snapshot.battery.pcsPowerOn ? 1U : 0U;
+    input_[northbound::input::PcsGridTied] =
+        snapshot.battery.pcsGridTied ? 1U : 0U;
+    input_[northbound::input::PcsCurrentSourceMode] =
+        snapshot.battery.pcsCurrentSourceMode ? 1U : 0U;
 }
 
 void NorthboundRegisterBank::publishNode(

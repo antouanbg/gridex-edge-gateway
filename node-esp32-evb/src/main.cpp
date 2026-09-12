@@ -3,6 +3,7 @@
 #include "gridex/mbus/EthernetControlServer.hpp"
 #include "gridex/mbus/IDeviceDriver.hpp"
 #include "gridex/mbus/MbusNode.hpp"
+#include "gridex/mbus/ProvisioningLine.hpp"
 #include "gridex/mbus/MqttTelemetryService.hpp"
 #include "gridex/node/BoardPins.hpp"
 
@@ -29,11 +30,12 @@ unsigned long lastCommandMs = 0;
 std::uint16_t lastCommandSequence = 0;
 bool commandArmed = false;
 gridex::mbus::DriverSample lastSample;
+gridex::mbus::ProvisioningLine serialLine;
 
 gridex::mbus::NodeConfig loadConfig() {
     preferences.begin("gridex-mbus", false);
     gridex::mbus::NodeConfig config;
-    config.address = 1;
+    config.address = preferences.getUChar("node_address", 0);
     config.type = static_cast<gridex::mbus::NodeType>(
         preferences.getUShort("node_type", 0)
     );
@@ -43,10 +45,83 @@ gridex::mbus::NodeConfig loadConfig() {
     return config;
 }
 
+void persistNodeConfig() {
+    if (!node || !node->takeConfigurationChanged()) return;
+    preferences.begin("gridex-mbus", false);
+    preferences.putUChar("node_address", node->address());
+    preferences.putUShort(
+        "node_type",
+        static_cast<std::uint16_t>(node->type())
+    );
+    preferences.putUShort("driver_id", node->driverId());
+    preferences.end();
+    Serial.println("GrideX: node identity stored; driver remains locked until a matching firmware build is installed");
+}
+
+void printProvisioningStatus() {
+    cloudPreferences.begin("gridex-control", true);
+    const auto rockPi = cloudPreferences.getString("rockpi_ip", "");
+    cloudPreferences.end();
+    Serial.printf(
+        "GrideX node: uid=%llX address=%u type=%u driver=%u eth=%s rockpi=%s driver=locked\n",
+        static_cast<unsigned long long>(node->uid()),
+        node->address(),
+        static_cast<unsigned>(node->type()),
+        node->driverId(),
+        ETH.localIP().toString().c_str(),
+        rockPi.c_str()
+    );
+}
+
+void processProvisioningLine(String line) {
+    line.trim();
+    if (line == "help") {
+        Serial.println("Commands: status | rockpi <IPv4>. Local provisioning only; no control commands.");
+        return;
+    }
+    if (line == "status") {
+        printProvisioningStatus();
+        return;
+    }
+    if (!line.startsWith("rockpi ")) {
+        Serial.println("GrideX: unsupported provisioning command");
+        return;
+    }
+    const auto value = line.substring(7);
+    IPAddress address;
+    if (!address.fromString(value)) {
+        Serial.println("GrideX: invalid IPv4 address");
+        return;
+    }
+    if (!cloudPreferences.begin("gridex-control", false)) {
+        Serial.println("GrideX: cannot open source configuration");
+        return;
+    }
+    const bool saved = cloudPreferences.putString("rockpi_ip", value) == value.length();
+    cloudPreferences.end();
+    if (!saved) {
+        Serial.println("GrideX: source was not saved; previous source retained");
+        return;
+    }
+    control->setRockPiAddress(address);
+    Serial.println("GrideX: ROCK Pi source saved; Modbus TCP accepts only this address");
+}
+
+void processProvisioningSerial() {
+    // Bound each iteration so continuous serial traffic cannot starve polling.
+    for (unsigned bytes = 0; bytes < 80U && Serial.available() > 0; ++bytes) {
+        const char value = static_cast<char>(Serial.read());
+        const auto line = serialLine.push(value);
+        if (line) processProvisioningLine(String(line->c_str()));
+    }
+}
+
 gridex::mbus::MqttTelemetryConfig loadCloudConfig() {
     cloudPreferences.begin("gridex-cloud", true);
     gridex::mbus::MqttTelemetryConfig config;
-    config.enabled = cloudPreferences.getBool("enabled", false);
+    // Retained legacy NVS must never enable direct node-to-cloud telemetry.
+    // The approved architecture uses ROCK Pi polling and its private MQTT bridge.
+    config.enabled = false;
     config.host = cloudPreferences.getString("mqtt_host", "");
     config.port = cloudPreferences.getUShort("mqtt_port", 8883);
     config.realm = cloudPreferences.getString("realm", "master");
@@ -182,9 +257,11 @@ void setup() {
 }
 
 void loop() {
+    processProvisioningSerial();
     cloud->loop();
     control->loop();
     applyCommand(millis());
+    persistNodeConfig();
 
     if (millis() - lastPollMs >= 500U) {
         lastPollMs = millis();

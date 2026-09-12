@@ -15,8 +15,6 @@ inline constexpr int Rs485Rx = 36;
 // time because a third-party isolated carrier may use another GPIO.
 inline constexpr int Rs485Direction = 13;
 
-inline constexpr int Relay1 = 32;
-inline constexpr int Relay2 = 33;
 inline constexpr int UserButton = 34;
 
 }  // namespace gridex::node::board
