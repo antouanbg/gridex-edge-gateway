@@ -143,6 +143,18 @@ The supported node board family is OLIMEX ESP32-EVB / ESP32-EVB-EA-IND.
   докладвай точното препятствие и запиши branch името и commit SHA в
   `CODEX_STATE.md` и при нужда в `HANDOFF.md`.
 
+## Terminology parity / Терминологична синхронизация
+
+For bilingual operational documentation, keep both sections semantically
+identical and use the project terms `Site = Обект`, `Edge gateway = Edge шлюз`,
+`self-consumption = собствено потребление` and `EFC = еквивалентни пълни
+цикли`. Do not translate code identifiers, protocol names or product brands.
+
+За двуезичната оперативна документация поддържай двата раздела семантично
+еднакви и използвай термините `Site = Обект`, `Edge gateway = Edge шлюз`,
+`self-consumption = собствено потребление` и `EFC = еквивалентни пълни цикли`.
+Не превеждай code identifiers, protocol имена или product brands.
+
 ## Verified pilot checkpoint / Потвърден пилотен checkpoint
 
 The following results are verified on the current physical pilot and may be
