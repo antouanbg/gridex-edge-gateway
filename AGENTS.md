@@ -186,3 +186,13 @@ Before resuming a hardware task, read `HANDOFF.md`, `CODEX_STATE.md` and
 Преди продължаване на хардуерна задача прочети `HANDOFF.md`, `CODEX_STATE.md`
 и `docs/ROCKPI_E_PILOT_STATUS.md`, след което провери реалното състояние на
 repository-то.
+
+## Preserved main-branch rules
+
+No public MQTT listener, direct backend route to OT/BESS, or site-to-site routing is permitted.
+Update English and Bulgarian operational text in the same commit with identical meaning.
+Every HANDOFF must identify its repository directly below the title.
+
+Не се допуска публичен MQTT, директен backend маршрут към OT/BESS или връзка между обекти.
+Обновявай EN и BG оперативните текстове в един commit с еднакъв смисъл.
+Всеки HANDOFF посочва repository-то непосредствено под заглавието.
