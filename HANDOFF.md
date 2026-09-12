@@ -34,6 +34,11 @@ Repository / GitHub: `antouanbg/gridex-edge-gateway`
   the existing service binary starts its northbound Modbus listener and that a
   configured ESP32 node appears online in the normalized node slot. It was
   stopped immediately; it is not yet a persistent deployment.
+- **Deployed on the pilot:** the current merged ROCK Pi source was built
+  natively and its five CTest tests passed. `gridex-rockpie.service` is now
+  enabled and active with the locked read-only profile. The listener binds only
+  to loopback, the configured ESP32 node is online in its normalized slot, and
+  the journal reports `commissioning_locked`.
 
 ### Ordered local commissioning sequence — no backend required
 
@@ -42,11 +47,10 @@ running GrideX backend, OpenRemote instance or private MQTT broker. Do not skip
 a safety gate. A checkmark means code/bench evidence exists; it does not mean
 production approval.
 
-1. **[Next] Deploy the current service read-only.** Build the merged source on
-   ROCK Pi, use an explicit bench-node endpoint, bind northbound Modbus to
-   loopback, keep `GRIDEX_PCS_HOST` away from a live cabinet and keep every
-   `GRIDEX_APPROVE_*` value at `0`. Enable the systemd service only with this
-   locked configuration and verify restart-on-failure.
+1. **[Done] Deploy the current service read-only.** The current source has been
+   built natively on ROCK Pi; its service is enabled with an explicit bench-node
+   endpoint, loopback northbound listener, no live PCS endpoint and every
+   `GRIDEX_APPROVE_*` value at `0`.
 2. **[Next] Confirm continuous local polling.** Verify each configured node
    appears in the normalized Modbus node slot, then unplug/reconnect one node
    and record the transition to `online=false`. One failed node must not block
@@ -89,10 +93,9 @@ activating a vendor control path before the corresponding commissioning record.
 
 ### Exact next safe action
 
-Perform step 1, then step 2, of the ordered local commissioning sequence. The
-service may be enabled only with its loopback-only, node-polling configuration.
-Do not connect a BESS/PCS, add production addresses or set any
-`GRIDEX_APPROVE_*` flag.
+Perform step 2 of the ordered local commissioning sequence. The service is
+enabled only with its loopback-only, node-polling configuration. Do not connect
+a BESS/PCS, add production addresses or set any `GRIDEX_APPROVE_*` flag.
 
 The Deye driver remains a step-5 read-only task: first record exact model,
 revision, RS485 A/B/GND wiring, unit ID and the manufacturer-approved register
@@ -105,8 +108,8 @@ enable any command path.
 2. Site Router firewall approval for backend-to-management Modbus only.
 3. ESP32 production driver provisioning and a read-only telemetry soak.
    Provision the ROCK Pi private MQTT TLS CA/identity through a secret store
-   and deploy the tested service configuration. The ESP32 direct MQTT path is
-   disabled.
+   and add the MQTT-enabled build/configuration when a private broker exists.
+   The ESP32 direct MQTT path is disabled.
 4. Suntech readback and complete checklist in `docs/COMMISSIONING.md`.
 5. Backend MQTT ingestion/OpenRemote asset mapping and frontend backend API.
 
@@ -142,6 +145,11 @@ enable any command path.
   съществуващият binary стартира northbound Modbus listener-а и че
   конфигуриран ESP32 нод се вижда като online в нормализирания node slot.
   Услугата беше спряна веднага; това все още не е постоянен deployment.
+- **Внедрено на пилота:** текущият merge-нат ROCK Pi source е изграден native
+  и петте CTest теста са успешни. `gridex-rockpie.service` вече е enabled и
+  active със заключен read-only профил. Listener-ът е само на loopback,
+  конфигурираният ESP32 нод е online в нормализирания си slot, а journal-ът
+  отчита `commissioning_locked`.
 
 ### Последователност за локален commissioning — без backend
 
@@ -150,11 +158,10 @@ GrideX backend, OpenRemote instance или private MQTT broker. Не преск�
 safety gate. Отметката означава code/bench доказателство, а не production
 одобрение.
 
-1. **[Следва] Внедри текущата услуга в read-only режим.** Изгради merge-натия
-   source на ROCK Pi, използвай изричен bench-node endpoint, свържи northbound
-   Modbus към loopback, остави `GRIDEX_PCS_HOST` далеч от жив шкаф и всички
-   `GRIDEX_APPROVE_*` стойности на `0`. Enable-ни systemd услугата само с тази
-   заключена конфигурация и провери restart-on-failure.
+1. **[Готово] Внедри текущата услуга в read-only режим.** Текущият source е
+   изграден native на ROCK Pi; услугата е enabled с изричен bench-node endpoint,
+   loopback northbound listener, без live PCS endpoint и всички
+   `GRIDEX_APPROVE_*` стойности на `0`.
 2. **[Следва] Потвърди постоянния локален polling.** Провери, че всеки
    конфигуриран нод се вижда в нормализирания Modbus node slot, след това
    изключи/свържи един нод и запиши прехода към `online=false`. Един отпаднал
@@ -199,10 +206,9 @@ Read-only услугата от стъпка 1 е разрешена. Забра
 
 ### Точна следваща безопасна стъпка
 
-Изпълни стъпка 1, след това стъпка 2 от последователността за local
-commissioning. Услугата може да е enabled само с loopback-only
-node-polling конфигурацията. Не свързвай BESS/PCS, не добавяй production
-адреси и не задавай `GRIDEX_APPROVE_*` flag.
+Изпълни стъпка 2 от последователността за local commissioning. Услугата е
+enabled само с loopback-only node-polling конфигурацията. Не свързвай BESS/PCS,
+не добавяй production адреси и не задавай `GRIDEX_APPROVE_*` flag.
 
 Deye driver-ът остава read-only задача от стъпка 5: първо запиши точния
 model, revision, RS485 A/B/GND wiring, unit ID и manufacturer-approved register
@@ -215,6 +221,7 @@ map. Познатият string-inverter power-limit регистър не е р�
 2. Site Router firewall approval само за backend-to-management Modbus.
 3. ESP32 production driver provisioning и read-only telemetry soak.
    Provision-ни private MQTT TLS CA/identity за ROCK Pi чрез secret store и
-   внедри тестваната service конфигурация. Директният MQTT от ESP32 е изключен.
+   добави MQTT-enabled build/configuration, когато private broker е наличен.
+   Директният MQTT от ESP32 е изключен.
 4. Suntech readback и пълният checklist в `docs/COMMISSIONING.md`.
 5. Backend MQTT ingestion/OpenRemote asset mapping и frontend backend API.

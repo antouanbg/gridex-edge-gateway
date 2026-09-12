@@ -4,10 +4,8 @@ Repository / GitHub: antouanbg/gridex-edge-gateway
 
 ## Current task
 
-Document the ordered local commissioning sequence that does not require a
-running backend.
-Документиране на последователния локален commissioning, който не изисква
-работещ backend.
+Deploy the current ROCK Pi service in a locked, read-only node-polling mode.
+Внедряване на текущата ROCK Pi услуга в заключен read-only режим за node polling.
 
 ## Completed
 
@@ -24,6 +22,13 @@ running backend.
 - Reconciled `HANDOFF.md` with the local-only work list: deployment, polling
   verification, OT isolation, ESP provisioning, telemetry validation, local
   retention, commissioning view, recovery tests and read-only soak testing.
+- Staged the exact merged source in a separate ROCK Pi release directory,
+  built it natively with MQTT disabled (no broker exists), and passed all five
+  CTest tests.
+- Installed the service with a non-production local configuration: listener on
+  loopback, ESP32 node polling enabled and every BESS write approval locked.
+  Systemd enablement, active status and the online normalized node slot were
+  verified.
 
 Запазени са документите от PR #4, премахнат е relay тестът, поправени са
 серийният вход и NVS потвърждението, изключен е директният ESP32 MQTT.
@@ -34,14 +39,21 @@ simulator тест за постоянен polling и детерминистич
 `HANDOFF.md` е синхронизиран с local-only списъка: deployment, проверка на
 polling, OT изолация, ESP provisioning, telemetry validation, local retention,
 commissioning view, recovery тестове и read-only soak.
+Точният merge-нат source е поставен в отделна release директория на ROCK Pi,
+изграден native с изключен MQTT (няма broker) и петте CTest теста са успешни.
+Услугата е инсталирана с non-production local конфигурация: listener само на
+loopback, включен ESP32 node polling и заключени всички BESS write разрешения.
+Потвърдени са systemd enablement, active status и online нормализиран node slot.
 
 ## Remaining
 
-- Review and merge the documentation PR, then perform step 1 of the ordered
-  local commissioning sequence with all write gates locked.
+- Execute step 2 of the ordered local commissioning sequence: controlled
+  disconnect/reconnect of the ESP32 and evidence that its status changes to
+  `online=false` without disrupting the service.
 
-Прегледай и merge-ни документационния PR, след което изпълни стъпка 1 от
-последователния local commissioning със заключени write gate-ове.
+Изпълни стъпка 2 от последователния local commissioning: контролирано
+изключване/свързване на ESP32 и доказателство, че статусът му става
+`online=false`, без да се прекъсва услугата.
 
 ## Modified files
 
@@ -78,11 +90,11 @@ provision-нат, а физическият пилот не е получил т
 
 ## Next action
 
-Review the ordered sequence in `HANDOFF.md`, then deploy the read-only service
-from step 1 with node polling enabled.
+Perform the controlled ESP32 disconnect/reconnect test from step 2, then record
+the observed node-offline transition in the pilot evidence.
 
-Прегледай последователността в `HANDOFF.md`, след което внедри read-only
-услугата от стъпка 1 с включен node polling.
+Изпълни контролирания ESP32 disconnect/reconnect тест от стъпка 2, след което
+запиши наблюдавания node-offline преход в pilot evidence.
 
 ## Last updated
 
