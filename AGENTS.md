@@ -10,6 +10,37 @@
 - Vendor maps, signs, scaling and serial/CAN details belong to a device driver.
   Commands must be validated, clamped, time-limited, logged and fail safe.
 
+## ROCK Pi E operating-system baseline
+
+The current **pilot** operating-system candidate for the Radxa ROCK Pi E is:
+
+- Armbian Minimal CLI, Debian 12 (Bookworm), ARM64;
+- a pinned image using the `current` / Linux 6.6 LTS Rockchip kernel line;
+- no desktop environment and no Docker workload on the ROCK Pi E.
+
+This choice is made because the GrideX base service needs CMake 3.20+, a
+C++20-capable compiler and current MQTT packages. Do not use the vendor Debian
+Buster image as a GrideX production operating system: it is useful only as a
+hardware-reference image for vendor dual-Ethernet validation and its userspace
+is end of life.
+
+The pilot candidate is **not** a production approval until it passes the
+ROCK Pi E acceptance procedure on the physical board. Before a site deployment:
+
+1. record the exact image filename, release, kernel version and SHA256;
+2. verify both Ethernet interfaces are present and stable simultaneously;
+3. assign WAN/management to the Site Router and a separate static OT interface
+   without a default gateway;
+4. verify boot, 20 controlled reboots, power-loss recovery and serial console;
+5. build and test the native C++20 GrideX service on the board;
+6. test Modbus TCP to the BESS, Modbus TCP polling to ESP32 nodes, northbound
+   Modbus, and private MQTT through the Site Router VPN;
+7. run a 24-hour telemetry soak test with writes disabled.
+
+Pin the accepted image and its package/kernel update policy in repository
+documentation after these tests. Never enable an untested kernel upgrade on a
+commissioned site. The Site Router remains the sole WireGuard endpoint.
+
 ## OLIMEX ESP32-EVB — verified local bench knowledge
 
 The supported node board family is OLIMEX ESP32-EVB / ESP32-EVB-EA-IND.
