@@ -17,6 +17,12 @@ customer network addresses, credentials, VPN details or production endpoints.
 - `gridex_rockpie_tests` and `gridex_edge_tests` both passed on the board.
 - A dedicated `gridex` service account, protected directories, systemd unit
   and a commissioning environment file were installed.
+- The RS485/Ethernet ESP32-EVB firmware was flashed successfully over USB.
+  The ESP32 received a DHCP lease on the management bench LAN and was locally
+  provisioned to allow only the ROCK Pi as its Modbus TCP source.
+- ROCK Pi completed read-only Modbus TCP identity and telemetry reads from the
+  ESP32 canonical endpoint. The node correctly reports an unconfigured driver,
+  so no RS485 inverter command can be sent.
 - The systemd unit is deliberately **disabled** and **inactive**.
 - The commissioning configuration binds northbound Modbus to localhost only,
   defines no BESS/node endpoint and keeps every `GRIDEX_APPROVE_*` write gate
@@ -24,9 +30,10 @@ customer network addresses, credentials, VPN details or production endpoints.
 
 ### Current safe state
 
-No GrideX process is listening on the LAN, no BESS connection is configured,
-no ESP32 node is polled and no physical command path is enabled. The deployed
-binary and configuration are ready for controlled commissioning only.
+No GrideX process is listening on the LAN and no BESS connection is configured.
+The ESP32 was polled only by a short-lived read-only bench process; no physical
+command path is enabled. The deployed binary and configuration are ready for
+controlled commissioning only.
 
 ### Next stages
 
@@ -62,15 +69,22 @@ binary and configuration are ready for controlled commissioning only.
 - `gridex_rockpie_tests` и `gridex_edge_tests` са минали успешно на платката.
 - Инсталирани са отделен потребител `gridex`, защитени директории, systemd
   unit и commissioning environment файл.
+- RS485/Ethernet ESP32-EVB firmware е flash-нат успешно през USB. ESP32 получи
+  DHCP адрес в management bench LAN и е local provision-нат да допуска само
+  ROCK Pi като Modbus TCP source.
+- ROCK Pi извърши read-only Modbus TCP identity и telemetry четене от ESP32
+  canonical endpoint-а. Нодът коректно показва unconfigured driver, така че
+  RS485 команда към инвертора не може да бъде изпратена.
 - systemd услугата е умишлено **disabled** и **inactive**.
 - Commissioning конфигурацията слуша northbound Modbus само на localhost,
   няма BESS/node endpoint и държи всеки `GRIDEX_APPROVE_*` write gate на `0`.
 
 ### Текущо безопасно състояние
 
-Няма GrideX процес, който слуша на LAN, няма конфигурирана BESS връзка, няма
-polling на ESP32 нод и няма разрешен физически command path. Бинарният файл и
-конфигурацията са готови само за контролирано commissioning.
+Няма GrideX процес, който слуша на LAN, и няма конфигурирана BESS връзка.
+ESP32 е poll-ван единствено от кратък read-only bench процес; няма разрешен
+физически command path. Бинарният файл и конфигурацията са готови само за
+контролирано commissioning.
 
 ### Следващи етапи
 
