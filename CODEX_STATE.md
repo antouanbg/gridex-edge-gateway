@@ -31,6 +31,8 @@ simulator тест за постоянен polling и детерминистич
 - Added ESP32 OTA firmware endpoint with a provisioned ROCK Pi source check,
   per-node SHA-256 token verifier and firmware digest check. Added the local,
   non-listening `gridex_ota_apply` ROCK Pi client.
+- Recorded this as the separate local OTA update service in the root service
+  inventory, hardware baseline and external-interface contract.
 - The physical pilot completed a ROCK Pi initiated OTA update, ESP32 reboot,
   and Ethernet/Modbus TCP recovery. ROCK Pi service is enabled/active but its
   commissioning lock and every write approval gate remain `0`.
@@ -38,6 +40,8 @@ simulator тест за постоянен polling и детерминистич
 Добавени са ESP32 OTA firmware endpoint с provision-нат ROCK Pi source check,
 SHA-256 verifier за отделен token и firmware digest проверка. Добавен е
 локалният `gridex_ota_apply` client за ROCK Pi без listener.
+Отразена е като отделна локална OTA услуга в root service inventory, hardware
+baseline и договора за външни интерфейси.
 Физическият пилот изпълни OTA update, стартирано от ROCK Pi, рестарт на ESP32
 и възстановяване на Ethernet/Modbus TCP. Услугата на ROCK Pi е enabled/active,
 но commissioning lock и всички write approval gate-ове остават `0`.
