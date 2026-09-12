@@ -24,8 +24,8 @@ Commands
 ```
 
 The node exposes telemetry for ROCK Pi polling. Direct node MQTT is disabled,
-even with a legacy enabled flag in NVS. ROCK Pi MQTT forwarding remains a
-separate implementation task; it was not part of the pilot verification. The local
+even with a legacy enabled flag in NVS. ROCK Pi publishes normalized telemetry
+through its outbound-only private MQTT bridge. The local
 Modbus TCP control endpoint accepts clients only from the configured ROCK Pi E
 address, permits writes only to the command register window, requires a
 monotonic sequence and a 1–30 second TTL, and writes a zero-power safe command
@@ -56,10 +56,20 @@ commands. A concrete vendor driver and its commissioning tests are still needed.
 Setting a type or driver ID does not implement a driver. Local source addresses
 are provisioned after build and are never committed.
 
+### Local OTA updates
+
+OTA is disabled by default. It is a local ROCK Pi-to-node procedure, not a
+VPN, public Internet or direct MQTT feature. The ESP32 accepts a multipart
+`POST /gridex/ota` on TCP 8080 only from its provisioned ROCK Pi address and
+only when a per-node SHA-256 token verifier and the firmware SHA-256 match.
+The node stores the verifier, never the reusable token. Provision with the
+local serial commands `rockpi <IPv4>` and `ota-key <32+ chars>`; see
+[ESP32 OTA](../docs/ESP32_OTA.md) for the complete EN/BG procedure.
+
 ### Provisioned namespaces
 
 - `gridex-cloud`: legacy namespace only; cannot activate MQTT in these builds.
-- `gridex-control`: `rockpi_ip`, `port`.
+- `gridex-control`: `rockpi_ip`, `port`, `ota_port`, `ota_token_hash`.
 - `gridex-mbus`: `node_address`, `node_type`, `driver_id`.
 
 No public MQTT listener is supported. In production the broker address must be
@@ -78,8 +88,9 @@ UEXT/UART.
 
 ROCK Pi чете телеметрията на ESP32 по OT Modbus TCP. Планираното препращане
 е ROCK Pi → Site Router VPN → private MQTT → backend ingestion → OpenRemote.
-Директният MQTT от ESP32 е изключен дори при стар enabled флаг в NVS.
-MQTT препращането от ROCK Pi остава отделна имплементационна задача. Командите не идват по MQTT: OpenRemote ги подава към ROCK Pi E, а
+Директният MQTT от ESP32 е изключен дори при стар enabled флаг в NVS. ROCK Pi
+препраща нормализираната телеметрия през outbound-only private MQTT bridge.
+Командите не идват по MQTT: OpenRemote ги подава към ROCK Pi E, а
 той ги изпраща по изолираната OT Ethernet мрежа към Modbus TCP endpoint-а на
 нода. Нодът превежда командата към CAN или външния изолиран RS485 канал.
 
@@ -94,8 +105,18 @@ UEXT UART GPIO4/GPIO36 и конфигурируем direction GPIO; конкр�
 И двата текущи профила използват само UnconfiguredDriver и отказват всички
 power команди. Изборът на type или driver ID не имплементира vendor driver.
 Необходими са конкретен драйвер и commissioning тестове. NVS използва
-`gridex-control` (`rockpi_ip`, `port`) и `gridex-mbus` (`node_address`,
+`gridex-control` (`rockpi_ip`, `port`, `ota_port`, `ota_token_hash`) и `gridex-mbus` (`node_address`,
 `node_type`, `driver_id`); `gridex-cloud` е неактивна наследена конфигурация.
+
+### Локални OTA обновявания
+
+OTA е изключено по подразбиране. То е локална процедура ROCK Pi към нод, а не
+VPN, публичен Интернет или direct MQTT функционалност. ESP32 приема multipart
+`POST /gridex/ota` на TCP 8080 само от provision-натия адрес на ROCK Pi и само
+ако SHA-256 token verifier-ът за нода и SHA-256 на firmware-а съвпадат. Нодът
+записва verifier-а, а не повторно използваемия token. Provision-ването е през
+локалните serial команди `rockpi <IPv4>` и `ota-key <32+ chars>`; пълната EN/BG
+процедура е в [ESP32 OTA](../docs/ESP32_OTA.md).
 
 Източници:
 

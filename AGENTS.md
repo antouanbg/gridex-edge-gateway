@@ -78,6 +78,33 @@ The supported node board family is OLIMEX ESP32-EVB / ESP32-EVB-EA-IND.
 - Upload at `115200` bps on this setup. The higher 921600 bps upload rate was
   observed to corrupt the transfer after the ESP32 bootloader connected.
 
+### OTA rule / Правило за OTA
+
+- ESP32 OTA is local ROCK Pi → ESP32 Ethernet only. The Site Router controls
+  any WireGuard access to the ROCK Pi; it must not forward WireGuard or public
+  Internet traffic directly to ESP32.
+- OTA must remain disabled until local serial provisioning records a single
+  ROCK Pi source address and a per-node secret verifier. Store only a hash on
+  the ESP32 and never commit a token, staging image, node address or device
+  identity.
+- The ROCK Pi OTA client has no listener. It must validate firmware SHA-256,
+  use an owner-only token file, and be run only by an approved operator.
+- After opening a USB serial session, wait for the ESP32 boot message before
+  issuing a provisioning command; opening a serial port can reset the board.
+
+- OTA за ESP32 е само по локален Ethernet път ROCK Pi → ESP32. Site Router
+  управлява всеки WireGuard достъп до ROCK Pi; той не трябва да препраща
+  WireGuard или публичен Интернет трафик директно към ESP32.
+- OTA остава изключено, докато local serial provisioning не запише единствен
+  source адрес на ROCK Pi и verifier за отделна тайна на нода. На ESP32 се
+  записва само hash; не записвай в Git token, staging image, адрес на нод или
+  идентификатор на устройство.
+- OTA client-ът на ROCK Pi няма listener. Той валидира SHA-256 на firmware-а,
+  използва token файл само за собственика и се изпълнява единствено от одобрен
+  оператор.
+- След отваряне на USB serial сесия изчакай boot съобщението на ESP32 преди
+  provisioning команда; отварянето на serial port може да рестартира платката.
+
 ## Relays are out of scope / Релетата не участват в решението
 
 The temporary relay test is complete and has been removed at the owner's request.
@@ -147,8 +174,8 @@ The following results are verified on the current physical pilot and may be
 used as evidence by future work; they are not production approval:
 
 - ROCK Pi E completed a native ARM64 build and both repository CTest suites.
-- The installed ROCK Pi service remains disabled and inactive, with all write
-  approval gates set to `0`.
+- The installed ROCK Pi service is enabled and active, with all write approval
+  gates set to `0` and commissioning locked.
 - An OLIMEX ESP32-EVB RS485/Ethernet build was flashed over USB at 115200 bps.
 - ROCK Pi performed read-only Modbus TCP identity and telemetry reads from the
   ESP32 over the temporary management-LAN bench path.
@@ -159,8 +186,8 @@ used as evidence by future work; they are not production approval:
 като доказателство при следваща работа; те не са production одобрение:
 
 - ROCK Pi E е изпълнил native ARM64 build и двата CTest пакета в repository-то.
-- Инсталираната ROCK Pi услуга остава disabled и inactive, а всички write
-  approval gate-ове са `0`.
+- Инсталираната ROCK Pi услуга е enabled и active, а всички write approval
+  gate-ове са `0` и commissioning е заключен.
 - RS485/Ethernet build за OLIMEX ESP32-EVB е flash-нат през USB на 115200 bps.
 - ROCK Pi е направил read-only Modbus TCP identity и telemetry четене от ESP32
   през временния management-LAN bench path.

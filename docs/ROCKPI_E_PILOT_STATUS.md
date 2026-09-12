@@ -29,17 +29,23 @@ customer network addresses, credentials, VPN details or production endpoints.
 - The Suntech cumulative-energy implementation has been updated and code-tested
   to read registers 122–125 together in one `0x04` request. It is not yet a
   physical Suntech-cabinet verification.
-- The systemd unit is deliberately **disabled** and **inactive**.
-- The commissioning configuration binds northbound Modbus to localhost only,
-  defines no BESS/node endpoint and keeps every `GRIDEX_APPROVE_*` write gate
-  at `0`.
+- The systemd unit is **enabled** and **active**. Its commissioning lock and
+  every `GRIDEX_APPROVE_*` write gate remain at `0`; the service does not
+  issue BESS/PCS writes.
+- The commissioning configuration binds northbound Modbus to localhost only.
+  The temporary management-LAN ESP32 endpoint is read-only pilot evidence, not
+  the production OT topology.
+- A ROCK Pi initiated ESP32 OTA pilot passed: the image digest and per-node
+  verifier were accepted, the node restarted, and its Ethernet/Modbus TCP path
+  recovered. The OTA endpoint is local-only and is not reachable directly from
+  WireGuard or the public Internet.
 
 ### Current safe state
 
-No GrideX process is listening on the LAN and no BESS connection is configured.
-The ESP32 was polled only by a short-lived read-only bench process; no physical
-command path is enabled. The deployed binary and configuration are ready for
-controlled commissioning only.
+No BESS connection is configured and no physical command path is enabled. The
+active GrideX service remains commissioning-locked, while the ESP32 is polled
+read-only through the temporary management bench LAN. The deployed binary and
+configuration are ready for controlled commissioning only.
 
 ### Next stages
 
@@ -55,8 +61,10 @@ controlled commissioning only.
 4. Replace commissioning placeholders with approved site configuration, bind
    northbound Modbus only to the management address and restrict it to the
    backend source through the Site Router firewall.
-5. Perform read-only Suntech and node checks, then follow
-   `COMMISSIONING.md` before any write approval or service enablement.
+5. Approve the Site Router ACL and release-secret ownership before deploying
+   OTA outside the bench. The router may reach ROCK Pi, never ESP32 directly.
+6. Perform read-only Suntech and node checks, then follow
+   `COMMISSIONING.md` before any write approval.
 
 ## Български
 
@@ -87,16 +95,23 @@ controlled commissioning only.
 - Suntech cumulative-energy имплементацията е обновена и code-tested да чете
   регистри 122–125 заедно с една `0x04` заявка. Това все още не е физическа
   проверка към Suntech кабинет.
-- systemd услугата е умишлено **disabled** и **inactive**.
-- Commissioning конфигурацията слуша northbound Modbus само на localhost,
-  няма BESS/node endpoint и държи всеки `GRIDEX_APPROVE_*` write gate на `0`.
+- systemd услугата е **enabled** и **active**. Commissioning lock и всеки
+  `GRIDEX_APPROVE_*` write gate остават на `0`; услугата не изпраща BESS/PCS
+  writes.
+- Commissioning конфигурацията слуша northbound Modbus само на localhost.
+  Временният ESP32 endpoint през management-LAN е read-only pilot доказателство,
+  а не production OT топология.
+- ROCK Pi стартира ESP32 OTA pilot успешно: image digest и verifier-ът за
+  отделния нод бяха приети, нодът се рестартира, а Ethernet/Modbus TCP пътят
+  се възстанови. OTA endpoint-ът е само локален и не е директно достъпен от
+  WireGuard или публичния Интернет.
 
 ### Текущо безопасно състояние
 
-Няма GrideX процес, който слуша на LAN, и няма конфигурирана BESS връзка.
-ESP32 е poll-ван единствено от кратък read-only bench процес; няма разрешен
-физически command path. Бинарният файл и конфигурацията са готови само за
-контролирано commissioning.
+Няма конфигурирана BESS връзка и няма разрешен физически command path.
+Активната GrideX услуга остава commissioning-locked, а ESP32 се poll-ва
+read-only през временния management bench LAN. Бинарният файл и конфигурацията
+са готови само за контролирано commissioning.
 
 ### Следващи етапи
 
@@ -112,5 +127,7 @@ ESP32 е poll-ван единствено от кратък read-only bench пр
 4. Commissioning placeholders се заменят само с одобрена site конфигурация,
    northbound Modbus се свързва само с management адреса, а Site Router
    firewall допуска единствено backend source.
-5. Правят се read-only проверки към Suntech и нодовете, след което се следва
-   `COMMISSIONING.md` преди write approval или enable на услугата.
+5. Одобряват се Site Router ACL и собственикът на release secret, преди OTA
+   извън bench. Router-ът може да достига ROCK Pi, никога ESP32 директно.
+6. Правят се read-only проверки към Suntech и нодовете, след което се следва
+   `COMMISSIONING.md` преди write approval.
