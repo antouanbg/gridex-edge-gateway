@@ -131,6 +131,32 @@ Do not add relay commands or automatic relay pulses to EMS firmware.
   removed from the configuration when the isolated OT port is commissioned.
 - Before changing firmware, inspect `git status`; preserve unrelated work.
 
+## Node network provisioning / Мрежово provision-ване на нод
+
+- A Site Router DHCP reservation (or an approved OT DNS identity) is the
+  authoritative stable address for each ESP32 node. Do not depend on a random
+  DHCP lease after reboot.
+- Keep deployed `GRIDEX_NODE_ENDPOINTS` only in the root-owned
+  `/etc/gridex/gridex-rockpie.env`; Git contains examples and templates only.
+- ESP32 NVS stores its trusted `rockpi_ip`, logical node identity and OTA hash
+  verifier. These are set locally at commissioning and do not need rewriting
+  after a normal reboot.
+- When a node address changes, update the Site Router reservation and ROCK Pi
+  endpoint configuration in one controlled change, restart only the locked
+  read-only service, and verify its normalized slot before any next step.
+
+- DHCP reservation в Site Router (или одобрена OT DNS идентичност) е
+  авторитетният устойчив адрес за всеки ESP32 нод. Не разчитай на случаен DHCP
+  lease след рестарт.
+- Пази внедрените `GRIDEX_NODE_ENDPOINTS` само в root-owned
+  `/etc/gridex/gridex-rockpie.env`; Git съдържа само примери и templates.
+- ESP32 NVS пази доверения `rockpi_ip`, логическата идентичност на нода и OTA
+  hash verifier. Те се задават локално при commissioning и не се презаписват
+  при нормален рестарт.
+- При промяна на node адрес обнови Site Router reservation и ROCK Pi endpoint
+  конфигурацията в една контролирана промяна, рестартирай само заключената
+  read-only услуга и провери нормализирания slot преди следваща стъпка.
+
 ## Mandatory Pull Request workflow / Задължителен Pull Request процес
 
 - Every completed change set must be committed on a named branch, pushed to

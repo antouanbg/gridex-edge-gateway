@@ -38,6 +38,11 @@ Repository / GitHub: `antouanbg/gridex-edge-gateway`
 
 ### Exact next safe action
 
+Follow [node network provisioning](docs/NODE_NETWORK_PROVISIONING.md) to
+verify the root-owned `GRIDEX_NODE_ENDPOINTS` entry for the restored stable
+ESP32 identity, then restart the locked read-only service and confirm the
+normalized slot returns online.
+
 Follow [the local commissioning sequence](docs/LOCAL_COMMISSIONING_SEQUENCE.md)
 from its first planned step. The current pilot evidence is preserved in
 [live hardware status](docs/LIVE_HARDWARE_STATUS.md). Before replacing
@@ -104,6 +109,11 @@ remain read-only.
   WireGuard, публичен Интернет или direct MQTT OTA маршрут.
 
 ### Точна следваща безопасна стъпка
+
+Следвай [мрежово provision-ване на нод](docs/NODE_NETWORK_PROVISIONING.md), за
+да провериш root-owned `GRIDEX_NODE_ENDPOINTS` стойността за възстановената
+устойчива ESP32 идентичност, след което рестартирай заключената read-only
+услуга и потвърди, че нормализираният slot се връща online.
 
 Следвай [последователността за локален commissioning](docs/LOCAL_COMMISSIONING_SEQUENCE.md)
 от първата планирана стъпка. Текущите pilot доказателства са запазени в
