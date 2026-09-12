@@ -130,6 +130,13 @@ broker, hardware upload или device write.
 default route, ESP32 DHCP lease и online node slot чрез read-only Modbus TCP
 register read. Shell syntax и renderer проверките минаха локално.
 
+The standard local sandbox blocks loopback TCP `bind`; the three Modbus server
+tests therefore fail there with `Operation not permitted` but passed unchanged
+6/6 on the approved host-network execution path.
+Стандартният local sandbox блокира loopback TCP `bind`; затова трите Modbus
+server теста там падат с `Operation not permitted`, но без промяна минаха 6/6
+през одобрения host-network execution path.
+
 ## Known issues
 
 UnconfiguredDriver remains deliberate. A private MQTT broker CA/client identity

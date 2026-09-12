@@ -241,6 +241,10 @@ used as evidence by future work; they are not production approval:
   trusted ROCK Pi OT source is set only through local serial provisioning.
 - After this change, the locked ROCK Pi service again reported the normalized
   ESP32 slot online through a read-only Modbus TCP register read.
+- Some local execution sandboxes prohibit loopback TCP binds. When native
+  Modbus CTest servers fail only with `Operation not permitted` on bind, rerun
+  the same suite on an approved host-network execution path before diagnosing
+  a code regression.
 - The ESP32 driver is still unconfigured. No RS485 downstream command, BESS
   connection or production control action has been enabled.
 
@@ -260,6 +264,10 @@ used as evidence by future work; they are not production approval:
   provisioning.
 - След тази промяна заключената ROCK Pi услуга отново отчете нормализирания
   ESP32 slot online чрез read-only Modbus TCP register read.
+- Някои локални execution sandbox-и забраняват loopback TCP bind. Ако native
+  Modbus CTest server-ите паднат само с `Operation not permitted` при bind,
+  повтори същия пакет през одобрен host-network execution path, преди да
+  диагностицираш code regression.
 - ESP32 driver-ът все още е unconfigured. Няма разрешена RS485 downstream
   команда, BESS връзка или production control действие.
 
