@@ -118,6 +118,31 @@ The supported node board family is OLIMEX ESP32-EVB / ESP32-EVB-EA-IND.
   removed from the configuration when the isolated OT port is commissioned.
 - Before changing firmware, inspect `git status`; preserve unrelated work.
 
+## Mandatory Pull Request workflow / Задължителен Pull Request процес
+
+- Every completed change set must be committed on a named branch, pushed to
+  `origin` and given a Pull Request before it is reported as ready for review.
+- The Pull Request targets `main` unless an explicitly documented dependency
+  requires another base branch. It must state its scope, tests and any
+  commissioning limitations.
+- Never merge a Pull Request automatically. Report its URL and wait for the
+  project owner's review/merge decision.
+- If a Pull Request cannot be created because of permissions or a GitHub error,
+  report that exact blocker and keep the branch name and commit SHA in
+  `CODEX_STATE.md` and `HANDOFF.md` where applicable.
+
+- Всяка завършена промяна се commit-ва в именуван branch, push-ва се към
+  `origin` и получава Pull Request, преди да бъде докладвана като готова за
+  review.
+- Pull Request-ът е към `main`, освен ако изрично документирана зависимост не
+  изисква друга base branch. В него се описват обхватът, тестовете и всички
+  commissioning ограничения.
+- Pull Request не се merge-ва автоматично. Докладва се URL и се изчаква
+  review/merge решение на собственика на проекта.
+- Ако Pull Request не може да бъде създаден поради права или GitHub грешка,
+  докладвай точното препятствие и запиши branch името и commit SHA в
+  `CODEX_STATE.md` и при нужда в `HANDOFF.md`.
+
 ## Verified pilot checkpoint / Потвърден пилотен checkpoint
 
 The following results are verified on the current physical pilot and may be

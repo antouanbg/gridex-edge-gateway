@@ -2,11 +2,11 @@
 
 ## Current task
 
-No active task. The latest completed task recorded the ROCK Pi E and
-OLIMEX ESP32-EVB bench results in this repository.
+Open a Pull Request for the completed Edge checkpoint and maintain the
+mandatory review workflow in this repository.
 
-Няма активна задача. Последната завършена задача записа резултатите от
-bench тестовете с ROCK Pi E и OLIMEX ESP32-EVB в това repository.
+Създай Pull Request за завършения Edge checkpoint и поддържай задължителния
+review процес в това repository.
 
 ## Completed
 
@@ -21,6 +21,8 @@ bench тестовете с ROCK Pi E и OLIMEX ESP32-EVB в това repository
   did not send a downstream RS485 request.
 - The source code reads Suntech cumulative-energy registers 122–125 atomically
   in one Modbus `0x04` request and publishes PCS operating state northbound.
+- Added the mandatory rule: every completed change is pushed and opened as a
+  Pull Request before it is reported as ready; automatic merging is forbidden.
 
 ## Remaining
 
@@ -38,6 +40,7 @@ bench тестовете с ROCK Pi E и OLIMEX ESP32-EVB в това repository
 - `HANDOFF.md`
 - `docs/ROCKPI_E_PILOT_STATUS.md`
 - `CODEX_STATE.md`
+- `AGENTS.md`
 
 ## Tests
 
@@ -57,10 +60,10 @@ bench тестовете с ROCK Pi E и OLIMEX ESP32-EVB в това repository
 
 ## Next action
 
-Read `AGENTS.md`, `HANDOFF.md` and this file; inspect `git status`; then obtain
-and validate the exact Deye model and read-register map before touching the
-RS485 driver. Keep all services disabled and all `GRIDEX_APPROVE_*` flags at
-`0`.
+Review the Pull Request for this checkpoint. Then read `AGENTS.md`,
+`HANDOFF.md` and this file; inspect `git status`; obtain and validate the exact
+Deye model and read-register map before touching the RS485 driver. Keep all
+services disabled and all `GRIDEX_APPROVE_*` flags at `0`.
 
 ## Last updated
 
