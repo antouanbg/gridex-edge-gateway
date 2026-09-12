@@ -1,6 +1,7 @@
 #ifdef ARDUINO
 
 #include "gridex/mbus/EthernetControlServer.hpp"
+#include "gridex/mbus/EspOtaService.hpp"
 #include "gridex/mbus/IDeviceDriver.hpp"
 #include "gridex/mbus/MbusNode.hpp"
 #include "gridex/mbus/ProvisioningLine.hpp"
@@ -24,6 +25,7 @@ std::unique_ptr<gridex::mbus::MbusNode> node;
 std::unique_ptr<gridex::mbus::IDeviceDriver> driver;
 std::unique_ptr<gridex::mbus::MqttTelemetryService> cloud;
 std::unique_ptr<gridex::mbus::EthernetControlServer> control;
+std::unique_ptr<gridex::mbus::EspOtaService> ota;
 unsigned long lastPollMs = 0;
 unsigned long lastCloudPublishMs = 0;
 unsigned long lastCommandMs = 0;
@@ -61,26 +63,63 @@ void persistNodeConfig() {
 void printProvisioningStatus() {
     cloudPreferences.begin("gridex-control", true);
     const auto rockPi = cloudPreferences.getString("rockpi_ip", "");
+    const bool otaEnabled = cloudPreferences.getString("ota_token_hash", "").length() == 64U;
     cloudPreferences.end();
     Serial.printf(
-        "GrideX node: uid=%llX address=%u type=%u driver=%u eth=%s rockpi=%s driver=locked\n",
+        "GrideX node: uid=%llX address=%u type=%u driver=%u eth=%s rockpi=%s ota=%s driver=locked\n",
         static_cast<unsigned long long>(node->uid()),
         node->address(),
         static_cast<unsigned>(node->type()),
         node->driverId(),
         ETH.localIP().toString().c_str(),
-        rockPi.c_str()
+        rockPi.c_str(),
+        otaEnabled ? "enabled" : "disabled"
     );
 }
 
 void processProvisioningLine(String line) {
     line.trim();
     if (line == "help") {
-        Serial.println("Commands: status | rockpi <IPv4>. Local provisioning only; no control commands.");
+        Serial.println("Commands: status | rockpi <IPv4> | ota-key <32+ chars> | ota-clear. Local provisioning only; no control commands.");
         return;
     }
     if (line == "status") {
         printProvisioningStatus();
+        return;
+    }
+    if (line == "ota-clear") {
+        if (!cloudPreferences.begin("gridex-control", false)) {
+            Serial.println("GrideX: cannot open OTA configuration");
+            return;
+        }
+        cloudPreferences.remove("ota_token_hash");
+        cloudPreferences.end();
+        Serial.println("GrideX: OTA secret cleared; restarting");
+        delay(100U);
+        ESP.restart();
+        return;
+    }
+    if (line.startsWith("ota-key ")) {
+        const auto token = line.substring(8);
+        if (token.length() < 32U || token.length() > 128U) {
+            Serial.println("GrideX: OTA secret must be 32-128 characters");
+            return;
+        }
+        if (!cloudPreferences.begin("gridex-control", false)) {
+            Serial.println("GrideX: cannot open OTA configuration");
+            return;
+        }
+        const auto tokenHash = gridex::mbus::EspOtaService::sha256Hex(token);
+        const bool saved = !tokenHash.isEmpty() &&
+            cloudPreferences.putString("ota_token_hash", tokenHash) == tokenHash.length();
+        cloudPreferences.end();
+        if (!saved) {
+            Serial.println("GrideX: OTA secret was not saved; previous secret retained");
+            return;
+        }
+        Serial.println("GrideX: OTA secret saved; restarting");
+        delay(100U);
+        ESP.restart();
         return;
     }
     if (!line.startsWith("rockpi ")) {
@@ -141,6 +180,17 @@ gridex::mbus::EthernetControlConfig loadControlConfig() {
     config.unitId = 1;
     const auto rockPi = cloudPreferences.getString("rockpi_ip", "");
     config.rockPiAddress.fromString(rockPi);
+    cloudPreferences.end();
+    return config;
+}
+
+gridex::mbus::EspOtaConfig loadOtaConfig() {
+    cloudPreferences.begin("gridex-control", true);
+    gridex::mbus::EspOtaConfig config;
+    config.port = cloudPreferences.getUShort("ota_port", 8080U);
+    const auto rockPi = cloudPreferences.getString("rockpi_ip", "");
+    config.rockPiAddress.fromString(rockPi);
+    config.tokenHash = cloudPreferences.getString("ota_token_hash", "");
     cloudPreferences.end();
     return config;
 }
@@ -231,6 +281,14 @@ void applyCommand(unsigned long nowMs) {
 
 void setup() {
     Serial.begin(115200);
+    Serial.println("GrideX: booting read-only node firmware");
+    WiFi.onEvent([](WiFiEvent_t event) {
+        if (event == ARDUINO_EVENT_ETH_GOT_IP) {
+            Serial.printf("GrideX: Ethernet ready at %s\n", ETH.localIP().toString().c_str());
+        } else if (event == ARDUINO_EVENT_ETH_DISCONNECTED) {
+            Serial.println("GrideX: Ethernet disconnected");
+        }
+    });
     // OLIMEX documents a short delay before ETH.begin() to avoid PHY init
     // failures after reset.
     delay(2000);
@@ -254,12 +312,16 @@ void setup() {
         loadControlConfig()
     );
     control->begin();
+    ota = std::make_unique<gridex::mbus::EspOtaService>(loadOtaConfig());
+    ota->begin();
+    Serial.printf("GrideX: OTA endpoint %s\n", ota->enabled() ? "enabled" : "disabled");
 }
 
 void loop() {
     processProvisioningSerial();
     cloud->loop();
     control->loop();
+    ota->loop();
     applyCommand(millis());
     persistNodeConfig();
 

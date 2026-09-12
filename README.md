@@ -10,6 +10,7 @@ OT Ethernet.
 |---|---|---|
 | `base-rockpie/` | Linux ARM64 / RK3328 | Safety controller, STE-261L driver, node polling and command routing |
 | `node-esp32-evb/` | ESP32 / PlatformIO | One device-specific CAN or RS485 driver and local OT Ethernet / Modbus TCP endpoint |
+| `gridex_ota_apply` + ESP32 OTA endpoint | ROCK Pi E + ESP32 | Protected local firmware-update service: ROCK Pi sends a verified image to one ESP32 node; it is neither a WireGuard nor public service |
 
 Production nodes use ESP32-EVB-EA-IND. The ordinary ESP32-EVB is a lab option.
 The board has Ethernet and CAN; the RS485 profile adds an external galvanically
@@ -40,6 +41,15 @@ There is no public MQTT listener, direct ESP32-to-cloud telemetry path, direct
 cloud route to the OT/BESS network or MQTT command subscription on a node.
 Every node contains one compiled driver for one device type, brand, model and
 protocol revision.
+
+### OTA update service
+
+The Edge runtime has a separate OTA update service in addition to telemetry and
+control. `gridex_ota_apply` is an operator-invoked, outbound-only client on
+ROCK Pi E; the ESP32 exposes a protected local upload endpoint only after local
+provisioning. The image and per-node secret are verified by SHA-256. This path
+is `ROCK Pi E → local Ethernet → ESP32`, never WireGuard or public Internet.
+See [ESP32 OTA](docs/ESP32_OTA.md).
 
 Implemented safety includes live BMS limit clamping, software fuse, EMS
 command timeout, local Suntech heartbeat, commissioning write lock, a second
@@ -89,6 +99,9 @@ product/UX/UI design. [Digital profile](https://linkmy.cards/en/antouan-anguelov
   STE-261L, polling-а на нодовете и маршрутирането на команди.
 - `node-esp32-evb/` съдържа firmware за един конкретен CAN или RS485 продукт
   и локален OT Ethernet / Modbus TCP endpoint.
+- `gridex_ota_apply` + ESP32 OTA endpoint са защитената локална услуга за
+  firmware обновяване: ROCK Pi подава проверен образ към един ESP32 нод; това
+  не е WireGuard или публична услуга.
 
 Производственият нод е ESP32-EVB-EA-IND; стандартният ESP32-EVB е за лаборатория.
 Платката има Ethernet и CAN. RS485 вариантът добавя външен галванично изолиран
@@ -107,5 +120,14 @@ route-ва към backend, публичен MQTT не се използва и E
 При отпадане на командния TTL нодът подава 0 kW. Локалните BMS лимити,
 software fuse, commissioning lock и heartbeat защитите не могат да бъдат
 заобиколени от облачната стратегия.
+
+### OTA услуга за обновяване
+
+Освен telemetry и control, Edge runtime-ът има отделна OTA услуга за
+обновяване. `gridex_ota_apply` е операторски, само outbound client на ROCK Pi
+E; ESP32 предоставя защитен локален upload endpoint само след local
+provisioning. Образът и тайната за отделния нод се проверяват чрез SHA-256.
+Пътят е `ROCK Pi E → локален Ethernet → ESP32`, никога WireGuard или публичен
+Интернет. Виж [ESP32 OTA](docs/ESP32_OTA.md).
 
 Лиценз: MIT.

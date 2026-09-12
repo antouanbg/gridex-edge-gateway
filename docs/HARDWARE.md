@@ -14,6 +14,13 @@ Linux forwarding is disabled. The firewall does not bridge CONTROL and OT.
 The enclosure requires a protected 24 V input, watchdog, RTC, DIN mounting and
 site-appropriate environmental certification.
 
+### Local OTA update service
+
+ROCK Pi E hosts the outbound-only `gridex_ota_apply` operator client. ESP32
+nodes expose their OTA upload endpoint only on local Ethernet after serial
+provisioning of a ROCK Pi source and a per-node token verifier. Site Router is
+the WireGuard endpoint and never forwards OTA traffic directly to ESP32.
+
 ### Only supported programmable node family
 
 **OLIMEX ESP32-EVB**:
@@ -43,6 +50,14 @@ GPIO is carrier-specific and cannot be frozen before schematic validation.
 Управляващият модул е Radxa ROCK Pi E с два отделни Ethernet порта:
 CONTROL/WAN към site router-а и OT към STE-261L и ESP32-EVB нодовете.
 IP forwarding е изключен и OT няма default route.
+
+### Локална OTA услуга за обновяване
+
+ROCK Pi E предоставя операторския, само outbound `gridex_ota_apply` client.
+ESP32 нодовете предоставят OTA upload endpoint само по локален Ethernet след
+serial provisioning на ROCK Pi source и verifier за token на отделния нод.
+Site Router е WireGuard endpoint и никога не препраща OTA трафик директно към
+ESP32.
 
 Единствената програмируема фамилия нодове е OLIMEX ESP32-EVB. За производство
 се препоръчва ESP32-EVB-EA-IND (−40…+85°C), а стандартният вариант е за тестове.

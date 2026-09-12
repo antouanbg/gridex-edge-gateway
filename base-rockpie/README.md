@@ -64,6 +64,25 @@ The package `libmosquitto-dev` enables the private MQTT publisher at build time.
 Without it, the executable still runs the Modbus listener and node poller but
 does not publish MQTT.
 
+## ESP32 OTA operator client
+
+`gridex_ota_apply` is an operator-invoked, outbound-only client. It pushes a
+verified ESP32 firmware image to a locally reachable node; it does not listen
+for connections and it must not be exposed through WireGuard. Its route is
+backend operator (when approved) → Site Router → ROCK Pi → ESP32 local Ethernet.
+
+```bash
+gridex_ota_apply \
+  --host <ESP32_OT_OR_BENCH_ADDRESS> \
+  --firmware /secure-staging/firmware.bin \
+  --token-file /secure-staging/esp32-ota-token
+```
+
+The token file must be owner-only (`0600`). The client hashes the image and
+uses the ESP32's source-address, token-verifier and image-digest checks. See
+[ESP32 OTA](../docs/ESP32_OTA.md) before an update. No device command path is
+enabled by this utility.
+
 ## Safe-state
 
 Heartbeat registers 5301/5302 are refreshed locally only after commissioning approval. If Linux, the service or the OT link fails, the cabinet's own heartbeat timeout returns PCS power to zero. The strategy/cloud path is not part of this safety chain.
@@ -124,6 +143,25 @@ high-order word first и signed Int32 ÷10.
 Пакетът `libmosquitto-dev` включва private MQTT publisher-а при build. Без него
 изпълнимият модул продължава да работи като Modbus listener и node poller, но
 не публикува MQTT.
+
+### ESP32 OTA операторски client
+
+`gridex_ota_apply` е операторски, само outbound client. Той подава проверен
+ESP32 firmware образ към локално достижим нод; не слуша за връзки и не трябва
+да се публикува през WireGuard. Пътят е backend оператор (само когато е
+одобрен) → Site Router → ROCK Pi → локален Ethernet към ESP32.
+
+```bash
+gridex_ota_apply \
+  --host <ESP32_OT_OR_BENCH_ADDRESS> \
+  --firmware /secure-staging/firmware.bin \
+  --token-file /secure-staging/esp32-ota-token
+```
+
+Token файлът трябва да е само за собственика (`0600`). Client-ът хешира образа
+и използва проверките на ESP32 за source адрес, token verifier и image digest.
+Преди обновяване виж [ESP32 OTA](../docs/ESP32_OTA.md). Тази програма не
+разрешава device command path.
 
 ### Безопасно състояние
 

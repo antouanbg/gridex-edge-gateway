@@ -46,6 +46,16 @@ endif()
 add_executable(gridex_rockpie_service src/main.cpp)
 target_link_libraries(gridex_rockpie_service PRIVATE gridex_rockpie_transport)
 
+# The OTA utility is deliberately a local, operator-invoked client. It has no
+# listener and cannot expose the ESP32 directly to a VPN or Internet caller.
+add_executable(gridex_ota_apply src/OtaApply.cpp)
+target_compile_features(gridex_ota_apply PRIVATE cxx_std_20)
+if(MSVC)
+    target_compile_options(gridex_ota_apply PRIVATE /W4 /permissive-)
+else()
+    target_compile_options(gridex_ota_apply PRIVATE -Wall -Wextra -Wpedantic -Werror)
+endif()
+
 enable_testing()
 add_executable(gridex_rockpie_tests tests/test_northbound.cpp)
 target_link_libraries(gridex_rockpie_tests PRIVATE gridex_rockpie_transport)
@@ -66,6 +76,8 @@ target_link_libraries(gridex_node_tcp_polling_tests PRIVATE gridex_rockpie_trans
 add_test(NAME gridex_node_tcp_polling_tests COMMAND gridex_node_tcp_polling_tests)
 set_tests_properties(gridex_node_tcp_polling_tests PROPERTIES TIMEOUT 15)
 
-install(TARGETS gridex_rockpie_service RUNTIME DESTINATION bin)
+add_test(NAME gridex_ota_apply_self_test COMMAND gridex_ota_apply --self-test)
+
+install(TARGETS gridex_rockpie_service gridex_ota_apply RUNTIME DESTINATION bin)
 install(FILES systemd/gridex-rockpie.service DESTINATION lib/systemd/system)
 install(FILES config/gridex-rockpie.env.example DESTINATION share/gridex)

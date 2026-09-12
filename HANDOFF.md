@@ -8,7 +8,7 @@ Repository / GitHub: `antouanbg/gridex-edge-gateway`
 
 - Native ARM64 build and both CTest suites passed on the physical board.
 - Systemd unit and locked commissioning configuration installed; service is
-  disabled and inactive.
+  enabled and active, while all write approval gates remain at `0`.
 - Management Ethernet is working. The OT Ethernet exists but has no carrier;
   no OT address, route or firewall rule has been applied.
 - ESP32-EVB RS485/Ethernet firmware is flashed and ROCK Pi has verified
@@ -34,6 +34,10 @@ Repository / GitHub: `antouanbg/gridex-edge-gateway`
   the existing service binary starts its northbound Modbus listener and that a
   configured ESP32 node appears online in the normalized node slot. It was
   stopped immediately; it is not yet a persistent deployment.
+- ROCK Pi initiated a verified ESP32 OTA update through the local Ethernet
+  path. The ESP32 accepted a per-node token verifier and image SHA-256,
+  restarted, and Modbus TCP recovered. This is local bench evidence only; the
+  ESP32 has no WireGuard, public Internet or direct MQTT OTA route.
 
 ### Exact next safe action
 
@@ -48,8 +52,9 @@ inverter model/revision, RS485 A/B/GND wiring, unit ID and complete
 manufacturer-approved read-register map. Only then create and bench-test a
 read-only Deye driver. The known string-inverter power-limit register is not
 authorization to enable any command path.
-Do not enable `gridex-rockpie.service`, connect a BESS, add production
-addresses or set any `GRIDEX_APPROVE_*` flag.
+Do not connect a BESS, add production addresses or set any
+`GRIDEX_APPROVE_*` flag. The active service is commissioning-locked and must
+remain read-only.
 
 ### Remaining before service enablement
 
@@ -61,6 +66,10 @@ addresses or set any `GRIDEX_APPROVE_*` flag.
    disabled.
 4. Suntech readback and complete checklist in `docs/COMMISSIONING.md`.
 5. Backend MQTT ingestion/OpenRemote asset mapping and frontend backend API.
+6. Before production ESP32 OTA, approve a Site Router policy that reaches only
+   the ROCK Pi management endpoint from the authorised backend peer. Keep the
+   ESP32 OTA port off WireGuard/public routes, stage the token owner-only on
+   ROCK Pi, and define token rotation/release-signing ownership.
 
 ## Български
 
@@ -68,7 +77,7 @@ addresses or set any `GRIDEX_APPROVE_*` flag.
 
 - Native ARM64 build и двата CTest пакета са минали на физическата платка.
 - Инсталирани са systemd unit и заключена commissioning конфигурация; услугата
-  е disabled и inactive.
+  е enabled и active, а всички write approval gate-ове остават на `0`.
 - Management Ethernet работи. OT Ethernet е наличен, но няма carrier; няма
   приложени OT адрес, route или firewall правило.
 - ESP32-EVB RS485/Ethernet firmware е flash-нат и ROCK Pi е потвърдил
@@ -94,6 +103,10 @@ addresses or set any `GRIDEX_APPROVE_*` flag.
   съществуващият binary стартира northbound Modbus listener-а и че
   конфигуриран ESP32 нод се вижда като online в нормализирания node slot.
   Услугата беше спряна веднага; това все още не е постоянен deployment.
+- ROCK Pi стартира потвърдено ESP32 OTA обновяване по локалния Ethernet път.
+  ESP32 прие verifier за отделен token и image SHA-256, рестартира се и
+  Modbus TCP се възстанови. Това е само local bench доказателство; ESP32 няма
+  WireGuard, публичен Интернет или direct MQTT OTA маршрут.
 
 ### Точна следваща безопасна стъпка
 
@@ -107,8 +120,9 @@ disable/reject, TTL, replay и reconnect. Съществуващата command �
 test инвертора, RS485 A/B/GND wiring, unit ID и пълната manufacturer-approved
 read-register карта. Едва тогава се създава и bench-тества read-only Deye
 driver. Познатият регистър за power limit при string inverter не е разрешение
-за command path. Не enable-вай `gridex-rockpie.service`, не свързвай BESS, не
-добавяй production адреси и не задавай `GRIDEX_APPROVE_*` flag.
+за command path. Не свързвай BESS, не добавяй production адреси и не задавай
+`GRIDEX_APPROVE_*` flag. Активната услуга е commissioning-locked и трябва да
+остане read-only.
 
 ### Остава преди enable на услугата
 
@@ -119,3 +133,7 @@ driver. Познатият регистър за power limit при string inver
    внедри тестваната service конфигурация. Директният MQTT от ESP32 е изключен.
 4. Suntech readback и пълният checklist в `docs/COMMISSIONING.md`.
 5. Backend MQTT ingestion/OpenRemote asset mapping и frontend backend API.
+6. Преди production ESP32 OTA се одобрява Site Router policy, която допуска
+   само management endpoint-а на ROCK Pi от оторизирания backend peer. ESP32
+   OTA портът остава извън WireGuard/public маршрути, token-ът се подготвя
+   owner-only на ROCK Pi и се определя собственик на token rotation/release signing.

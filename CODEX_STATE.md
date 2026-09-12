@@ -4,10 +4,10 @@ Repository / GitHub: antouanbg/gridex-edge-gateway
 
 ## Current task
 
-Implement ROCK Pi continuous node polling, northbound Modbus listener and
-private MQTT health/telemetry.
-Имплементиране на постоянен node polling, northbound Modbus listener и private
-MQTT health/telemetry на ROCK Pi.
+No active implementation task. The local, ROCK Pi mediated ESP32 OTA change is
+complete and awaiting owner review in Pull Request #8.
+Няма активна имплементационна задача. Локалната ESP32 OTA промяна през ROCK Pi
+е завършена и очаква преглед от собственика в Pull Request #8.
 
 ## Completed
 
@@ -28,24 +28,45 @@ MQTT health/telemetry на ROCK Pi.
 Добавен е TLS-only, outbound-only MQTT publisher за Edge health и нормализирана
 node telemetry без MQTT command subscription. Добавени са локален Modbus TCP
 simulator тест за постоянен polling и детерминистични MQTT payload тестове.
+- Added ESP32 OTA firmware endpoint with a provisioned ROCK Pi source check,
+  per-node SHA-256 token verifier and firmware digest check. Added the local,
+  non-listening `gridex_ota_apply` ROCK Pi client.
+- Recorded this as the separate local OTA update service in the root service
+  inventory, hardware baseline and external-interface contract.
+- The physical pilot completed a ROCK Pi initiated OTA update, ESP32 reboot,
+  and Ethernet/Modbus TCP recovery. ROCK Pi service is enabled/active but its
+  commissioning lock and every write approval gate remain `0`.
+
+Добавени са ESP32 OTA firmware endpoint с provision-нат ROCK Pi source check,
+SHA-256 verifier за отделен token и firmware digest проверка. Добавен е
+локалният `gridex_ota_apply` client за ROCK Pi без listener.
+Отразена е като отделна локална OTA услуга в root service inventory, hardware
+baseline и договора за външни интерфейси.
+Физическият пилот изпълни OTA update, стартирано от ROCK Pi, рестарт на ESP32
+и възстановяване на Ethernet/Modbus TCP. Услугата на ROCK Pi е enabled/active,
+но commissioning lock и всички write approval gate-ове остават `0`.
 
 ## Remaining
 
-- Build/deploy the latest ROCK Pi service with the explicit bench-node endpoint
-  and keep all write gates locked.
+- Review the OTA Pull Request. Do not merge/deploy to production until the
+  Site Router ACL, release-signing owner and per-node secret rotation process
+  are approved.
 - Provision the private MQTT CA/client identity through the backend secret
   store, then confirm health messages at the broker.
 
-Изгради/внедри последната ROCK Pi услуга с изричния bench-node endpoint и
-запази всички write gate-ове заключени. Provision-ни private MQTT CA/client
-identity чрез backend secret store, след което потвърди health съобщенията.
+Прегледай OTA Pull Request-а. Не merge-вай/внедрявай за production преди да
+са одобрени Site Router ACL, собственикът на release signing и процесът за
+rotation на secret за отделен нод. Provision-ни private MQTT CA/client identity
+чрез backend secret store, след което потвърди health съобщенията.
 
 ## Modified files
 
-`base-rockpie/` adds the private MQTT publisher, configuration and focused
-tests; docs/ROCKPI_PRIVATE_MQTT_HEALTH.md defines the contract.
-`base-rockpie/` добавя private MQTT publisher, конфигурация и фокусирани
-тестове; docs/ROCKPI_PRIVATE_MQTT_HEALTH.md описва договора.
+`base-rockpie/` adds `gridex_ota_apply`; `node-esp32-evb/` adds the protected
+OTA endpoint; `docs/ESP32_OTA.md` defines the EN/BG procedure. Existing pilot,
+handoff and project rules reflect the verified recovery.
+`base-rockpie/` добавя `gridex_ota_apply`; `node-esp32-evb/` добавя защитен
+OTA endpoint; `docs/ESP32_OTA.md` описва EN/BG процедурата. Съществуващите
+pilot, handoff и project правила отразяват потвърденото възстановяване.
 
 ## Tests
 
@@ -66,20 +87,23 @@ Modbus TCP simulator и MQTT payload тестове. `git diff --check` е ус�
 ## Known issues
 
 UnconfiguredDriver remains deliberate. A private MQTT broker CA/client identity
-has not been provisioned, and the physical pilot has not received this binary.
-OT commissioning and soak tests remain incomplete.
+has not been provisioned. The OTA pilot used a temporary owner-only bench token;
+production secret rotation, release signing, router ACL approval and OT soak
+tests remain incomplete.
 
 UnconfiguredDriver е умишлен. Private MQTT broker CA/client identity още не е
-provision-нат, а физическият пилот не е получил този binary. OT commissioning
-и soak тестовете остават незавършени.
+provision-нат. OTA pilot-ът използва временен owner-only bench token; production
+secret rotation, release signing, router ACL approval и OT soak тестовете
+остават незавършени.
 
 ## Next action
 
-Deploy the built service read-only to the pilot with node polling enabled;
-after broker provisioning, verify the two documented MQTT topic families.
+Owner review of Pull Request #8, then separately approve Site Router ACL,
+release-signing ownership and per-node secret rotation before production use.
 
-Внедри built услугата read-only на пилота с включен node polling; след broker
-provisioning потвърди двете описани MQTT topic семейства.
+Преглед от собственика на Pull Request #8, след което отделно се одобряват
+Site Router ACL, собственикът на release signing и rotation на secret за
+отделен нод преди production употреба.
 
 ## Last updated
 
