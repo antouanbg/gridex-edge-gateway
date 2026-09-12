@@ -1,7 +1,9 @@
 cmake_minimum_required(VERSION 3.20)
 project(gridex_rockpie_base VERSION 0.1.0 LANGUAGES CXX)
 
-add_subdirectory(.. ${CMAKE_BINARY_DIR}/gridex-core EXCLUDE_FROM_ALL)
+# The core project registers its own CTest target.  Do not exclude it from the
+# default build here, otherwise CTest sees gridex_edge_tests but cannot run it.
+add_subdirectory(.. ${CMAKE_BINARY_DIR}/gridex-core)
 
 add_library(gridex_rockpie_transport
     src/NodeTcpPollingService.cpp
