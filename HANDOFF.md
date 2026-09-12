@@ -21,6 +21,16 @@ Repository / GitHub: `antouanbg/gridex-edge-gateway`
   state through the northbound map. This is code-tested only; it has not been
   connected to a Suntech cabinet in this pilot.
 
+### Current implementation
+
+- `gridex_rockpie_service` now keeps polling the ESP32 canonical maps and
+  exposes its normalized Modbus TCP listener when enabled.
+- Its private MQTT publisher is outbound-only and TLS-only; it publishes Edge
+  health and node telemetry but does not subscribe to MQTT commands.
+- The code has local Modbus polling and MQTT payload tests. The physical pilot
+  still needs the latest binary, an explicitly configured node endpoint and
+  private broker CA/identity before it can publish live health.
+
 ### Exact next safe action
 
 PR #3 technical review and relay-test removal are recorded in
@@ -42,8 +52,9 @@ addresses or set any `GRIDEX_APPROVE_*` flag.
 1. Site-specific OT subnet and physical carrier on the second Ethernet port.
 2. Site Router firewall approval for backend-to-management Modbus only.
 3. ESP32 production driver provisioning and a read-only telemetry soak.
-   Implement ROCK Pi MQTT forwarding and provision its TLS credentials through
-   a secret store. The ESP32 direct MQTT path is disabled.
+   Provision the ROCK Pi private MQTT TLS CA/identity through a secret store
+   and deploy the tested service configuration. The ESP32 direct MQTT path is
+   disabled.
 4. Suntech readback and complete checklist in `docs/COMMISSIONING.md`.
 5. Backend MQTT ingestion/OpenRemote asset mapping and frontend backend API.
 
@@ -66,6 +77,16 @@ addresses or set any `GRIDEX_APPROVE_*` flag.
   northbound картата. Това е само code-tested; в този пилот не е свързван
   Suntech кабинет.
 
+### Текуща имплементация
+
+- `gridex_rockpie_service` вече постоянно poll-ва ESP32 canonical картите и
+  предоставя нормализиран Modbus TCP listener, когато е enabled.
+- Private MQTT publisher-ът му е само outbound и TLS-only; публикува Edge
+  health и node telemetry, но не subscribe-ва MQTT команди.
+- Кодът има локални тестове за Modbus polling и MQTT payload-и. Физическият
+  пилот все още изисква последния binary, изрично конфигуриран node endpoint и
+  private broker CA/identity, преди да публикува live health.
+
 ### Точна следваща безопасна стъпка
 
 Техническият review на PR #3 и премахването на relay теста са записани в
@@ -86,7 +107,7 @@ driver. Познатият регистър за power limit при string inver
 1. Site-specific OT subnet и physical carrier на втория Ethernet порт.
 2. Site Router firewall approval само за backend-to-management Modbus.
 3. ESP32 production driver provisioning и read-only telemetry soak.
-   Имплементирай MQTT препращането от ROCK Pi и provision-ни неговите TLS
-   credentials през secret store. Директният MQTT от ESP32 е изключен.
+   Provision-ни private MQTT TLS CA/identity за ROCK Pi чрез secret store и
+   внедри тестваната service конфигурация. Директният MQTT от ESP32 е изключен.
 4. Suntech readback и пълният checklist в `docs/COMMISSIONING.md`.
 5. Backend MQTT ingestion/OpenRemote asset mapping и frontend backend API.
