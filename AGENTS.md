@@ -71,12 +71,6 @@ It is destructive: the selected card is erased completely.
 
 The supported node board family is OLIMEX ESP32-EVB / ESP32-EVB-EA-IND.
 
-- On the verified bench board, built-in Relay 1 is GPIO32 and Relay 2 is GPIO33.
-- The tested relay profile is **active-high**: `HIGH` energises a relay and
-  `LOW` releases it. Keep this configurable for a different board revision and
-  validate it during commissioning.
-- The relays operated successfully while the board was powered from USB 5 V;
-  no separate relay supply was used for the bench test.
 - PlatformIO environment: `board = esp32-evb`, Arduino framework.
 - The USB serial console uses 115200 bps. Keep one serial connection open while
   issuing a bench command: opening and closing the port for each command can
@@ -84,21 +78,13 @@ The supported node board family is OLIMEX ESP32-EVB / ESP32-EVB-EA-IND.
 - Upload at `115200` bps on this setup. The higher 921600 bps upload rate was
   observed to corrupt the transfer after the ESP32 bootloader connected.
 
-## Relay testing
+## Relays are out of scope / Релетата не участват в решението
 
-- Relay testing is permitted only when the user has explicitly confirmed that
-  the relevant relay is free of live or safety-critical loads.
-- Start every test with both outputs OFF. Use a short bounded pulse and an
-  independent firmware timeout; always send an explicit OFF afterward.
-- The temporary test firmware is under
-  `node-esp32-evb/examples/relay-test/`. Its serial commands are `r1 on`,
-  `r1 off`, `r2 on`, `r2 off`, `all off` and `status`.
-- The diagnostic firmware currently contains a startup self-test that pulses
-  both relays. **It must never be used when real loads are connected**, and it
-  must be replaced by the production node firmware before commissioning.
-- Production commands must not use this USB test interface. They must arrive
-  only through the approved ROCK Pi E / OT Modbus TCP command path and retain
-  the configured safety envelope, TTL and safe-zero behavior.
+The temporary relay test is complete and has been removed at the owner's request.
+Do not add relay commands or automatic relay pulses to EMS firmware.
+
+Временният тест на релетата приключи и е премахнат по искане на собственика.
+Не добавяй команди за релета или автоматични импулси в EMS firmware.
 
 ## Repository hygiene
 

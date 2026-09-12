@@ -1,4 +1,5 @@
 #include "gridex/mbus/MbusNode.hpp"
+#include "gridex/mbus/ProvisioningLine.hpp"
 
 #include <cassert>
 #include <cstdint>
@@ -70,7 +71,26 @@ void testCrcAndAddressRejection() {
 
 }  // namespace
 
+// Keep serial parsing native-testable without accessing hardware.
 int main() {
+    {
+        gridex::mbus::ProvisioningLine parser;
+        std::vector<std::string> commands;
+        const auto feed = [&](const std::string& input) {
+            for (const char c : input) {
+                if (const auto line = parser.push(c)) commands.push_back(*line);
+            }
+        };
+        feed("sta");
+        feed("tus\r\n");
+        assert(commands.size() == 1U && commands[0] == "status");
+        feed(std::string(81, 'x') + "rockpi 192.0.2.1\n");
+        assert(commands.size() == 1U); // Never execute an overlong command suffix.
+        feed(std::string(80, 'y') + "\n");
+        assert(commands.size() == 2U && commands[1].size() == 80U);
+        feed("help\n");
+        assert(commands.back() == "help");
+    }
     testIdentityRead();
     testConfigurationWrite();
     testCrcAndAddressRejection();

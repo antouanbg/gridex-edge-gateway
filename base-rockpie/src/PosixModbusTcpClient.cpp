@@ -190,7 +190,10 @@ PosixModbusTcpClient::readInputRange(
     std::uint16_t start,
     std::uint16_t count
 ) {
-    if (count == 0U || count > 125U) return std::nullopt;
+    if (count == 0U || count > 125U ||
+        static_cast<std::uint32_t>(start) + count > 65536U) {
+        return std::nullopt;
+    }
     std::scoped_lock lock(mutex_);
     const std::vector<std::uint8_t> payload{
         static_cast<std::uint8_t>(start >> 8U),

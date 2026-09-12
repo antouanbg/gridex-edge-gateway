@@ -16,6 +16,8 @@ namespace {
 class FakeModbusClient final : public gridex::IModbusClient {
 public:
     std::optional<std::uint16_t> readInput(std::uint16_t address) override {
+        // Counter words must only be accessed through the atomic range call.
+        assert(address < 122U || address > 125U);
         const auto it = input.find(address);
         return it == input.end() ? std::nullopt
                                  : std::optional<std::uint16_t>(it->second);
@@ -26,6 +28,8 @@ public:
         std::uint16_t count
     ) override {
         ++inputRangeReads;
+        assert(start == 122U && count == 4U);
+        if (failRangeRead) return std::nullopt;
         std::vector<std::uint16_t> values;
         values.reserve(count);
         for (std::uint16_t offset = 0; offset < count; ++offset) {
@@ -65,6 +69,7 @@ public:
     std::vector<std::pair<std::uint16_t, std::uint16_t>> writeLog;
     std::uint16_t inputRangeReads{0};
     bool writesSucceed{true};
+    bool failRangeRead{false};
 };
 
 bool near(double lhs, double rhs) {
@@ -238,6 +243,13 @@ void testSunStorageDriver() {
     assert(value.pcsStatusCode == 3U);
     assert(value.extendedTelemetryValid);
     assert(value.controlReady);
+
+    modbus.failRangeRead = true;
+    const auto missingCounters = driver.poll();
+    assert(!missingCounters.extendedTelemetryValid);
+    assert(near(missingCounters.accumulatedChargeKwh, 0.0));
+    assert(near(missingCounters.accumulatedDischargeKwh, 0.0));
+    modbus.failRangeRead = false;
 
     assert(driver.writePowerSetpointKw(-25.4));
     assert(

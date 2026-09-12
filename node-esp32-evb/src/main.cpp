@@ -3,6 +3,7 @@
 #include "gridex/mbus/EthernetControlServer.hpp"
 #include "gridex/mbus/IDeviceDriver.hpp"
 #include "gridex/mbus/MbusNode.hpp"
+#include "gridex/mbus/ProvisioningLine.hpp"
 #include "gridex/mbus/MqttTelemetryService.hpp"
 #include "gridex/node/BoardPins.hpp"
 
@@ -29,7 +30,7 @@ unsigned long lastCommandMs = 0;
 std::uint16_t lastCommandSequence = 0;
 bool commandArmed = false;
 gridex::mbus::DriverSample lastSample;
-String serialLine;
+gridex::mbus::ProvisioningLine serialLine;
 
 gridex::mbus::NodeConfig loadConfig() {
     preferences.begin("gridex-mbus", false);
@@ -92,34 +93,35 @@ void processProvisioningLine(String line) {
         Serial.println("GrideX: invalid IPv4 address");
         return;
     }
-    cloudPreferences.begin("gridex-control", false);
-    cloudPreferences.putString("rockpi_ip", value);
+    if (!cloudPreferences.begin("gridex-control", false)) {
+        Serial.println("GrideX: cannot open source configuration");
+        return;
+    }
+    const bool saved = cloudPreferences.putString("rockpi_ip", value) == value.length();
     cloudPreferences.end();
+    if (!saved) {
+        Serial.println("GrideX: source was not saved; previous source retained");
+        return;
+    }
     control->setRockPiAddress(address);
     Serial.println("GrideX: ROCK Pi source saved; Modbus TCP accepts only this address");
 }
 
 void processProvisioningSerial() {
-    while (Serial.available() > 0) {
+    // Bound each iteration so continuous serial traffic cannot starve polling.
+    for (unsigned bytes = 0; bytes < 80U && Serial.available() > 0; ++bytes) {
         const char value = static_cast<char>(Serial.read());
-        if (value == '\n' || value == '\r') {
-            if (!serialLine.isEmpty()) {
-                processProvisioningLine(serialLine);
-                serialLine = "";
-            }
-        } else if (serialLine.length() < 80U) {
-            serialLine += value;
-        } else {
-            serialLine = "";
-            Serial.println("GrideX: provisioning command too long");
-        }
+        const auto line = serialLine.push(value);
+        if (line) processProvisioningLine(String(line->c_str()));
     }
 }
 
 gridex::mbus::MqttTelemetryConfig loadCloudConfig() {
     cloudPreferences.begin("gridex-cloud", true);
     gridex::mbus::MqttTelemetryConfig config;
-    config.enabled = cloudPreferences.getBool("enabled", false);
+    // Retained legacy NVS must never enable direct node-to-cloud telemetry.
+    // The approved architecture uses ROCK Pi polling and its private MQTT bridge.
+    config.enabled = false;
     config.host = cloudPreferences.getString("mqtt_host", "");
     config.port = cloudPreferences.getUShort("mqtt_port", 8883);
     config.realm = cloudPreferences.getString("realm", "master");

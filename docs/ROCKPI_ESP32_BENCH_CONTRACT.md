@@ -10,7 +10,7 @@ working management Ethernet. It is not the production OT topology.
 ```text
 ESP32-EVB canonical map :1502  --read FC03-->  ROCK Pi node poller
 ROCK Pi northbound map :1502   --read FC04-->  protected backend/OpenRemote agent
-ESP32-EVB MQTT/TLS telemetry  ------------->  private broker -> backend ingestion
+Planned forwarding: ROCK Pi -> Site Router VPN -> private MQTT -> backend ingestion
 
 Suntech STE-261L :3200         --read FC01/FC03/FC04--> ROCK Pi driver
 ```
@@ -27,6 +27,9 @@ This stores only the allowed source address in ESP32 NVS. It does not store a
 password, enable MQTT, select a driver or permit a command. The `status`
 command reports the node UID, identity, Ethernet address and configured ROCK
 Pi source over the local USB serial console.
+
+Direct ESP32 MQTT is disabled even if legacy NVS enables it. The ROCK Pi MQTT
+publisher is separate pending work; the pilot verified only Modbus reads.
 
 ### State forwarding
 
@@ -67,7 +70,7 @@ Ethernet. Това не е production OT топология.
 ```text
 ESP32-EVB canonical map :1502  --read FC03-->  ROCK Pi node poller
 ROCK Pi northbound map :1502   --read FC04-->  защитен backend/OpenRemote agent
-ESP32-EVB MQTT/TLS telemetry  ------------->  private broker -> backend ingestion
+Planned forwarding: ROCK Pi -> Site Router VPN -> private MQTT -> backend ingestion
 
 Suntech STE-261L :3200         --read FC01/FC03/FC04--> ROCK Pi driver
 ```
@@ -84,6 +87,10 @@ status
 не включва MQTT, не избира driver и не разрешава команда. `status` показва UID,
 identity, Ethernet адреса и настроения ROCK Pi source на local USB serial
 конзолата.
+
+Директният ESP32 MQTT е изключен дори при стара NVS настройка за включване.
+MQTT публикуването от ROCK Pi е отделна оставаща задача; пилотът провери само
+Modbus четене.
 
 ### Препращане на състояние
 
