@@ -4,6 +4,10 @@ Repository / GitHub: `antouanbg/gridex-edge-gateway`
 
 ## English
 
+Latest read-only inspection: [Live hardware status](docs/LIVE_HARDWARE_STATUS.md).
+ROCK Pi OS services and ESP32 Modbus reads work; GrideX continuous polling is
+inactive, the node driver is missing and MQTT is disconnected.
+
 ### Completed in the ROCK Pi E pilot
 
 - Native ARM64 build and both CTest suites passed on the physical board.
@@ -48,6 +52,10 @@ addresses or set any `GRIDEX_APPROVE_*` flag.
 5. Backend MQTT ingestion/OpenRemote asset mapping and frontend backend API.
 
 ## Български
+
+Последна read-only проверка: [Текущ хардуерен статус](docs/LIVE_HARDWARE_STATUS.md).
+ROCK Pi OS услугите и ESP32 Modbus четенето работят; постоянният GrideX polling
+е неактивен, node driver липсва и MQTT не е свързан.
 
 ### Изпълнено в ROCK Pi E пилота
 
