@@ -3,6 +3,7 @@
 #include "gridex/rockpie/NorthboundModbusTcpServer.hpp"
 #include "gridex/rockpie/PosixModbusTcpClient.hpp"
 #include "gridex/rockpie/MqttHealthPublisher.hpp"
+#include "gridex/rockpie/TelemetryJournal.hpp"
 
 #include <atomic>
 #include <algorithm>
@@ -32,6 +33,16 @@ std::string envString(const char* name, const char* fallback) {
 int envInt(const char* name, int fallback) {
     try {
         return std::stoi(envString(name, std::to_string(fallback).c_str()));
+    } catch (...) {
+        return fallback;
+    }
+}
+
+std::size_t envSize(const char* name, std::size_t fallback,
+                    std::size_t minimum, std::size_t maximum) {
+    try {
+        const auto value = std::stoull(envString(name, std::to_string(fallback).c_str()));
+        return std::clamp(static_cast<std::size_t>(value), minimum, maximum);
     } catch (...) {
         return fallback;
     }
@@ -175,11 +186,27 @@ int main() {
         std::clamp(envInt("GRIDEX_HEALTH_PUBLISH_SECONDS", 10), 2, 300));
     const auto telemetryInterval = std::chrono::seconds(
         std::clamp(envInt("GRIDEX_NODE_TELEMETRY_PUBLISH_SECONDS", 2), 1, 300));
+    gridex::rockpie::TelemetryJournal telemetryJournal({
+        .path = envString("GRIDEX_TELEMETRY_JOURNAL_PATH",
+                          "/var/lib/gridex/telemetry-journal.ndjson"),
+        .maxBytes = envSize("GRIDEX_TELEMETRY_JOURNAL_MAX_BYTES",
+                            4U * 1024U * 1024U,
+                            64U * 1024U,
+                            64U * 1024U * 1024U),
+        .enabled = envBool("GRIDEX_TELEMETRY_JOURNAL_ENABLED", true),
+    });
+    const auto journalInterval = std::chrono::seconds(
+        std::clamp(envInt("GRIDEX_TELEMETRY_JOURNAL_SECONDS", 5), 1, 300));
+    std::vector<gridex::rockpie::NodePollStatus> journalStatuses;
     auto nextHealthPublish = std::chrono::steady_clock::now();
     auto nextTelemetryPublish = std::chrono::steady_clock::now();
+    auto nextJournalSnapshot = std::chrono::steady_clock::now();
 
     std::cout << "GrideX ROCK Pi E service started; writes_enabled="
               << (driver.writesEnabled() ? "true" : "false") << '\n';
+    if (telemetryJournal.enabled()) {
+        std::cout << "GrideX local telemetry journal enabled\n";
+    }
 
     while (running) {
         const auto now = std::chrono::steady_clock::now();
@@ -239,8 +266,18 @@ int main() {
         }
         northboundBank.publish(snapshot, controllerConfig.configuredLimit);
         const auto nodeSamples = nodePolling.samples();
+        if (journalStatuses.size() != nodeSamples.size()) {
+            journalStatuses.assign(nodeSamples.size(), gridex::rockpie::NodePollStatus::Unknown);
+        }
         for (std::size_t slot = 0; slot < nodeSamples.size(); ++slot) {
             northboundBank.publishNode(slot, nodeSamples[slot]);
+            if (nodeSamples[slot].pollStatus != journalStatuses[slot]) {
+                if (!telemetryJournal.appendTransition(
+                        slot + 1U, nodeSamples[slot], journalStatuses[slot])) {
+                    std::cerr << "GrideX telemetry journal transition write failed\n";
+                }
+                journalStatuses[slot] = nodeSamples[slot].pollStatus;
+            }
         }
         std::cout << "{\"state\":\"" << stateName(snapshot.state)
                   << "\",\"soc_pct\":" << snapshot.battery.socPct
@@ -276,6 +313,14 @@ int main() {
                     siteId, gatewayId, slot + 1U, nodeSamples[slot]);
             }
             nextTelemetryPublish = now + telemetryInterval;
+        }
+        if (now >= nextJournalSnapshot) {
+            for (std::size_t slot = 0; slot < nodeSamples.size(); ++slot) {
+                if (!telemetryJournal.appendSnapshot(slot + 1U, nodeSamples[slot])) {
+                    std::cerr << "GrideX telemetry journal snapshot write failed\n";
+                }
+            }
+            nextJournalSnapshot = now + journalInterval;
         }
         std::this_thread::sleep_for(std::chrono::milliseconds(
             envInt("GRIDEX_TICK_MS", 1000)

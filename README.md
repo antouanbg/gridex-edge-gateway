@@ -87,6 +87,8 @@ The persistent, per-site node address and ROCK Pi endpoint procedure is in
 [Node network provisioning](docs/NODE_NETWORK_PROVISIONING.md).
 The isolated dual-Ethernet DHCP procedure is in
 [ROCK Pi isolated OT DHCP](docs/OT_DHCP.md).
+The bounded offline journal and node provisioning/health contract are in
+[Local telemetry journal and ESP32 node provisioning](docs/LOCAL_TELEMETRY_AND_NODE_PROVISIONING.md).
 
 ## Project credits / Принос към проекта
 
@@ -146,3 +148,5 @@ provisioning. Образът и тайната за отделния нод се
 [Мрежово provision-ване на нод](docs/NODE_NETWORK_PROVISIONING.md).
 Процедурата за изолирания dual-Ethernet DHCP е в
 [ROCK Pi изолиран OT DHCP](docs/OT_DHCP.md).
+Ограниченият offline журнал и договорът за node provisioning/health са в
+[Локален telemetry журнал и ESP32 node provisioning](docs/LOCAL_TELEMETRY_AND_NODE_PROVISIONING.md).

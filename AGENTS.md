@@ -286,3 +286,32 @@ Every HANDOFF must identify its repository directly below the title.
 Не се допуска публичен MQTT, директен backend маршрут към OT/BESS или връзка между обекти.
 Обновявай EN и BG оперативните текстове в един commit с еднакъв смисъл.
 Всеки HANDOFF посочва repository-то непосредствено под заглавието.
+
+## Local telemetry retention and node health / Локално съхранение на telemetry и node health
+
+- ROCK Pi local telemetry journal is observation-only and bounded. It may store
+  normalized snapshots and polling transitions, but never device commands,
+  broker credentials, node addresses, VPN data or customer inventory.
+- Do not claim journal replay or backend acknowledgement exists until the
+  backend recovery worker has been implemented and tested separately.
+- ESP32 node addressing is DHCP plus protected deployment configuration. Local
+  serial identity provisioning stores only node ID, type and requested driver
+  ID; it must not activate a driver or weaken the configured ROCK Pi source
+  restriction.
+- Map version 5 health registers are read-only. Any future RS485/CAN driver
+  must explicitly opt into bus recovery and retain the current command lock
+  until its manufacturer-approved map and safety tests are complete.
+
+- Local telemetry журналът на ROCK Pi е само за наблюдение и е ограничен по
+  размер. Той може да пази нормализирани snapshots и polling transitions, но
+  никога device команди, broker credentials, node адреси, VPN данни или
+  клиентски inventory.
+- Не твърди, че съществува journal replay или backend acknowledgement, докато
+  backend recovery worker-ът не бъде имплементиран и тестван отделно.
+- ESP32 node адресирането е DHCP плюс защитена deployment конфигурация. Local
+  serial identity provisioning пази само node ID, type и заявен driver ID; не
+  трябва да активира driver или да отслабва ограничението за конфигурирания
+  ROCK Pi source.
+- Health регистрите от map version 5 са read-only. Всеки бъдещ RS485/CAN driver
+  трябва изрично да се включи към bus recovery и да запази текущия command lock,
+  докато manufacturer-approved картата и safety тестовете му не са завършени.

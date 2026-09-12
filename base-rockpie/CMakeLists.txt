@@ -11,6 +11,7 @@ add_library(gridex_rockpie_transport
     src/NorthboundModbusTcpServer.cpp
     src/NorthboundRegisterBank.cpp
     src/PosixModbusTcpClient.cpp
+    src/TelemetryJournal.cpp
 )
 target_include_directories(gridex_rockpie_transport PUBLIC include)
 target_link_libraries(gridex_rockpie_transport PUBLIC gridex_edge)
@@ -75,6 +76,10 @@ add_executable(gridex_node_tcp_polling_tests tests/test_node_tcp_polling.cpp)
 target_link_libraries(gridex_node_tcp_polling_tests PRIVATE gridex_rockpie_transport Threads::Threads)
 add_test(NAME gridex_node_tcp_polling_tests COMMAND gridex_node_tcp_polling_tests)
 set_tests_properties(gridex_node_tcp_polling_tests PROPERTIES TIMEOUT 15)
+
+add_executable(gridex_telemetry_journal_tests tests/test_telemetry_journal.cpp)
+target_link_libraries(gridex_telemetry_journal_tests PRIVATE gridex_rockpie_transport)
+add_test(NAME gridex_telemetry_journal_tests COMMAND gridex_telemetry_journal_tests)
 
 add_test(NAME gridex_ota_apply_self_test COMMAND gridex_ota_apply --self-test)
 

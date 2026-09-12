@@ -14,6 +14,8 @@ constexpr std::uint16_t kIdentityCount = 13U;
 constexpr std::uint16_t kCommandStart = 0x0014U;
 constexpr std::uint16_t kTelemetryStart = 0x0040U;
 constexpr std::uint16_t kTelemetryCount = 6U;
+constexpr std::uint16_t kHealthStart = 0x0046U;
+constexpr std::uint16_t kHealthCount = 9U;
 
 }  // namespace
 
@@ -76,14 +78,30 @@ void NodeTcpPollingService::run() {
 void NodeTcpPollingService::pollNode(std::size_t index) {
     const auto identity =
         clients_[index]->readHoldingRange(kIdentityStart, kIdentityCount);
-    const auto telemetry =
-        clients_[index]->readHoldingRange(kTelemetryStart, kTelemetryCount);
     std::scoped_lock lock(mutex_);
     auto& sample = samples_[index];
-    if (!identity || !telemetry || (*identity)[0] != kMagic) {
+    if (!identity) {
         sample.online = false;
+        sample.pollStatus = NodePollStatus::TransportFailure;
+        ++sample.consecutiveFailures;
         return;
     }
+    if ((*identity)[0] != kMagic) {
+        sample.online = false;
+        sample.pollStatus = NodePollStatus::IdentityFailure;
+        ++sample.consecutiveFailures;
+        return;
+    }
+    const auto telemetry =
+        clients_[index]->readHoldingRange(kTelemetryStart, kTelemetryCount);
+    if (!telemetry) {
+        sample.online = false;
+        sample.pollStatus = NodePollStatus::TelemetryFailure;
+        ++sample.consecutiveFailures;
+        return;
+    }
+    const auto health =
+        clients_[index]->readHoldingRange(kHealthStart, kHealthCount);
     sample.nodeType = (*identity)[2];
     sample.nodeState = (*identity)[3];
     sample.driverId = (*identity)[5];
@@ -97,7 +115,20 @@ void NodeTcpPollingService::pollNode(std::size_t index) {
     sample.deviceState = (*telemetry)[3];
     sample.alarmBits = (*telemetry)[4];
     sample.cloudConnected = (*telemetry)[5] == 1U;
+    if (health) {
+        sample.ethernetStatus = (*health)[0];
+        sample.modbusTcpStatus = (*health)[1];
+        sample.driverReady = (*health)[2];
+        sample.deviceBusStatus = (*health)[3];
+        sample.watchdogStatus = (*health)[4];
+        sample.recoveryCount = (*health)[5];
+        sample.ethernetRecoveryCount = (*health)[6];
+        sample.busRecoveryCount = (*health)[7];
+        sample.lastError = (*health)[8];
+    }
     sample.online = true;
+    sample.pollStatus = NodePollStatus::Online;
+    sample.consecutiveFailures = 0U;
     sample.lastSeen = std::chrono::steady_clock::now();
 }
 

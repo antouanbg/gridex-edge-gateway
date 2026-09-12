@@ -26,6 +26,13 @@ Repository / GitHub: `antouanbg/gridex-edge-gateway`
 
 - `gridex_rockpie_service` now keeps polling the ESP32 canonical maps and
   exposes its normalized Modbus TCP listener when enabled.
+- The next reviewed build adds a bounded, fsync-backed local NDJSON telemetry
+  journal for normalized node snapshots and polling-state transitions. It is
+  independent of MQTT and has no replay/control path. It is code-tested, but
+  not yet installed on the physical pilot.
+- The next ESP32 firmware build adds local logical node provisioning, map-v5
+  health registers, task-watchdog status and recovery accounting. It is built
+  for CAN and RS485 profiles, but is not yet flashed to the physical pilot.
 - Its private MQTT publisher is outbound-only and TLS-only; it publishes Edge
   health and node telemetry but does not subscribe to MQTT commands.
 - The code has local Modbus polling and MQTT payload tests. The physical pilot
@@ -68,10 +75,12 @@ every control gate remains locked.
 
 ### Review artifact
 
-The implementation is on branch `feat/ot-dhcp-static-node` in Pull Request
-[#12](https://github.com/antouanbg/gridex-edge-gateway/pull/12). Review the
-diff and test evidence before deciding whether to merge; do not merge it
-automatically.
+Pull Request #12 for the isolated OT DHCP pilot was merged to `main` at
+`6d79295`. The current local journal and ESP32 provisioning/health work is on
+`feat/local-telemetry-provisioning` in Pull Request
+[#13](https://github.com/antouanbg/gridex-edge-gateway/pull/13). It is open and
+clean, but has no GitHub checks configured. Review it before deciding whether
+to merge; do not merge it automatically.
 
 Follow [the local commissioning sequence](docs/LOCAL_COMMISSIONING_SEQUENCE.md)
 from its first planned step. The current pilot evidence is preserved in
@@ -130,6 +139,13 @@ remain read-only.
 
 - `gridex_rockpie_service` вече постоянно poll-ва ESP32 canonical картите и
   предоставя нормализиран Modbus TCP listener, когато е enabled.
+- Следващият прегледан build добавя ограничен, fsync-backed local NDJSON
+  telemetry журнал за нормализирани node snapshots и polling-state transitions.
+  Той е независим от MQTT и няма replay/control път. Code-tested е, но още не
+  е инсталиран на физическия пилот.
+- Следващият ESP32 firmware build добавя local logical node provisioning,
+  map-v5 health регистри, task-watchdog статус и recovery броячи. Build-нат е
+  за CAN и RS485 профилите, но още не е flash-нат на физическия пилот.
 - Private MQTT publisher-ът му е само outbound и TLS-only; публикува Edge
   health и node telemetry, но не subscribe-ва MQTT команди.
 - Кодът има локални тестове за Modbus polling и MQTT payload-и. Физическият
@@ -173,10 +189,12 @@ gate-ове остават заключени.
 
 ### Артефакт за review
 
-Имплементацията е в branch `feat/ot-dhcp-static-node` и Pull Request
-[#12](https://github.com/antouanbg/gridex-edge-gateway/pull/12). Прегледай
-diff-а и тестовите доказателства преди решение за merge; не го сливай
-автоматично.
+Pull Request #12 за isolated OT DHCP пилота е слят към `main` на `6d79295`.
+Текущата работа за local journal и ESP32 provisioning/health е в
+`feat/local-telemetry-provisioning` в Pull Request
+[#13](https://github.com/antouanbg/gridex-edge-gateway/pull/13). Той е open и
+clean, но няма конфигурирани GitHub checks. Прегледай го преди решение за merge;
+не го сливай автоматично.
 
 Следвай [последователността за локален commissioning](docs/LOCAL_COMMISSIONING_SEQUENCE.md)
 от първата планирана стъпка. Текущите pilot доказателства са запазени в

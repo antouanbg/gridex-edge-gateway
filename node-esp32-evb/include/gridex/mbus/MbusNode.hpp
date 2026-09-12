@@ -30,6 +30,8 @@ public:
     [[nodiscard]] std::uint16_t driverId() const;
     [[nodiscard]] std::uint64_t uid() const;
     [[nodiscard]] bool takeConfigurationChanged();
+    [[nodiscard]] bool provision(std::uint8_t address, NodeType type,
+                                 std::uint16_t driverId);
 
     void setRegister(std::uint16_t address, std::uint16_t value);
     [[nodiscard]] std::uint16_t registerValue(std::uint16_t address) const;

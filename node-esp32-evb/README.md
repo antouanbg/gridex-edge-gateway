@@ -56,6 +56,24 @@ commands. A concrete vendor driver and its commissioning tests are still needed.
 Setting a type or driver ID does not implement a driver. Local source addresses
 are provisioned after build and are never committed.
 
+### Provisioning and health
+
+The isolated OT interface uses DHCP. The ROCK Pi protected deployment
+environment and Site Router reservation are authoritative for stable node
+addressing; the firmware does not contain a static address. Local USB serial
+provisioning accepts `node <1-247> <type 1-6> <driver-id>` and persists the
+identity in `gridex-mbus`; `status` reports Ethernet, Modbus listener, device
+bus and watchdog state. This remains an identity-only action until a matching
+signed driver build exists.
+
+Canonical map version 5 adds read-only health registers `0x0046–0x004E` for
+Ethernet, Modbus listener, driver/bus/watchdog readiness, recovery counters and
+the latest local fault code. ROCK Pi polls this block when it is available and
+records it in normalized telemetry. Ethernet recovery restarts the local
+listener after the node receives IP again. A future compiled driver may opt
+into device-bus recovery; `UnconfiguredDriver` intentionally never performs a
+RS485/CAN request.
+
 ### Local OTA updates
 
 OTA is disabled by default. It is a local ROCK Pi-to-node procedure, not a
@@ -107,6 +125,24 @@ power команди. Изборът на type или driver ID не импле�
 Необходими са конкретен драйвер и commissioning тестове. NVS използва
 `gridex-control` (`rockpi_ip`, `port`, `ota_port`, `ota_token_hash`) и `gridex-mbus` (`node_address`,
 `node_type`, `driver_id`); `gridex-cloud` е неактивна наследена конфигурация.
+
+### Provisioning и health
+
+Изолираният OT интерфейс използва DHCP. Защитеният deployment environment на
+ROCK Pi и Site Router reservation са авторитетни за устойчивото node
+адресиране; firmware-ът не съдържа статичен адрес. Local USB serial
+provisioning приема `node <1-247> <type 1-6> <driver-id>` и записва
+идентичността в `gridex-mbus`; `status` показва Ethernet, Modbus listener,
+device bus и watchdog състояние. Това остава действие само за идентичност,
+докато няма съвпадащ signed driver build.
+
+Canonical map version 5 добавя read-only health регистрите `0x0046–0x004E` за
+Ethernet, Modbus listener, готовност на driver/bus/watchdog, recovery броячи и
+последния local fault код. ROCK Pi poll-ва блока, когато е наличен, и го
+записва в нормализираната telemetry. Ethernet recovery рестартира local
+listener-а след като нодът отново получи IP. Бъдещ компилиран driver може да
+се включи към device-bus recovery; `UnconfiguredDriver` умишлено не изпраща
+RS485/CAN заявка.
 
 ### Локални OTA обновявания
 

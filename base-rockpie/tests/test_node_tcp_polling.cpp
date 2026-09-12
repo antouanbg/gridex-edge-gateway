@@ -73,6 +73,8 @@ int main() {
                 registers[12] = 9U;
             } else if (start == 0x40U && count == 6U) {
                 registers = {static_cast<std::uint16_t>(-125), 0U, 99U, 3U, 5U, 0U};
+            } else if (start == 0x46U && count == 9U) {
+                registers = {2U, 1U, 0U, 1U, 1U, 3U, 2U, 1U, 0U};
             } else {
                 assert(false);
             }
@@ -102,6 +104,11 @@ int main() {
     assert(samples[0].energyWh == 99U);
     assert(samples[0].deviceState == 3U);
     assert(samples[0].alarmBits == 5U);
+    assert(samples[0].pollStatus == gridex::rockpie::NodePollStatus::Online);
+    assert(samples[0].consecutiveFailures == 0U);
+    assert(samples[0].ethernetStatus == 2U);
+    assert(samples[0].modbusTcpStatus == 1U);
+    assert(samples[0].recoveryCount == 3U);
     polling.stop();
     server.join();
     close(listener);

@@ -7,7 +7,8 @@ Repository / GitHub: `antouanbg/gridex-edge-gateway`
 `gridex_rockpie_service` has two continuous outbound telemetry functions:
 
 1. it polls every endpoint in `GRIDEX_NODE_ENDPOINTS` by Modbus TCP (`0x0000`
-   identity and `0x0040` telemetry blocks); and
+   identity, `0x0040` telemetry and, when supplied by map version 5, `0x0046`
+   node-health blocks); and
 2. it publishes a retained Edge-health message and non-retained per-node
    telemetry to the private MQTT broker over TLS.
 
@@ -26,7 +27,8 @@ gridex/v1/sites/<site-id>/edge/<gateway-id>/nodes/<slot>/telemetry  QoS 1
 Health includes state, PCS-heartbeat condition, safety/control state,
 northbound-listener readiness and online/total node count. Node telemetry
 includes the normalized node identity/state, driver ID, quality, power, energy,
-alarm bits and node heartbeat. The backend validates site/gateway identity and
+alarm bits, node heartbeat, polling failure count and node network/watchdog
+health. The backend validates site/gateway identity and
 maps the messages to PostgreSQL/OpenRemote; browser clients never connect to
 this broker.
 
@@ -49,7 +51,8 @@ established. It remains read-only for the current pilot: all
 `gridex_rockpie_service` има две постоянни outbound telemetry функции:
 
 1. обхожда всеки endpoint от `GRIDEX_NODE_ENDPOINTS` чрез Modbus TCP
-   (identity блока `0x0000` и telemetry блока `0x0040`); и
+   (identity блока `0x0000`, telemetry блока `0x0040` и при map version 5
+   node-health блока `0x0046`); и
 2. публикува retained Edge-health съобщение и non-retained telemetry за всеки
    нод към private MQTT broker през TLS.
 
@@ -68,7 +71,8 @@ gridex/v1/sites/<site-id>/edge/<gateway-id>/nodes/<slot>/telemetry  QoS 1
 Health съобщението съдържа state, PCS-heartbeat състояние, safety/control
 състояние, готовност на northbound listener-а и брой online/общ брой нодове.
 Telemetry за нода съдържа нормализирани identity/state, driver ID, quality,
-power, energy, alarm bits и node heartbeat. Backend-ът валидира
+power, energy, alarm bits, node heartbeat, polling failure count и node
+network/watchdog health. Backend-ът валидира
 site/gateway identity и преобразува съобщенията за PostgreSQL/OpenRemote;
 browser клиентите никога не се свързват с този broker.
 
