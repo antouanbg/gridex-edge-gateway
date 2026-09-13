@@ -134,6 +134,7 @@ remain read-only.
      worker persists them idempotently before acknowledging delivery. It does
      not expose the journal filesystem, route OT/BESS to the backend, or send
      control commands.
+   - Contract draft: `docs/TELEMETRY_JOURNAL_RECOVERY_V1.md`.
    - Next action: create separate, coordinated PRs in
      `antouanbg/gridex-edge-gateway` and `antouanbg/gridex-openremote-backend`
      for the versioned record identity, export/acknowledgement contract and
@@ -270,6 +271,7 @@ driver. Познатият регистър за power limit при string inver
      записва idempotent преди да потвърди доставката. Той не излага journal
      файловата система, не route-ва OT/BESS към backend и не изпраща control
      команди.
+   - Чернова на договора: `docs/TELEMETRY_JOURNAL_RECOVERY_V1.md`.
    - Следващо действие: създай отделни, координирани PR-и в
      `antouanbg/gridex-edge-gateway` и `antouanbg/gridex-openremote-backend`
      за versioned record identity, export/acknowledgement договора и recovery

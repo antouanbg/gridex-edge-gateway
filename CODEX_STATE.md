@@ -121,11 +121,14 @@ Provision-ни private MQTT CA/client identity чрез backend secret store, с
 status and map-v5 node-health ingestion. `node-esp32-evb/` adds local logical
 identity provisioning, health registers, watchdog status and recovery hooks.
 `docs/LOCAL_TELEMETRY_AND_NODE_PROVISIONING.md` is the matching EN/BG contract.
+`docs/TELEMETRY_JOURNAL_RECOVERY_V1.md` is the draft Edge export profile; no
+exporter or acknowledgement path is implemented.
 `base-rockpie/` добавя ограничения local NDJSON журнал, изрично polling failure
 състояние и map-v5 node-health ingestion. `node-esp32-evb/` добавя local
 logical identity provisioning, health регистри, watchdog статус и recovery
 hooks. `docs/LOCAL_TELEMETRY_AND_NODE_PROVISIONING.md` е съответният EN/BG
-договор.
+договор. `docs/TELEMETRY_JOURNAL_RECOVERY_V1.md` е черновата на Edge export
+profile-а; exporter или acknowledgement path не са имплементирани.
 
 `base-rockpie/` now includes a protected OT network installer, an
 interface-bound dnsmasq renderer and systemd unit. `docs/OT_DHCP.md` contains
