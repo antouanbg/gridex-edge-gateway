@@ -13,9 +13,10 @@ or device-write gate.
 
 The journal is deliberately independent of MQTT. If the Site Router VPN or the
 private broker is unavailable, polling and local journal writes continue. A
-future authenticated backend recovery worker may read records in sequence and
-acknowledge/compact them. That recovery worker is not part of this change; no
-backend credentials, URLs or customer data are stored in the journal.
+future authenticated backend recovery worker may export records using the
+approved v1 contract in `docs/TELEMETRY_JOURNAL_RECOVERY_V1.md`. That worker,
+exporter and acknowledgement mechanism are not part of this change; no backend
+credentials, URLs or customer data are stored in the journal.
 
 ### ROCK Pi local journal
 
@@ -35,10 +36,14 @@ would exceed the configured bound, the current file becomes `.1`; the former
 approximately two journal windows. Deployments must choose the capacity based
 on the desired offline retention period and expected node count.
 
-Each record has `schemaVersion`, a local monotonically increasing `sequence`,
+Each current record has `schemaVersion`, a local monotonically increasing `sequence`,
 UTC observation time, normalized slot, status, fault count and the
 latest safe telemetry values. It intentionally excludes endpoint addresses,
 credentials, VPN data and control payloads.
+
+The current local `sequence` resets when the process restarts and is not a
+backend deduplication key. A future exporter must add the approved durable
+`recordId`; it must not claim replay or acknowledgement before that migration.
 
 ### ESP32 provisioning and health
 
@@ -113,9 +118,10 @@ touch RS485/CAN and therefore does not fabricate a bus-recovery result.
 
 Журналът е нарочно независим от MQTT. Ако Site Router VPN или private broker
 не е достъпен, polling-ът и локалното записване продължават. Бъдещ
-автентикиран backend recovery worker може да прочете записите по sequence и да
-ги acknowledge/compact-не. Този worker не е част от настоящата промяна; в
-журнала не се пазят backend credentials, URL адреси или клиентски данни.
+автентикиран backend recovery worker може да export-ва записи по одобрения v1
+договор в `docs/TELEMETRY_JOURNAL_RECOVERY_V1.md`. Този worker, exporter-ът и
+acknowledgement механизмът не са част от настоящата промяна; в журнала не се
+пазят backend credentials, URL адреси или клиентски данни.
 
 ### Локален журнал на ROCK Pi
 
@@ -135,10 +141,14 @@ GRIDEX_TELEMETRY_JOURNAL_SECONDS=5
 два journal прозореца. При deployment капацитетът се избира според желания
 offline период и броя нодове.
 
-Всеки запис има `schemaVersion`, локално монотонно растящ `sequence`, UTC време
+Всеки текущ запис има `schemaVersion`, локално монотонно растящ `sequence`, UTC време
 на наблюдение, нормализиран slot, статус, брой грешки и последните
 безопасни telemetry стойности. Умишлено липсват endpoint адреси, credentials,
 VPN данни и control payload-и.
+
+Текущият local `sequence` се нулира при рестарт на процеса и не е backend
+deduplication ключ. Бъдещ exporter трябва да добави одобрения устойчив
+`recordId`; преди тази миграция не бива да се твърди replay или acknowledgement.
 
 ### ESP32 provisioning и health
 
