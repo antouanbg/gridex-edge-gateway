@@ -63,9 +63,10 @@ readiness checks. See [node network provisioning](docs/NODE_NETWORK_PROVISIONING
 - All control approval gates remain locked. No field-device command, MQTT
   credential or endpoint configuration was changed by this deployment.
 - The ESP32 was offline at the post-install check. Consequently, no live
-  node-health sample or local journal record has been accepted as evidence
-  yet. Restore the node, verify the protected endpoint setting locally, then
-  confirm an offline-to-online journal transition and a periodic snapshot.
+  node-health sample has been accepted as evidence yet. The protected local
+  journal was subsequently confirmed to contain records. Restore the node,
+  verify the protected endpoint setting locally, then confirm an
+  offline-to-online journal transition and a periodic snapshot.
 
 ### Validated OT networking pilot
 
@@ -187,9 +188,10 @@ endpoint настройка е проверена, заключената read-o
 - Всички control approval gate-ове остават заключени. С това внедряване не са
   променяни field-device команда, MQTT credential или endpoint конфигурация.
 - ESP32 беше offline при post-install проверката. Затова все още няма приета
-  като доказателство live node-health проба или запис в local journal. Върни
-  нода, провери локално protected endpoint настройката и потвърди
-  offline-to-online journal transition и периодичен snapshot.
+  като доказателство live node-health проба. Защитеният local journal беше
+  потвърден впоследствие, че съдържа записи. Върни нода, провери локално
+  protected endpoint настройката и потвърди offline-to-online journal
+  transition и периодичен snapshot.
 
 ### Проверен пилот за OT мрежата
 

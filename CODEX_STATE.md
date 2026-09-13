@@ -61,14 +61,16 @@ simulator тест за постоянен polling и детерминистич
 - Pull Request #13 was merged to `main`. Its ROCK Pi local telemetry build was
   installed on the physical pilot with a local rollback copy. The service and
   OT DHCP are active; all control approval gates remain locked. The post-install
-  ESP32 reachability check was offline, so journal records and map-v5 health
-  require a separate recovery validation.
+  ESP32 reachability check was offline. The protected journal was subsequently
+  confirmed to contain records; map-v5 health requires a separate recovery
+  validation.
 
 Pull Request #13 е слят към `main`. ROCK Pi local telemetry build-ът му е
 инсталиран на физическия пилот с локално rollback копие. Услугата и OT DHCP са
 active; всички control approval gate-ове остават заключени. Post-install
-проверката за достижимост на ESP32 беше offline, затова journal записите и
-map-v5 health изискват отделна проверка след възстановяване.
+проверката за достижимост на ESP32 беше offline. Защитеният journal беше
+потвърден, че съдържа записи; map-v5 health изисква отделна проверка след
+възстановяване.
 
 Добавени са ESP32 OTA firmware endpoint с provision-нат ROCK Pi source check,
 SHA-256 verifier за отделен token и firmware digest проверка. Добавен е
