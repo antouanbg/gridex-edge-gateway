@@ -26,10 +26,11 @@ Repository / GitHub: `antouanbg/gridex-edge-gateway`
 
 - `gridex_rockpie_service` now keeps polling the ESP32 canonical maps and
   exposes its normalized Modbus TCP listener when enabled.
-- The next reviewed build adds a bounded, fsync-backed local NDJSON telemetry
-  journal for normalized node snapshots and polling-state transitions. It is
-  independent of MQTT and has no replay/control path. It is code-tested, but
-  not yet installed on the physical pilot.
+- The bounded, fsync-backed local NDJSON telemetry journal is installed on the
+  physical ROCK Pi. It records normalized node snapshots and polling-state
+  transitions only; it is independent of MQTT and has no replay/control path.
+  At the deployment checkpoint the ESP32 node was offline, so the journal
+  transition and snapshot must still be verified after the node returns.
 - The next ESP32 firmware build adds local logical node provisioning, map-v5
   health registers, task-watchdog status and recovery accounting. It is built
   for CAN and RS485 profiles, but is not yet flashed to the physical pilot.
@@ -55,6 +56,17 @@ verified, the locked read-only service was restarted and its normalized node
 slot is online. The local listener and OTA client also passed non-mutating
 readiness checks. See [node network provisioning](docs/NODE_NETWORK_PROVISIONING.md).
 
+### Local telemetry deployment checkpoint
+
+- The ROCK Pi service and OT DHCP service are enabled and active after the
+  telemetry deployment; the rollback copy remains on the device.
+- All control approval gates remain locked. No field-device command, MQTT
+  credential or endpoint configuration was changed by this deployment.
+- The ESP32 was offline at the post-install check. Consequently, no live
+  node-health sample or local journal record has been accepted as evidence
+  yet. Restore the node, verify the protected endpoint setting locally, then
+  confirm an offline-to-online journal transition and a periodic snapshot.
+
 ### Validated OT networking pilot
 
 The physical second Ethernet link is active. Static OT addressing and the
@@ -76,11 +88,9 @@ every control gate remains locked.
 ### Review artifact
 
 Pull Request #12 for the isolated OT DHCP pilot was merged to `main` at
-`6d79295`. The current local journal and ESP32 provisioning/health work is on
-`feat/local-telemetry-provisioning` in Pull Request
-[#13](https://github.com/antouanbg/gridex-edge-gateway/pull/13). It is open and
-clean, but has no GitHub checks configured. Review it before deciding whether
-to merge; do not merge it automatically.
+`6d79295`. Pull Request #13 merged the local journal and ESP32
+provisioning/health implementation to `main`; its physical deployment is now
+in progress and remains read-only.
 
 Follow [the local commissioning sequence](docs/LOCAL_COMMISSIONING_SEQUENCE.md)
 from its first planned step. The current pilot evidence is preserved in
@@ -139,10 +149,11 @@ remain read-only.
 
 - `gridex_rockpie_service` вече постоянно poll-ва ESP32 canonical картите и
   предоставя нормализиран Modbus TCP listener, когато е enabled.
-- Следващият прегледан build добавя ограничен, fsync-backed local NDJSON
-  telemetry журнал за нормализирани node snapshots и polling-state transitions.
-  Той е независим от MQTT и няма replay/control път. Code-tested е, но още не
-  е инсталиран на физическия пилот.
+- Ограниченият, fsync-backed local NDJSON telemetry журнал е инсталиран на
+  физическия ROCK Pi. Той записва само нормализирани node snapshots и
+  polling-state transitions, независим е от MQTT и няма replay/control път.
+  При checkpoint-а на внедряването ESP32 нодът беше offline, затова transition
+  и snapshot от журнала още трябва да се потвърдят след възстановяването му.
 - Следващият ESP32 firmware build добавя local logical node provisioning,
   map-v5 health регистри, task-watchdog статус и recovery броячи. Build-нат е
   за CAN и RS485 профилите, но още не е flash-нат на физическия пилот.
@@ -169,6 +180,17 @@ endpoint настройка е проверена, заключената read-o
 минаха проверки без промяна на състояние. Виж
 [мрежово provision-ване на нод](docs/NODE_NETWORK_PROVISIONING.md).
 
+### Checkpoint на local telemetry внедряването
+
+- ROCK Pi услугата и OT DHCP услугата са enabled и active след telemetry
+  внедряването; rollback копието остава на устройството.
+- Всички control approval gate-ове остават заключени. С това внедряване не са
+  променяни field-device команда, MQTT credential или endpoint конфигурация.
+- ESP32 беше offline при post-install проверката. Затова все още няма приета
+  като доказателство live node-health проба или запис в local journal. Върни
+  нода, провери локално protected endpoint настройката и потвърди
+  offline-to-online journal transition и периодичен snapshot.
+
 ### Проверен пилот за OT мрежата
 
 Физическият втори Ethernet линк е активен. Статичното OT адресиране и DHCP
@@ -190,11 +212,9 @@ gate-ове остават заключени.
 ### Артефакт за review
 
 Pull Request #12 за isolated OT DHCP пилота е слят към `main` на `6d79295`.
-Текущата работа за local journal и ESP32 provisioning/health е в
-`feat/local-telemetry-provisioning` в Pull Request
-[#13](https://github.com/antouanbg/gridex-edge-gateway/pull/13). Той е open и
-clean, но няма конфигурирани GitHub checks. Прегледай го преди решение за merge;
-не го сливай автоматично.
+Pull Request #13 е слял local journal и ESP32 provisioning/health
+имплементацията към `main`; физическото ѝ внедряване е в ход и остава
+read-only.
 
 Следвай [последователността за локален commissioning](docs/LOCAL_COMMISSIONING_SEQUENCE.md)
 от първата планирана стъпка. Текущите pilot доказателства са запазени в

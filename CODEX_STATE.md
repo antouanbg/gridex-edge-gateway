@@ -4,14 +4,12 @@ Repository / GitHub: antouanbg/gridex-edge-gateway
 
 ## Current task
 
-No active implementation task. Local telemetry journal and ESP32
-provisioning/health are ready for review in Pull Request #13 on
-`feat/local-telemetry-provisioning`; no hardware deployment has occurred.
-Production control remains out of scope.
-Няма активна задача по имплементация. Local telemetry журналът и ESP32
-provisioning/health са готови за review в Pull Request #13 на
-`feat/local-telemetry-provisioning`; не е изпълняван hardware deployment.
-Production control остава извън обхвата.
+Validate the read-only physical deployment of the local telemetry journal.
+Pull Request #13 is merged; the ROCK Pi service is installed and active, while
+the ESP32 is currently offline. Production control remains out of scope.
+Потвърди read-only физическото внедряване на local telemetry журнала. Pull
+Request #13 е слят; ROCK Pi услугата е инсталирана и active, а ESP32 в момента
+е offline. Production control остава извън обхвата.
 
 ## Completed
 
@@ -60,6 +58,17 @@ simulator тест за постоянен polling и детерминистич
 - Locally provisioned the ESP32 trusted ROCK Pi OT source address. The ROCK Pi
   read-only normalized Modbus slot then reported the node online with a fresh
   heartbeat. No inverter, BESS or node command was sent.
+- Pull Request #13 was merged to `main`. Its ROCK Pi local telemetry build was
+  installed on the physical pilot with a local rollback copy. The service and
+  OT DHCP are active; all control approval gates remain locked. The post-install
+  ESP32 reachability check was offline, so journal records and map-v5 health
+  require a separate recovery validation.
+
+Pull Request #13 е слят към `main`. ROCK Pi local telemetry build-ът му е
+инсталиран на физическия пилот с локално rollback копие. Услугата и OT DHCP са
+active; всички control approval gate-ове остават заключени. Post-install
+проверката за достижимост на ESP32 беше offline, затова journal записите и
+map-v5 health изискват отделна проверка след възстановяване.
 
 Добавени са ESP32 OTA firmware endpoint с provision-нат ROCK Pi source check,
 SHA-256 verifier за отделен token и firmware digest проверка. Добавен е
@@ -92,12 +101,12 @@ write approval gate-ове са `0`.
 
 ## Remaining
 
-- Review Pull Request #13, then deploy it only through the approved ROCK
-  Pi/ESP32 read-only commissioning
-  procedure. Verify an offline/online journal transition on bench hardware.
-- Прегледай Pull Request #13 и я внедри само по одобрената read-only
-  commissioning процедура за ROCK Pi/ESP32.
-  Потвърди offline/online journal transition на bench hardware.
+- Restore the ESP32 on the protected OT segment. Verify its protected endpoint
+  setting locally, then confirm that the ROCK Pi records an offline-to-online
+  journal transition and periodic snapshot without sending a device command.
+- Възстанови ESP32 в защитения OT сегмент. Провери локално protected endpoint
+  настройката му, после потвърди, че ROCK Pi записва offline-to-online journal
+  transition и периодичен snapshot без изпращане на device команда.
 - Provision the private MQTT CA/client identity through the backend secret
   store, then confirm health messages at the broker.
 
@@ -182,14 +191,14 @@ secret rotation, release signing, router ACL approval и OT soak тестове�
 
 ## Next action
 
-Wait for owner review of Pull Request #13. After merge, use the documented
-read-only bench procedure to install the ROCK Pi service and flash the ESP32;
-then verify an actual local journal file and an offline/online transition.
+With the ESP32 restored on the protected OT segment, verify a real local
+journal file, its offline-to-online transition and the map-v5 health read.
+Do not flash firmware or enable any control path as part of that validation.
 
-Изчакай owner review на Pull Request #13. След merge използвай описаната
-read-only bench процедура за инсталиране на ROCK Pi service и flash на ESP32;
-след това потвърди реален local journal файл и offline/online transition.
+След като ESP32 бъде възстановен в защитения OT сегмент, потвърди реален local
+journal файл, offline-to-online transition и map-v5 health прочит. Като част от
+тази проверка не flash-вай firmware и не включвай control path.
 
 ## Last updated
 
-2026-09-12
+2026-09-13
