@@ -125,6 +125,19 @@ remain read-only.
    the ROCK Pi management endpoint from the authorised backend peer. Keep the
    ESP32 OTA port off WireGuard/public routes, stage the token owner-only on
    ROCK Pi, and define token rotation/release-signing ownership.
+7. **Journal recovery export and backend ingestion / Изнасяне на journal-а и backend ingestion**
+   - Dependency: a versioned Edge-to-backend export and acknowledgement
+     contract, private MQTT TLS identity, and the separate GrideX PostgreSQL/
+     Timescale service in `antouanbg/gridex-openremote-backend`.
+   - Acceptance: a future ROCK Pi exporter transmits only authenticated,
+     normalized journal records through the Site Router VPN; a future backend
+     worker persists them idempotently before acknowledging delivery. It does
+     not expose the journal filesystem, route OT/BESS to the backend, or send
+     control commands.
+   - Next action: create separate, coordinated PRs in
+     `antouanbg/gridex-edge-gateway` and `antouanbg/gridex-openremote-backend`
+     for the versioned record identity, export/acknowledgement contract and
+     recovery worker. This capability is not implemented today.
 
 ## Български
 
@@ -248,3 +261,16 @@ driver. Познатият регистър за power limit при string inver
    само management endpoint-а на ROCK Pi от оторизирания backend peer. ESP32
    OTA портът остава извън WireGuard/public маршрути, token-ът се подготвя
    owner-only на ROCK Pi и се определя собственик на token rotation/release signing.
+7. **Изнасяне на journal-а и backend ingestion / Journal recovery export and backend ingestion**
+   - Зависимост: versioned Edge-to-backend export и acknowledgement договор,
+     private MQTT TLS identity и отделната GrideX PostgreSQL/Timescale услуга в
+     `antouanbg/gridex-openremote-backend`.
+   - Приемане: бъдещ ROCK Pi exporter изпраща само удостоверени,
+     нормализирани journal записи през Site Router VPN; бъдещ backend worker ги
+     записва idempotent преди да потвърди доставката. Той не излага journal
+     файловата система, не route-ва OT/BESS към backend и не изпраща control
+     команди.
+   - Следващо действие: създай отделни, координирани PR-и в
+     `antouanbg/gridex-edge-gateway` и `antouanbg/gridex-openremote-backend`
+     за versioned record identity, export/acknowledgement договора и recovery
+     worker-а. Тази възможност днес не е имплементирана.
