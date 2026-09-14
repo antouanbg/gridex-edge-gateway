@@ -1,5 +1,22 @@
 # GrideX Edge Gateway — Engineering Rules
 
+## Modbus diagnostic rule / Правило за Modbus диагностика
+
+Read `docs/MODBUS_DIAGNOSTIC_CAVEATS.md` before investigating ESP32 timeouts.
+The current server serves one active TCP session: an additional probe can time
+out while ROCK Pi polling works. First read the ROCK Pi normalized node slot
+and compare heartbeat and sample age across samples. USB opening may reset the
+node; disclose this and do not claim post-USB results prove pre-USB health.
+Do not stop polling, flash, reset or change trusted sources merely to diagnose.
+
+Прочети `docs/MODBUS_DIAGNOSTIC_CAVEATS.md` преди ESP32 timeout диагностика.
+Текущият server обслужва една активна TCP сесия: допълнителна проба може да
+изтече, докато ROCK Pi polling работи. Първо чети нормализирания slot през
+ROCK Pi и сравнявай heartbeat и възрастта на данните между пробите. USB
+отварянето може да рестартира нода; съобщи това и не представяй резултатите
+след USB като доказателство за състоянието преди него. Не спирай polling,
+не flash-вай, reset-вай или променяй trusted source само за диагностика.
+
 ## Architecture and safety
 
 - The Site Router, not ROCK Pi or ESP32, terminates the WireGuard tunnel.

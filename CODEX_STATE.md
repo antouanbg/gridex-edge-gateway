@@ -1,5 +1,21 @@
 # CODEX_STATE.md
 
+## Latest checkpoint — 2026-09-14 / Последен checkpoint
+
+Documentation-only task: recorded single-session Modbus diagnostic limitation
+and USB reset uncertainty in AGENTS.md, HANDOFF.md and
+docs/MODBUS_DIAGNOSTIC_CAVEATS.md. Branch: docs/modbus-diagnostic-caveat.
+Three post-USB online/advancing-heartbeat reads verified; old offline status
+below is historical. Next: journal permission diagnosis/fix with snapshot and
+rotation checks; MQTT backend receipt still unverified. No runtime changes.
+
+Само документация: single-session Modbus ограничението и USB reset
+неопределеността са записани в AGENTS.md, HANDOFF.md и
+docs/MODBUS_DIAGNOSTIC_CAVEATS.md. Branch: docs/modbus-diagnostic-caveat.
+Три post-USB online/нарастващ heartbeat проби са потвърдени; старият offline
+статус по-долу е исторически. Следва journal права и snapshots/ротация;
+MQTT backend получаване още не е потвърдено. Без runtime промени.
+
 Repository / GitHub: antouanbg/gridex-edge-gateway
 
 ## Current task

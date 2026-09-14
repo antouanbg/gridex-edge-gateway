@@ -2,6 +2,20 @@
 
 Repository / GitHub: `antouanbg/gridex-edge-gateway`
 
+## Diagnostic checkpoint — 2026-09-14 / Диагностичен checkpoint
+
+ESP32 is online in three post-USB ROCK Pi slot reads with changing heartbeat.
+See [diagnostic caveats](docs/MODBUS_DIAGNOSTIC_CAVEATS.md): a second direct TCP
+session is not a reliable health probe. USB may reset the node. Next: inspect
+and correct journal write permissions, then verify snapshots/rotation. MQTT
+backend receipt and newer firmware health fields remain unverified.
+
+ESP32 е online в три ROCK Pi slot проби след USB с променящ се heartbeat.
+Виж [диагностичните особености](docs/MODBUS_DIAGNOSTIC_CAVEATS.md): втора пряка
+TCP сесия не е надежден health тест. USB може да рестартира нода. Следва
+проверка/корекция на journal правата и snapshots/ротация. MQTT получаване в
+backend и health полетата на нов firmware остават непотвърдени.
+
 ## English
 
 ### Completed in the ROCK Pi E pilot
