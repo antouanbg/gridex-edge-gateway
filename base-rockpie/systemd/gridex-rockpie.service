@@ -2,10 +2,12 @@
 Description=GrideX EMS Edge service for Radxa ROCK Pi E
 After=network-online.target
 Wants=network-online.target
+After=systemd-tmpfiles-setup.service
 
 [Service]
 Type=simple
 EnvironmentFile=-/etc/gridex/gridex-rockpie.env
+ExecStartPre=/usr/local/lib/gridex/check-journal-access.sh
 ExecStart=/usr/local/bin/gridex_rockpie_service
 Restart=always
 RestartSec=3
@@ -13,6 +15,9 @@ User=gridex
 Group=gridex
 StateDirectory=gridex
 StateDirectoryMode=0750
+LogsDirectory=gridex
+LogsDirectoryMode=0750
+UMask=0027
 NoNewPrivileges=true
 PrivateTmp=true
 ProtectSystem=strict

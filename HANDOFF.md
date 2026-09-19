@@ -2,6 +2,31 @@
 
 Repository / GitHub: `antouanbg/gridex-edge-gateway`
 
+## Image journal preparation / Подготовка на журнала в имиджа — 2026-09-19
+
+Added packaged sysusers/tmpfiles definitions, explicit post-install state
+preparation and service-user journal preflight; logs directory/umask are explicit.
+Validation: shell syntax, non-root preflight regression tests (preservation,
+missing/read-only paths, symlink rejection, disabled journal), CMake configure
+and targeted CTest pass on macOS. Linux sysusers/tmpfiles not executed here.
+See `docs/ROCKPI_IMAGE_PROVISIONING.md` for new-device enrolment and acceptance.
+Owner's local repair yielded three online ESP snapshots with advancing heartbeat;
+this is not backend delivery. No image flashed, live unit replaced or VPN enabled.
+Next: review PR, Linux sysusers/tmpfiles fresh/restore integration test, then
+approved pilot install/reboot/rotation acceptance. Automated claim and backend
+heartbeat ingestion/UI remain unfinished. Existing device control locks stay on.
+
+Добавени sysusers/tmpfiles правила, подготовка след инсталация и journal preflight
+като service user; изрични logs directory/umask.
+Проверки: shell syntax, non-root тестове (запазване, липсващ/read-only път,
+symlink отказ, изключен журнал), CMake configure и целевият CTest минават на macOS.
+Linux sysusers/tmpfiles не са изпълнявани тук. Новото устройство и приемането
+са в `docs/ROCKPI_IMAGE_PROVISIONING.md`. Локалната поправка от собственика даде
+три online ESP проби с растящ heartbeat; това не доказва backend доставка.
+Без flash, смяна на живата услуга или VPN. Следва PR review, Linux fresh/restore
+интеграционен тест, после одобрен пилотен install/reboot/rotation тест. Автоматичният
+claim и backend heartbeat/UI остават незавършени. Управлението остава заключено.
+
 ## Diagnostic checkpoint — 2026-09-14 / Диагностичен checkpoint
 
 ESP32 is online in three post-USB ROCK Pi slot reads with changing heartbeat.
