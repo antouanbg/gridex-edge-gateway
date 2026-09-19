@@ -1,5 +1,15 @@
 # CODEX_STATE.md
 
+2026-09-19: image journal ownership/preflight implementation on
+`fix/rockpi-image-journal`; see newest HANDOFF and ROCKPI_IMAGE_PROVISIONING.
+No live deployment/image build. Linux tmpfiles and physical reboot/rotation
+acceptance pending; no automatic merge. Local ESP evidence is owner-supplied.
+
+2026-09-19: подготовка на journal права/preflight в `fix/rockpi-image-journal`.
+Виж HANDOFF и ROCKPI_IMAGE_PROVISIONING. Без живо внедряване/имидж; Linux tmpfiles
+и физически reboot/rotation приемане предстоят. Без автоматичен merge.
+Локалното ESP доказателство е предоставено от собственика.
+
 ## Latest checkpoint — 2026-09-14 / Последен checkpoint
 
 Documentation-only task: recorded single-session Modbus diagnostic limitation

@@ -29,6 +29,20 @@ ROCK Pi и сравнявай heartbeat и възрастта на даннит�
 
 ## ROCK Pi E operating-system baseline
 
+Image/install rule (2026-09-19): follow `docs/ROCKPI_IMAGE_PROVISIONING.md`.
+Package sysusers/tmpfiles state preparation; run it after install/restore before
+service start. Test journal append/rotation as gridex, not root. Preserve data,
+never recursively chown backups/secrets, never clone enrolled identities or keys.
+Require first-boot and upgrade tests before calling an image ready. Registration,
+ESP heartbeat, PCS heartbeat and backend receipt are separate evidence.
+
+Правило за имидж/инсталация: следвай `docs/ROCKPI_IMAGE_PROVISIONING.md`.
+Включвай sysusers/tmpfiles подготовката и я изпълнявай след install/restore преди
+старт. Тествай запис/ротация като gridex, не root. Без загуба на данни, рекурсивен
+chown на backups/тайни или клонирани ключове/идентичности. Изисквай first-boot и
+upgrade тестове преди готов имидж. Регистрация, ESP/PCS heartbeat и backend
+получаване са отделни доказателства.
+
 The current **pilot** operating-system candidate for the Radxa ROCK Pi E is:
 
 - Armbian 26.8.1 Minimal CLI, Debian 13 (Trixie), ARM64;

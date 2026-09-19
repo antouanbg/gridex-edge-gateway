@@ -82,6 +82,11 @@ target_link_libraries(gridex_telemetry_journal_tests PRIVATE gridex_rockpie_tran
 add_test(NAME gridex_telemetry_journal_tests COMMAND gridex_telemetry_journal_tests)
 
 add_test(NAME gridex_ota_apply_self_test COMMAND gridex_ota_apply --self-test)
+if(UNIX)
+    add_test(NAME gridex_journal_preflight_test COMMAND sh
+        ${CMAKE_CURRENT_SOURCE_DIR}/tests/test_journal_preflight.sh
+        ${CMAKE_CURRENT_SOURCE_DIR}/install/check-journal-access.sh)
+endif()
 
 install(TARGETS gridex_rockpie_service gridex_ota_apply RUNTIME DESTINATION bin)
 install(FILES
@@ -96,6 +101,10 @@ install(PROGRAMS
 install(PROGRAMS
     install/install-ot-network.sh
     install/install-ot-dhcp.sh
+    install/check-journal-access.sh
+    install/prepare-state.sh
     DESTINATION lib/gridex
 )
 install(FILES config/gridex-rockpie.env.example DESTINATION share/gridex)
+install(FILES systemd/gridex.sysusers.conf DESTINATION lib/sysusers.d RENAME gridex.conf)
+install(FILES systemd/gridex.tmpfiles.conf DESTINATION lib/tmpfiles.d RENAME gridex.conf)
