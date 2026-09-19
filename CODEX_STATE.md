@@ -7,6 +7,15 @@ SSH authority/private transport and end-to-end backend/UI verification pending.
 Последно: feat/device-heartbeat добавя реалното време за успешен node polling
 в MQTT; ROCK health се запазва. 7 CTest минават. Не е внедрено; остават SSH,
 частен транспорт и end-to-end backend/UI проверка. Виж последния HANDOFF.
+2026-09-19: image journal ownership/preflight implementation on
+`fix/rockpi-image-journal`; see newest HANDOFF and ROCKPI_IMAGE_PROVISIONING.
+No live deployment/image build. Linux tmpfiles and physical reboot/rotation
+acceptance pending; no automatic merge. Local ESP evidence is owner-supplied.
+
+2026-09-19: подготовка на journal права/preflight в `fix/rockpi-image-journal`.
+Виж HANDOFF и ROCKPI_IMAGE_PROVISIONING. Без живо внедряване/имидж; Linux tmpfiles
+и физически reboot/rotation приемане предстоят. Без автоматичен merge.
+Локалното ESP доказателство е предоставено от собственика.
 
 ## Latest checkpoint — 2026-09-14 / Последен checkpoint
 
