@@ -2,6 +2,30 @@
 
 Repository / GitHub: `antouanbg/gridex-edge-gateway`
 
+## Image MQTT bootstrap / Image MQTT подготовка — 2026-09-19
+
+Owner requested dependency provisioning in the image flow instead of manual
+commands per board. Added build-image-payload.sh: Debian/Armbian dependency
+install including Git/Mosquitto, required-MQTT build, CTest, linkage check and
+DESTDIR staging with package versions/binary hash. No live install/restart/network
+changes. GRIDEX_REQUIRE_MQTT rejects missing dependencies or disabled MQTT.
+Per-device keys/claim remain outside the base image; no cloned credentials.
+Validation: shell syntax, native MQTT build and missing-PkgConfig fail-closed check.
+Linux bootstrap/ARM64 payload, disk image assembly and first-boot acceptance
+remain pending; this is not a generated/flashed image or real MQTT delivery.
+See docs/ROCKPI_IMAGE_PROVISIONING.md. Source branch feat/image-mqtt-bootstrap
+includes approved transport documentation from PR #18.
+
+Собственикът поиска зависимостите да се осигуряват при image подготовката,
+не ръчно за всяка платка. build-image-payload.sh инсталира Debian/Armbian
+зависимости с Git/Mosquitto, build със задължителен MQTT, CTest, linkage проверка
+и DESTDIR staging с package версии/hash. Без live install/restart/мрежови промени.
+GRIDEX_REQUIRE_MQTT отказва липсващи зависимости/изключен MQTT. Per-device keys/
+claim остават извън base image. Проверени shell syntax, native MQTT build и
+fail-closed при липсващ PkgConfig. Linux bootstrap/ARM64 payload, image assembly
+и first-boot приемане предстоят; няма готов/flash-нат имидж или real MQTT receipt.
+Виж docs/ROCKPI_IMAGE_PROVISIONING.md; branch включва документацията от PR #18.
+
 ## Approved dual transport plan / Одобрен план за два транспорта — 2026-09-19
 
 Owner approval recorded for per-Site WireGuard-private OR direct MQTT-mTLS.

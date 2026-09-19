@@ -1,5 +1,12 @@
 # CODEX_STATE.md
 
+Latest: feat/image-mqtt-bootstrap automates build dependencies (including Git),
+required MQTT, tests and image payload staging. Missing MQTT fails closed.
+No physical deployment/image flash. Linux/ARM64/first-boot gates remain pending.
+Последно: feat/image-mqtt-bootstrap автоматизира зависимости (включително Git),
+задължителен MQTT, тестове и image payload staging. Без MQTT build отказва.
+Без физическо внедряване/flash; Linux/ARM64/first-boot тестовете предстоят.
+
 2026-09-19: per-Site private WireGuard and direct MQTT-mTLS explicitly approved.
 Execution plan recorded in backend docs/PER_SITE_TRANSPORT_AND_ENROLLMENT.md;
 12 TODO items, documentation-only publication, no live activation. See HANDOFF.
