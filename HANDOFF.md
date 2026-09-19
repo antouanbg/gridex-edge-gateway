@@ -2,6 +2,29 @@
 
 Repository / GitHub: `antouanbg/gridex-edge-gateway`
 
+## Bootstrap path correction / Поправка на bootstrap пътя — 2026-09-20
+
+Physical user run of 123e410 exposed a helper bug: source_dir resolved to repo
+root, so only the core test ran and ROCK executable was absent. That run is NOT
+successful image/MQTT acceptance. Corrected root to base-rockpie, added explicit
+executable gate and --skip-dependencies for retries without apt changes. Two
+regression tests execute the real shell helper with fake host tools: exact CMake
+source/required MQTT flags/staging and missing-binary rejection. Both pass; shell
+syntax passes. Native Linux retry remains pending. Earlier eight native CTests
+tested the correct manually chosen source, not the faulty helper path.
+The user's dependency run also upgraded OpenSSL packages; no GrideX service
+replacement or Ethernet change occurred. Preserve existing live config/keys.
+
+Физическото изпълнение на 123e410 откри грешка: source_dir сочеше repo root;
+мина само core тестът и липсваше ROCK executable. Това НЕ е успешно image/MQTT
+приемане. Пътят е поправен към base-rockpie, добавени executable gate и
+--skip-dependencies за повторение без apt промени. Два regression теста изпълняват
+реалния shell helper с fake host tools и проверяват source/MQTT flags/staging и
+отказ при липсващ binary; минават, както и shell syntax. Linux повторението
+предстои. Старите 8 native CTests бяха с правилно ръчно избран source, не с
+грешния helper. Dependency изпълнението е обновило OpenSSL пакети; няма подменена
+GrideX услуга или Ethernet промяна. Запазват се live конфигурацията и ключовете.
+
 ## Image MQTT bootstrap / Image MQTT подготовка — 2026-09-19
 
 Owner requested dependency provisioning in the image flow instead of manual

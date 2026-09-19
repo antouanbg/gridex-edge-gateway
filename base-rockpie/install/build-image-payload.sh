@@ -1,22 +1,29 @@
 #!/bin/sh
 # Native Debian/Armbian builder. Stage an image payload, never replace live files.
 set -eu
-if [ "$#" -ne 0 ]; then
-    echo 'Usage: sh base-rockpie/install/build-image-payload.sh (no arguments)' >&2
+skip_dependencies=0
+if [ "$#" -eq 1 ] && [ "$1" = --skip-dependencies ]; then
+    skip_dependencies=1
+elif [ "$#" -ne 0 ]; then
+    echo 'Usage: sh base-rockpie/install/build-image-payload.sh [--skip-dependencies]' >&2
     exit 2
 fi
 [ "$(uname -s)" = Linux ] || { echo 'Run inside the Debian/Armbian Linux builder.' >&2; exit 1; }
 [ "$(id -u)" -ne 0 ] || { echo 'Run as the build user; sudo is used for dependencies only.' >&2; exit 1; }
-command -v apt-get >/dev/null
-command -v sudo >/dev/null
-source_dir=$(CDPATH= cd -- "$(dirname -- "$0")/../.." && pwd)
-sudo apt-get update
-sudo apt-get install -y --no-install-recommends git ca-certificates openssl cmake g++ make pkg-config libmosquitto-dev
+source_dir=$(CDPATH= cd -- "$(dirname -- "$0")/.." && pwd)
+[ -f "$source_dir/src/MqttHealthPublisher.cpp" ] || { echo 'Incorrect ROCK source root.' >&2; exit 1; }
+if [ "$skip_dependencies" -eq 0 ]; then
+    command -v apt-get >/dev/null
+    command -v sudo >/dev/null
+    sudo apt-get update
+    sudo apt-get install -y --no-install-recommends git ca-certificates openssl cmake g++ make pkg-config libmosquitto-dev
+fi
 pkg-config --exists libmosquitto
 stage=$(mktemp -d "${TMPDIR:-/tmp}/gridex-image-payload.XXXXXX")
 cmake -S "$source_dir" -B "$stage/build" -DCMAKE_BUILD_TYPE=Debug \
     -DGRIDEX_ENABLE_PRIVATE_MQTT=ON -DGRIDEX_REQUIRE_MQTT=ON
 cmake --build "$stage/build" --parallel 2
+[ -x "$stage/build/gridex_rockpie_service" ] || { echo 'ROCK service missing; refusing payload.' >&2; exit 1; }
 ctest --test-dir "$stage/build" --output-on-failure
 ldd "$stage/build/gridex_rockpie_service" | grep 'libmosquitto' >/dev/null
 if ldd "$stage/build/gridex_rockpie_service" | grep 'not found'; then

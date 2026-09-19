@@ -16,6 +16,12 @@ run once as the non-root build user:
 sh base-rockpie/install/build-image-payload.sh
 ```
 
+For retries with dependencies already installed, append `--skip-dependencies`;
+this avoids apt update/install/possible package upgrades. The helper must select
+`base-rockpie`, not the repository root, and refuses success without its binary.
+Run `python3 base-rockpie/tests/test_image_payload.py` for orchestration regression
+tests (mock host tools; not a substitute for native image acceptance).
+
 This installs Git, compiler, CMake, make, pkg-config, OpenSSL/CA and Mosquitto
 development/runtime dependencies (sudo only for apt), builds with required MQTT,
 runs CTest with assertions enabled (Debug), checks runtime linkage and stages
@@ -97,6 +103,11 @@ This proves the reported local interval, not current status or backend delivery.
 The separate PCS heartbeat remains unconfirmed while commissioning is locked.
 
 ## Български
+
+При повторение с налични зависимости добави `--skip-dependencies`: без apt
+update/install/възможни package upgrades. Helper избира `base-rockpie`, не repo
+root, и отказва успех без ROCK binary. `python3 base-rockpie/tests/test_image_payload.py`
+проверява orchestration с mock host tools; не заменя native image приемането.
 
 Автоматична подготовка: от проверен source checkout/archive в native Debian/
 Armbian Linux builder изпълни като non-root build user командата от EN секцията.
