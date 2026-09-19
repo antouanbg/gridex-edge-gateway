@@ -2,6 +2,27 @@
 
 Repository / GitHub: `antouanbg/gridex-edge-gateway`
 
+## Device liveness / Жизненост на устройствата — 2026-09-19
+
+Existing periodic ROCK MQTT health is independent of PCS heartbeat/commissioning.
+Node payload now carries lastSuccessfulContactAt from successful polling; never
+seen is null and failed polls preserve it. Seven native CTests pass, including
+payload and TCP polling tests (host-network rerun after sandbox bind denial).
+Not installed on physical ROCK. SSH BatchMode denied, agent has no identities.
+Backend MQTT is loopback-only; approved private LAN path, mTLS identity/topics,
+native ARM64 build/install, backend migration/worker and real browser checks
+remain. No device resets, control writes, route changes or VPN activation.
+Image ownership/preflight PR #16 remains separate; do not lose those corrections.
+
+Периодичният ROCK MQTT health е отделен от PCS heartbeat/commissioning.
+Node payload вече носи lastSuccessfulContactAt от успешен polling; без проба е
+null, неуспешните проби го запазват. 7 native CTest теста минават (повторени
+извън sandbox TCP bind ограничението). НЕ е инсталирано на физическия ROCK.
+SSH BatchMode отказва, agent няма ключове. MQTT е loopback-only; остават частен
+LAN път, mTLS identity/topics, ARM64 install, backend migration/worker и browser
+проверка. Без reset, control writes, маршрути или VPN. Image поправките от
+PR #16 са отделни и трябва да се запазят при бъдещия имидж.
+
 ## Diagnostic checkpoint — 2026-09-14 / Диагностичен checkpoint
 
 ESP32 is online in three post-USB ROCK Pi slot reads with changing heartbeat.

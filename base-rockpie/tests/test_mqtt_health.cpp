@@ -31,4 +31,13 @@ int main() {
     assert(telemetry.find("\"online\":true") != std::string::npos);
     assert(telemetry.find("\"pollStatus\":1") != std::string::npos);
     assert(telemetry.find("\"recoveryCount\":3") != std::string::npos);
+    assert(telemetry.find("\"lastSuccessfulContactAt\":null") != std::string::npos);
+    MbusNodeTelemetry sample;
+    sample.lastSuccessfulContact = std::chrono::system_clock::from_time_t(1000);
+    const auto first = MqttHealthPublisher::nodeTelemetryPayload(1, sample);
+    sample.online = false;
+    const auto failed = MqttHealthPublisher::nodeTelemetryPayload(1, sample);
+    const std::string contact = "\"lastSuccessfulContactAt\":\"1970-01-01T00:16:40Z\"";
+    assert(first.find(contact) != std::string::npos);
+    assert(failed.find(contact) != std::string::npos);
 }

@@ -130,6 +130,7 @@ void NodeTcpPollingService::pollNode(std::size_t index) {
     sample.pollStatus = NodePollStatus::Online;
     sample.consecutiveFailures = 0U;
     sample.lastSeen = std::chrono::steady_clock::now();
+    sample.lastSuccessfulContact = std::chrono::system_clock::now();
 }
 
 bool NodeTcpPollingService::applyPowerCommand(

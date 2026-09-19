@@ -45,8 +45,7 @@ std::string jsonString(std::string_view value) {
     return output.str();
 }
 
-std::string timestamp() {
-    const auto now = std::chrono::system_clock::now();
+std::string timestamp(std::chrono::system_clock::time_point now = std::chrono::system_clock::now()) {
     const auto seconds = std::chrono::system_clock::to_time_t(now);
     std::tm utc{};
 #ifdef _WIN32
@@ -184,6 +183,9 @@ std::string MqttHealthPublisher::nodeTelemetryPayload(
            << ",\"nodeState\":" << sample.nodeState
            << ",\"driverId\":" << sample.driverId
            << ",\"online\":" << jsonBoolean(sample.online)
+           << ",\"lastSuccessfulContactAt\":"
+           << (sample.lastSuccessfulContact == std::chrono::system_clock::time_point{}
+               ? "null" : jsonString(timestamp(sample.lastSuccessfulContact)))
            << ",\"quality\":" << sample.quality
            << ",\"actualPowerKw\":" << sample.actualPowerKw
            << ",\"energyWh\":" << sample.energyWh
