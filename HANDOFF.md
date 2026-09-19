@@ -17,7 +17,7 @@ approved pilot install/reboot/rotation acceptance. Automated claim and backend
 heartbeat ingestion/UI remain unfinished. Existing device control locks stay on.
 
 Добавени sysusers/tmpfiles правила, подготовка след инсталация и journal preflight
-като service user; изрични logs directory/umask. Новото устройство и приемането
+като service user; изрични logs directory/umask.
 Проверки: shell syntax, non-root тестове (запазване, липсващ/read-only път,
 symlink отказ, изключен журнал), CMake configure и целевият CTest минават на macOS.
 Linux sysusers/tmpfiles не са изпълнявани тук. Новото устройство и приемането
