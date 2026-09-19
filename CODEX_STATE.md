@@ -1,5 +1,12 @@
 # CODEX_STATE.md
 
+Latest: feat/device-heartbeat adds actual successful node polling time to MQTT;
+existing ROCK health publication retained. Seven CTests pass. Not deployed;
+SSH authority/private transport and end-to-end backend/UI verification pending.
+
+Последно: feat/device-heartbeat добавя реалното време за успешен node polling
+в MQTT; ROCK health се запазва. 7 CTest минават. Не е внедрено; остават SSH,
+частен транспорт и end-to-end backend/UI проверка. Виж последния HANDOFF.
 2026-09-19: image journal ownership/preflight implementation on
 `fix/rockpi-image-journal`; see newest HANDOFF and ROCKPI_IMAGE_PROVISIONING.
 No live deployment/image build. Linux tmpfiles and physical reboot/rotation

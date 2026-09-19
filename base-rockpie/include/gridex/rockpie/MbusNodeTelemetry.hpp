@@ -38,6 +38,7 @@ struct MbusNodeTelemetry {
     std::uint16_t busRecoveryCount{0};
     std::uint16_t lastError{0};
     std::chrono::steady_clock::time_point lastSeen{};
+    std::chrono::system_clock::time_point lastSuccessfulContact{};
 };
 
 }  // namespace gridex::rockpie

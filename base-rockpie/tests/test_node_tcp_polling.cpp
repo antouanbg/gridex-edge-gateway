@@ -99,6 +99,8 @@ int main() {
     const auto samples = polling.samples();
     assert(samples.size() == 1U);
     assert(samples[0].online);
+    assert(samples[0].lastSuccessfulContact != std::chrono::system_clock::time_point{});
+    assert(samples[0].lastSuccessfulContact <= std::chrono::system_clock::now());
     assert(samples[0].driverId == 77U);
     assert(samples[0].actualPowerKw == -12.5);
     assert(samples[0].energyWh == 99U);
