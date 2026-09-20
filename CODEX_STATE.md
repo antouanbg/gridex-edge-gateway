@@ -1,5 +1,12 @@
 # CODEX_STATE.md
 
+2026-09-20: optional CPU temperature publisher prepared on feat/rock-temperature;
+8/8 CTests pass. Not installed on ROCK (SSH denied); device env activation and
+real sensor/MQTT/Timescale/UI verification pending. See newest HANDOFF.
+2026-09-20: optional CPU temperature publisher е готов, 8/8 CTest минават.
+Не е качен на ROCK (SSH отказан); env активиране и реален сензор/MQTT/Timescale/UI
+тест предстоят. Виж най-новия HANDOFF.
+
 2026-09-20: fixed image helper source root after physical failure of 123e410;
 two real-helper/mock-tools regressions pass. Retry with --skip-dependencies.
 Physical successful payload still unverified; prior core-only run did not qualify.

@@ -2,6 +2,32 @@
 
 Repository / GitHub: `antouanbg/gridex-edge-gateway`
 
+## CPU temperature publisher / CPU temperature publisher — 2026-09-20
+
+Prepared optional read-only Linux thermal sysfs CPU temperature in existing
+ROCK health MQTT payload (`cpuTemperatureC`, Celsius, null if missing/invalid).
+Enable only through existing device env: GRIDEX_CPU_TEMPERATURE_ENABLED=1,
+GRIDEX_CPU_TEMPERATURE_FILE points to the board-verified CPU thermal zone.
+It follows GRIDEX_HEALTH_PUBLISH_SECONDS; no global 15-minute schedule.
+Default disabled; no Ethernet, ESP firmware, BESS or command-lock changes.
+8/8 native CTests pass with MQTT required. NOT deployed to physical ROCK:
+noninteractive SSH refused. Next: approved local build/install with backup,
+verify zone/type and service-user read access, enable in existing env, confirm
+physical MQTT -> backend outbox -> OpenRemote Timescale -> owner UI.
+Backend owner asset/writer/worker configured; synthetic database probe passed,
+not physical temperature evidence. Never report CPU as battery temperature.
+
+Готов е optional read-only CPU thermal sysfs сензор в текущия ROCK MQTT health
+payload (`cpuTemperatureC`, Celsius, null при липса/грешка). Активиране само през
+текущия env: GRIDEX_CPU_TEMPERATURE_ENABLED=1 и GRIDEX_CPU_TEMPERATURE_FILE към
+проверен CPU thermal zone. Следва GRIDEX_HEALTH_PUBLISH_SECONDS, не общи 15 минути.
+По подразбиране е изключен. Без Ethernet/ESP firmware/BESS/command-lock промени.
+8/8 native CTest минават със задължителен MQTT. НЕ е внедрен: SSH е отказан.
+Следва одобрен local build/install с backup, zone/type и service-user read
+проверка, активиране в текущия env и реален MQTT -> outbox -> Timescale -> UI.
+Backend asset/writer/worker са настроени; synthetic DB probe минава, но не
+доказва физическа температура. CPU температура не се представя като батерийна.
+
 ## Bootstrap path correction / Поправка на bootstrap пътя — 2026-09-20
 
 Physical user run of 123e410 exposed a helper bug: source_dir resolved to repo

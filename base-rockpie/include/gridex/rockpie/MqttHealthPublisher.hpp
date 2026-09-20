@@ -6,6 +6,7 @@
 #include <cstddef>
 #include <cstdint>
 #include <string>
+#include <optional>
 
 namespace gridex::rockpie {
 
@@ -32,6 +33,7 @@ struct EdgeHealthMessage {
     bool northboundReady{false};
     std::size_t nodeOnlineCount{0};
     std::size_t nodeTotal{0};
+    std::optional<double> cpuTemperatureC;
 };
 
 class MqttHealthPublisher {

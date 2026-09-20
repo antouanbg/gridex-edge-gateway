@@ -1,6 +1,7 @@
 #include "gridex/rockpie/MqttHealthPublisher.hpp"
 
 #include <chrono>
+#include <cmath>
 #include <ctime>
 #include <fstream>
 #include <iomanip>
@@ -169,7 +170,15 @@ std::string MqttHealthPublisher::healthPayload(const EdgeHealthMessage& message)
            << ",\"safeMode\":" << jsonBoolean(message.safeMode)
            << ",\"northboundReady\":" << jsonBoolean(message.northboundReady)
            << ",\"nodeOnlineCount\":" << message.nodeOnlineCount
-           << ",\"nodeTotal\":" << message.nodeTotal << "}";
+           << ",\"nodeTotal\":" << message.nodeTotal
+           << ",\"cpuTemperatureC\":";
+    if (message.cpuTemperatureC && std::isfinite(*message.cpuTemperatureC)
+        && *message.cpuTemperatureC >= -40.0 && *message.cpuTemperatureC <= 150.0) {
+        output << *message.cpuTemperatureC;
+    } else {
+        output << "null";
+    }
+    output << "}";
     return output.str();
 }
 

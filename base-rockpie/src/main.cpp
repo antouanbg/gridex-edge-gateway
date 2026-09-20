@@ -4,6 +4,7 @@
 #include "gridex/rockpie/PosixModbusTcpClient.hpp"
 #include "gridex/rockpie/MqttHealthPublisher.hpp"
 #include "gridex/rockpie/TelemetryJournal.hpp"
+#include "gridex/rockpie/CpuTemperature.hpp"
 
 #include <atomic>
 #include <algorithm>
@@ -184,6 +185,8 @@ int main() {
     });
     const auto healthInterval = std::chrono::seconds(
         std::clamp(envInt("GRIDEX_HEALTH_PUBLISH_SECONDS", 10), 2, 300));
+    const bool cpuTemperatureEnabled = envBool("GRIDEX_CPU_TEMPERATURE_ENABLED", false);
+    const auto cpuTemperaturePath = envString("GRIDEX_CPU_TEMPERATURE_FILE", "/sys/class/thermal/thermal_zone0/temp");
     const auto telemetryInterval = std::chrono::seconds(
         std::clamp(envInt("GRIDEX_NODE_TELEMETRY_PUBLISH_SECONDS", 2), 1, 300));
     gridex::rockpie::TelemetryJournal telemetryJournal({
@@ -302,6 +305,8 @@ int main() {
                 .northboundReady = true,
                 .nodeOnlineCount = onlineNodes,
                 .nodeTotal = nodeSamples.size(),
+                .cpuTemperatureC = cpuTemperatureEnabled
+                    ? gridex::rockpie::readCpuTemperature(cpuTemperaturePath) : std::nullopt,
             });
             nextHealthPublish = now + healthInterval;
         }
