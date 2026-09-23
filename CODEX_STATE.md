@@ -25,6 +25,15 @@ until the corrected candidate survives the one-shot capture.
 The later user-provided trace still printed `fc1c012`/`pump()`; remote branch
 HEAD is `372b375`, so that trace is not a new validation of the fix. The
 diagnostic now rejects obsolete source before building it.
+Corrected `cf834fc` survived the physical 55-second one-shot, connected to
+MQTT, and locally queued two five-sample system messages with control locked.
+The test stopped the service afterward. Broker connection is confirmed, but
+backend history outbox still had zero rows as of 2026-09-23 20:59 UTC. The
+activation guard now requires PID/MQTT/publish evidence and preserves rollback;
+OpenRemote/Timescale delivery remains a separate, unverified gate.
+The broker ACL file changed after broker startup with no logged reload; a
+scoped SIGHUP reloaded it and the broker stayed healthy. Stale ACL is a
+hypothesis for the zero outbox rows, pending the next physical publish.
 
 Физическата активация на последователния MQTT loop (`927d73a`) се компилира,
 но не издържа 45-секундната проверка. Rollback върна предишния binary/config;
@@ -47,6 +56,15 @@ compile flag и неподдържаната комбинация `mosquitto_con
 По-късният изпратен stack пак показва `fc1c012`/`pump()`; remote branch HEAD
 е `372b375`, следователно това не е нов тест на поправката. Диагностиката
 вече отказва стар source преди build.
+Поправеният `cf834fc` издържа физическия 55-секунден тест, свърза се с MQTT
+и локално подаде две system съобщения с по пет измервания, при заключен
+control. Тестът после спря услугата. Broker връзката е потвърдена, но backend
+history outbox още имаше нула реда към 2026-09-23 20:59 UTC. Скриптът за
+активация вече изисква PID/MQTT/publish доказателства и пази rollback;
+OpenRemote/Timescale доставката остава отделна непотвърдена проверка.
+Broker ACL файлът е променен след старта на broker-а без записан reload;
+ограничен SIGHUP го презареди и broker остана healthy. Стар ACL е хипотеза
+за нулевия outbox до следващото физическо публикуване.
 
 ## Pilot inventory reconciled / Пилотен инвентар съгласуван — 2026-09-20
 

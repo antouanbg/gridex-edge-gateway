@@ -55,6 +55,26 @@ the previous diagnostic result, not evidence against the fix. GitHub branch
 HEAD was verified as `372b375`. The diagnostic script now refuses source that
 still calls `pump()` or lacks `mosquitto_loop_start()`.
 
+Physical one-shot of corrected `cf834fc` PASSED: 55 seconds without a crash,
+MQTT CONNACK success, and two successful local QoS1 publish calls with five
+system samples each. `writes_enabled=false` and `commissioning_locked` stayed
+intact. The diagnostic deliberately stopped the service afterward; the
+installed binary was not replaced. Broker logs confirm the pilot MQTT client
+connected. Backend history worker has six configured system bindings and an
+active subscription, but the read-only outbox query returned ZERO rows as of
+2026-09-23 20:59 UTC. Local `publish=true` is not a broker acknowledgement or
+stored datapoint, so backend delivery/history is NOT verified. The activation
+script now rejects obsolete source and requires stable PID, successful MQTT
+connect log and a system telemetry publish log within 45 seconds; its rollback
+remains in place. After activation, independently check the broker and outbox
+before calling telemetry live.
+The active broker ACL file was modified at 2026-09-23 15:39 UTC, while the
+broker process had been running since 2026-09-15. No ACL reload was seen in
+the intervening logs. A scoped SIGHUP was sent to the broker on 2026-09-23
+to reload that file without restarting the container; it remained healthy.
+This is a likely explanation for the zero outbox rows, NOT yet proven. The
+next physical ROCK activation and subsequent broker/outbox checks will test it.
+
 Физическият опит компилира commit `927d73a` на ROCK Pi, но услугата не издържа
 45-секундната проверка. Инсталаторът върна предишния binary/config; и той
 падна, затова услугата остана СПРЯНА. Няма потвърден live ROCK heartbeat,
@@ -104,6 +124,25 @@ systemd/gdb върна `Permission denied` за временния път в `/r
 предишният резултат, не доказателство срещу поправката. GitHub branch HEAD е
 проверен като `372b375`. Диагностичният скрипт вече отказва стар source с
 `pump()` или без `mosquitto_loop_start()`.
+
+Физическият еднократен тест на поправения `cf834fc` МИНА: 55 секунди без crash,
+успешно MQTT свързване и две успешни локални QoS1 publish извиквания с по пет
+системни измервания. `writes_enabled=false` и `commissioning_locked` останаха.
+След теста диагностиката умишлено спря услугата; инсталираният binary не е
+подменен. Broker log потвърждава връзката на пилотния MQTT клиент. Backend
+history worker има шест конфигурирани system bindings и активен абонамент, но
+read-only проверката на outbox върна НУЛА реда към 2026-09-23 20:59 UTC.
+Локалното `publish=true` не е broker acknowledgement или записан datapoint,
+затова backend доставката/историята НЕ са потвърдени. Скриптът за активация
+вече отказва стар source и изисква стабилен PID, успешен MQTT connect log и
+system telemetry publish log в 45 секунди; rollback е запазен. След активация
+broker и outbox се проверяват отделно преди да се обяви live телеметрия.
+Активният broker ACL файл е променен на 2026-09-23 15:39 UTC, а broker
+процесът работеше още от 2026-09-15. В междинните логове няма ACL reload.
+На 2026-09-23 е изпратен ограничен SIGHUP за презареждане на файла без
+рестарт на контейнера; broker остана healthy. Това вероятно обяснява празния
+outbox, но още НЕ е доказано. Следващата физическа активация на ROCK и
+последващите broker/outbox проверки ще го проверят.
 
 ## Pilot inventory reconciled / Пилотен инвентар съгласуван — 2026-09-20
 

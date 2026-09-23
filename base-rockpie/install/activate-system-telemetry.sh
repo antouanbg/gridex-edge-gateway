@@ -43,6 +43,12 @@ else
     source_dir=$(mktemp -d /tmp/gridex-edge-source.XXXXXX)
     git clone --depth 1 --branch feat/rock-temperature https://github.com/antouanbg/gridex-edge-gateway.git "$source_dir"
 fi
+if grep -q 'healthPublisher.pump();' "$source_dir/base-rockpie/src/main.cpp" ||
+   ! grep -q 'mosquitto_loop_start' "$source_dir/base-rockpie/src/MqttHealthPublisher.cpp"; then
+    [ "$source_dir" = "$repo" ] || rm -rf "$source_dir"
+    echo 'Fetched an obsolete MQTT candidate; refusing activation.' >&2
+    exit 1
+fi
 
 build_dir=$(mktemp -d /tmp/gridex-rock-telemetry.XXXXXX)
 backup_dir=/var/backups/gridex-rock-telemetry-$(date +%Y%m%d%H%M%S)
@@ -72,11 +78,15 @@ sed -i \
 chmod 0640 "$env_file"
 
 systemctl daemon-reload
+start_at=$(date --iso-8601=seconds)
 systemctl restart gridex-rockpie
 first_pid=$(systemctl show gridex-rockpie -p MainPID --value)
 sleep 45
 last_pid=$(systemctl show gridex-rockpie -p MainPID --value)
-if ! systemctl is-active --quiet gridex-rockpie || [ "$first_pid" = 0 ] || [ "$first_pid" != "$last_pid" ]; then
+mqtt_connected=$(journalctl -u gridex-rockpie --since "$start_at" --no-pager -o cat | grep -c '"mqtt_connect_result":0' || true)
+system_published=$(journalctl -u gridex-rockpie --since "$start_at" --no-pager -o cat | grep -c '"system_telemetry_publish":true' || true)
+if ! systemctl is-active --quiet gridex-rockpie || [ "$first_pid" = 0 ] || [ "$first_pid" != "$last_pid" ] ||
+   [ "$mqtt_connected" -lt 1 ] || [ "$system_published" -lt 1 ]; then
     echo "New service did not remain stable; restoring the previous binary and config." >&2
     systemctl stop gridex-rockpie
     cp -p "$backup_dir/gridex_rockpie_service" "$binary"
@@ -92,5 +102,5 @@ if ! systemctl is-active --quiet gridex-rockpie || [ "$first_pid" = 0 ] || [ "$f
     echo "ROCK_SYSTEM_TELEMETRY_FAILED backup=$backup_dir" >&2
     exit 1
 fi
-echo "ROCK_SYSTEM_TELEMETRY_ACTIVE backup=$backup_dir"
+echo "ROCK_SYSTEM_TELEMETRY_ACTIVE backup=$backup_dir mqtt_connects=$mqtt_connected local_publishes=$system_published"
 journalctl -u gridex-rockpie --since '10 seconds ago' --no-pager | tail -n 20
