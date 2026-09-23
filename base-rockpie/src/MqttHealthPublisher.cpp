@@ -5,6 +5,7 @@
 #include <ctime>
 #include <fstream>
 #include <iomanip>
+#include <iostream>
 #include <sstream>
 #include <string_view>
 #include <utility>
@@ -282,12 +283,20 @@ bool MqttHealthPublisher::publishSystemTelemetry(
 #ifdef GRIDEX_WITH_MOSQUITTO
 void MqttHealthPublisher::onConnect(void*, void* context, int result) noexcept {
     auto* publisher = static_cast<MqttHealthPublisher*>(context);
-    if (publisher) publisher->connected_ = result == MOSQ_ERR_SUCCESS;
+    if (publisher) {
+        publisher->connected_ = result == MOSQ_ERR_SUCCESS;
+        std::cerr << "{\"mqtt_connect_result\":" << result
+                  << ",\"connected\":"
+                  << (publisher->connected_ ? "true" : "false") << "}\n";
+    }
 }
 
-void MqttHealthPublisher::onDisconnect(void*, void* context, int) noexcept {
+void MqttHealthPublisher::onDisconnect(void*, void* context, int result) noexcept {
     auto* publisher = static_cast<MqttHealthPublisher*>(context);
-    if (publisher) publisher->connected_ = false;
+    if (publisher) {
+        publisher->connected_ = false;
+        std::cerr << "{\"mqtt_disconnect_result\":" << result << "}\n";
+    }
 }
 #endif
 
