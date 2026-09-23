@@ -12,7 +12,7 @@ fi
 if ! command -v gdb >/dev/null 2>&1; then
     export DEBIAN_FRONTEND=noninteractive
     apt-get update -qq
-    apt-get install -y -qq gdb >/dev/null
+    apt-get install -y -qq --no-install-recommends --no-upgrade gdb >/dev/null
 fi
 
 override_dir=/run/systemd/system/gridex-rockpie.service.d
