@@ -1,5 +1,25 @@
 # CODEX_STATE.md
 
+## ROCK Pi pilot stopped after repeat crash / ROCK Pi пилотът е спрян след повторен crash — 2026-09-23
+
+The physical activation of the serialized MQTT loop (`927d73a`) compiled but
+failed the 45-second process-stability check. Automatic rollback restored the
+previous binary and config; the previous binary also failed, so the service
+was stopped to prevent a restart loop. MQTT connection had previously returned
+success (`mqtt_connect_result=0`), followed by `SIGSEGV`; root cause is not
+proven. Next action: collect the most recent core/kernel crash evidence with
+`base-rockpie/install/diagnose-rock-crash.sh` before another build/deployment.
+No live ROCK telemetry or history datapoint is verified.
+
+Физическата активация на последователния MQTT loop (`927d73a`) се компилира,
+но не издържа 45-секундната проверка за стабилен процес. Автоматичният rollback
+възстанови предишния binary и config; предишният binary също падна, затова
+услугата беше спряна срещу безкраен restart. Преди това MQTT връзката беше
+успешна (`mqtt_connect_result=0`), след което имаше `SIGSEGV`; причината не е
+доказана. Следващо действие: събери последния core/kernel crash с
+`base-rockpie/install/diagnose-rock-crash.sh` преди нов build/deployment.
+Няма потвърдена live ROCK телеметрия или history datapoint.
+
 ## Pilot inventory reconciled / Пилотен инвентар съгласуван — 2026-09-20
 
 DEPLOYED via supported OpenRemote APIs: pilot Site -> ROCK -> ESP, with the

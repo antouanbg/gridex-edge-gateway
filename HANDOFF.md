@@ -4,6 +4,27 @@ Repository / GitHub: `antouanbg/gridex-edge-gateway`
 
 ## ROCK system telemetry crash recovery — 2026-09-23
 
+Update after physical attempt: commit `927d73a` built successfully on ROCK Pi,
+but the service failed the 45-second stability check. The installer restored
+the preceding binary/configuration; that binary also crashed, so it stopped
+the service. The pilot ROCK Pi service is currently STOPPED. No live ROCK
+heartbeat/system telemetry or stored system datapoint is verified. Do not
+rerun the activation script before collecting crash evidence. Run the
+read-only `base-rockpie/install/diagnose-rock-crash.sh` on ROCK Pi and inspect
+the most recent core backtrace/kernel crash line first. If no core exists,
+prepare one controlled diagnostic run with a core capture rather than another
+blind production activation.
+
+След физическия опит: commit `927d73a` се компилира успешно на ROCK Pi, но
+услугата не издържа 45-секундната проверка. Инсталаторът възстанови предишния
+binary/config; и този binary падна, затова услугата беше СПРЯНА. За пилотния
+ROCK Pi няма потвърден live heartbeat/системна телеметрия или записана
+system datapoint стойност. Не повтаряй инсталацията преди crash диагностика.
+Пусни read-only `base-rockpie/install/diagnose-rock-crash.sh` на ROCK Pi и
+първо прегледай последния core backtrace/kernel crash ред. Ако няма core,
+подготви едно контролирано диагностично стартиране с core capture, вместо
+нова сляпа активация.
+
 The physical pilot repeatedly exited with `SIGSEGV` shortly after MQTT
 connected (`mqtt_connect_result=0`). The earlier "offline MQTT" explanation was
 incorrect. The crash location is not yet proven by a core backtrace. The
