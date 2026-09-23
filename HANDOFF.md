@@ -2,6 +2,41 @@
 
 Repository / GitHub: `antouanbg/gridex-edge-gateway`
 
+## ROCK system telemetry crash recovery — 2026-09-23
+
+The physical pilot repeatedly exited with `SIGSEGV` shortly after MQTT
+connected (`mqtt_connect_result=0`). The earlier "offline MQTT" explanation was
+incorrect. The crash location is not yet proven by a core backtrace. The
+follow-up change serializes `mosquitto_loop` and MQTT publishing on the service
+main thread, includes bounded reconnect attempts, and makes the activation
+script verify a stable PID for 15 seconds. If it fails, the script restores
+the previous binary/config; if that also fails, it stops the service to avoid
+an endless restart loop. This is built and unit-tested on macOS and in an
+ARM64 Linux container with `libmosquitto`; it still needs physical validation.
+The Site's control approval gates must remain at zero. Do not call the ROCK
+system telemetry or OpenRemote/Timescale history live until a fresh MQTT
+message and stored datapoint are independently verified. Next safe action:
+run `base-rockpie/install/activate-system-telemetry.sh` once on ROCK Pi, then
+read service status/logs and verify broker receipt plus the stored datapoint.
+If the service fails again, collect a core backtrace before another code fix.
+
+Физическият пилот многократно падна със `SIGSEGV` скоро след успешна MQTT
+връзка (`mqtt_connect_result=0`). Предишното обяснение с offline MQTT беше
+погрешно. Точното място на crash-а още не е доказано с core backtrace.
+Следващата поправка изпълнява `mosquitto_loop` и MQTT публикуването последователно
+в основната нишка, добавя ограничени опити за повторна връзка и кара
+инсталационния скрипт да проверява стабилен PID за 15 секунди. При отказ
+скриптът възстановява предишния binary/config; ако и той пада, спира услугата,
+за да няма безкрайни рестарти. Build и unit тестовете минават на macOS и в
+ARM64 Linux контейнер с `libmosquitto`; физическата проверка предстои.
+Control approval gate-овете на Обекта остават нула. ROCK системната телеметрия
+и OpenRemote/Timescale историята не се обявяват за live преди отделно да се
+потвърдят ново MQTT съобщение и записана datapoint стойност. Следващата
+безопасна стъпка е еднократно изпълнение на
+`base-rockpie/install/activate-system-telemetry.sh` на ROCK Pi, проверка на
+service status/log и на broker receipt плюс записаната datapoint стойност.
+При нов crash първо се събира core backtrace.
+
 ## Pilot inventory reconciled / Пилотен инвентар съгласуван — 2026-09-20
 
 DEPLOYED via supported OpenRemote APIs: pilot Site -> ROCK -> ESP, with the

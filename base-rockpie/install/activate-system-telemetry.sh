@@ -73,6 +73,24 @@ chmod 0640 "$env_file"
 
 systemctl daemon-reload
 systemctl restart gridex-rockpie
-systemctl is-active --quiet gridex-rockpie
+first_pid=$(systemctl show gridex-rockpie -p MainPID --value)
+sleep 15
+last_pid=$(systemctl show gridex-rockpie -p MainPID --value)
+if ! systemctl is-active --quiet gridex-rockpie || [ "$first_pid" = 0 ] || [ "$first_pid" != "$last_pid" ]; then
+    echo "New service did not remain stable; restoring the previous binary and config." >&2
+    systemctl stop gridex-rockpie
+    cp -p "$backup_dir/gridex_rockpie_service" "$binary"
+    cp -p "$backup_dir/gridex-rockpie.env" "$env_file"
+    systemctl start gridex-rockpie
+    previous_pid=$(systemctl show gridex-rockpie -p MainPID --value)
+    sleep 10
+    restored_pid=$(systemctl show gridex-rockpie -p MainPID --value)
+    if ! systemctl is-active --quiet gridex-rockpie || [ "$previous_pid" = 0 ] || [ "$previous_pid" != "$restored_pid" ]; then
+        systemctl stop gridex-rockpie
+        echo "Rollback binary also failed; service stopped to prevent a restart loop." >&2
+    fi
+    echo "ROCK_SYSTEM_TELEMETRY_FAILED backup=$backup_dir" >&2
+    exit 1
+fi
 echo "ROCK_SYSTEM_TELEMETRY_ACTIVE backup=$backup_dir"
 journalctl -u gridex-rockpie --since '10 seconds ago' --no-pager | tail -n 20

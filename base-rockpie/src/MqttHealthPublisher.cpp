@@ -109,6 +109,14 @@ MqttHealthPublisher::MqttHealthPublisher(MqttHealthPublisherConfig config)
     libraryInitialized_ = true;
     client_ = mosquitto_new(config_.clientId.empty() ? nullptr : config_.clientId.c_str(), true, this);
     if (!client_) return;
+    // The service has polling/server threads even though only its main thread
+    // calls the MQTT client API. libmosquitto requires this flag when the
+    // application uses threads without mosquitto_loop_start().
+    if (mosquitto_threaded_set(static_cast<mosquitto*>(client_), true) != MOSQ_ERR_SUCCESS) {
+        mosquitto_destroy(static_cast<mosquitto*>(client_));
+        client_ = nullptr;
+        return;
+    }
     const auto password = readSecretFile(config_.passwordFile);
     const bool clientCertificatePair = !config_.clientCertificateFile.empty() || !config_.clientKeyFile.empty();
     const bool tlsConfigured = mosquitto_tls_set(
@@ -129,8 +137,7 @@ MqttHealthPublisher::MqttHealthPublisher(MqttHealthPublisherConfig config)
             MqttHealthPublisher::onDisconnect(client, context, result);
         });
     if (!tlsConfigured || !authConfigured || !secure ||
-        mosquitto_connect_async(static_cast<mosquitto*>(client_), endpoint.host.c_str(), endpoint.port, 30) != MOSQ_ERR_SUCCESS ||
-        mosquitto_loop_start(static_cast<mosquitto*>(client_)) != MOSQ_ERR_SUCCESS) {
+        mosquitto_connect_async(static_cast<mosquitto*>(client_), endpoint.host.c_str(), endpoint.port, 30) != MOSQ_ERR_SUCCESS) {
         mosquitto_destroy(static_cast<mosquitto*>(client_));
         client_ = nullptr;
     }
@@ -140,8 +147,6 @@ MqttHealthPublisher::MqttHealthPublisher(MqttHealthPublisherConfig config)
 MqttHealthPublisher::~MqttHealthPublisher() {
 #ifdef GRIDEX_WITH_MOSQUITTO
     if (client_) {
-        mosquitto_disconnect(static_cast<mosquitto*>(client_));
-        mosquitto_loop_stop(static_cast<mosquitto*>(client_), true);
         mosquitto_destroy(static_cast<mosquitto*>(client_));
     }
     if (libraryInitialized_) mosquitto_lib_cleanup();
@@ -158,6 +163,21 @@ bool MqttHealthPublisher::connected() const noexcept {
     return client_ != nullptr && connected_;
 #else
     return false;
+#endif
+}
+
+void MqttHealthPublisher::pump() noexcept {
+#ifdef GRIDEX_WITH_MOSQUITTO
+    if (!client_) return;
+    const auto result = mosquitto_loop(static_cast<mosquitto*>(client_), 0, 1);
+    if (result != MOSQ_ERR_SUCCESS) {
+        connected_ = false;
+        const auto now = std::chrono::steady_clock::now();
+        if (now >= nextReconnectAttempt_) {
+            nextReconnectAttempt_ = now + std::chrono::seconds(5);
+            (void)mosquitto_reconnect_async(static_cast<mosquitto*>(client_));
+        }
+    }
 #endif
 }
 

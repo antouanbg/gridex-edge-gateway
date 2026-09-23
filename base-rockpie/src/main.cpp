@@ -222,6 +222,7 @@ int main() {
     }
 
     while (running) {
+        healthPublisher.pump();
         const auto now = std::chrono::steady_clock::now();
         if (const auto command = northboundBank.takeCommand()) {
             controller.receiveCommand(command->requestedPowerKw, {}, now);
@@ -340,6 +341,9 @@ int main() {
                 bootId, sequence, samples);
             if (!published) {
                 std::cerr << "{\"system_telemetry_publish\":false,\"sequence\":"
+                          << sequence << ",\"samples\":" << samples.size() << "}\n";
+            } else {
+                std::cout << "{\"system_telemetry_publish\":true,\"sequence\":"
                           << sequence << ",\"samples\":" << samples.size() << "}\n";
             }
             nextSystemTelemetryPublish = now + systemTelemetryInterval;

@@ -3,6 +3,7 @@
 #include "gridex/rockpie/MbusNodeTelemetry.hpp"
 
 #include <atomic>
+#include <chrono>
 #include <cstddef>
 #include <cstdint>
 #include <string>
@@ -52,6 +53,10 @@ class MqttHealthPublisher {
 
     [[nodiscard]] bool configured() const noexcept;
     [[nodiscard]] bool connected() const noexcept;
+    // Drive the MQTT state machine from the service's main loop.  Keeping
+    // publish and loop operations on one thread avoids libmosquitto races on
+    // the ARM image.
+    void pump() noexcept;
     bool publishHealth(const EdgeHealthMessage& message) noexcept;
     bool publishNodeTelemetry(const std::string& siteId,
                               const std::string& gatewayId,
@@ -75,6 +80,7 @@ class MqttHealthPublisher {
     void* client_{nullptr};
     std::atomic_bool connected_{false};
     bool libraryInitialized_{false};
+    std::chrono::steady_clock::time_point nextReconnectAttempt_{};
     static void onConnect(void* client, void* context, int result) noexcept;
     static void onDisconnect(void* client, void* context, int result) noexcept;
 #endif
