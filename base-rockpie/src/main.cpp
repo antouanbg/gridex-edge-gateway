@@ -329,7 +329,10 @@ int main() {
             }
             nextTelemetryPublish = now + telemetryInterval;
         }
-        if (systemTelemetryEnabled && now >= nextSystemTelemetryPublish) {
+        // Do not enter the system telemetry/filesystem path while MQTT is
+        // offline.  This keeps the edge loop stable during broker/TLS
+        // outages; the next interval retries automatically after reconnect.
+        if (systemTelemetryEnabled && healthPublisher.connected() && now >= nextSystemTelemetryPublish) {
             const auto samples = gridex::rockpie::readSystemTelemetry(systemDataDirectory, telemetryJournal.path(), cpuTemperaturePath, cpuTemperatureEnabled);
             const auto sequence = ++systemTelemetrySequence;
             const bool published = healthPublisher.publishSystemTelemetry(
