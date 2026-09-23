@@ -17,13 +17,13 @@ fi
 
 override_dir=/run/systemd/system/gridex-rockpie.service.d
 override_file=$override_dir/90-gridex-crash-debug.conf
-debug_dir=/run/gridex-rock-debug
+debug_binary=/usr/local/bin/gridex_rockpie_debug
 if [ -e "$override_file" ]; then
     echo "Existing debug override found: $override_file" >&2
     exit 1
 fi
-if [ -e "$debug_dir" ]; then
-    echo "Existing debug path found: $debug_dir" >&2
+if [ -e "$debug_binary" ]; then
+    echo "Existing debug binary found: $debug_binary" >&2
     exit 1
 fi
 
@@ -33,8 +33,7 @@ cleanup() {
     rm -f "$override_file"
     systemctl daemon-reload >/dev/null 2>&1 || true
     systemctl reset-failed gridex-rockpie >/dev/null 2>&1 || true
-    rm -f "$debug_dir/gridex_rockpie_service"
-    rmdir "$debug_dir" >/dev/null 2>&1 || true
+    rm -f "$debug_binary"
     rm -rf "$temporary_dir"
 }
 trap cleanup EXIT HUP INT TERM
@@ -46,9 +45,8 @@ cmake -S "$temporary_dir/source/base-rockpie" -B "$temporary_dir/build" \
     -DGRIDEX_ENABLE_PRIVATE_MQTT=ON -DGRIDEX_REQUIRE_MQTT=ON
 cmake --build "$temporary_dir/build" --target gridex_rockpie_service --parallel 2
 ldd "$temporary_dir/build/gridex_rockpie_service" | grep libmosquitto
-install -d -m 0755 "$debug_dir"
 install -m 0755 "$temporary_dir/build/gridex_rockpie_service" \
-    "$debug_dir/gridex_rockpie_service"
+    "$debug_binary"
 install -d -m 0755 "$override_dir"
 install -m 0644 "$temporary_dir/source/base-rockpie/install/rock-crash-gdb.conf" "$override_file"
 systemctl daemon-reload

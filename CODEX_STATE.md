@@ -10,9 +10,11 @@ The one-shot `gdb` stack of that **old binary** shows SIGSEGV in
 `MqttHealthPublisher::publishNodeTelemetry()`, with a separate Mosquitto loop
 thread active. This does not diagnose the newer candidate's failure. The
 updated one-shot script now builds and runs the candidate under `gdb` from a
-temporary path without installing it, then leaves the service stopped. Its
-physical result is pending. No live ROCK telemetry or history datapoint is
-verified.
+separate debug binary without replacing the installed service, then leaves
+the service stopped. The first attempt (`de9f42d`) hit `Permission denied`
+executing from `/run`, so the debug binary was moved to a separate path in
+`/usr/local/bin`; candidate crash evidence is still pending. No live ROCK
+telemetry or history datapoint is verified.
 
 Физическата активация на последователния MQTT loop (`927d73a`) се компилира,
 но не издържа 45-секундната проверка. Rollback върна предишния binary/config;
@@ -21,9 +23,11 @@ verified.
 `mosquitto_publish_v5()`, извикан от `MqttHealthPublisher::publishNodeTelemetry()`,
 докато отделна Mosquitto loop нишка работи. Това не диагностицира отказа на
 новия кандидат. Обновеният еднократен скрипт компилира и пуска кандидата под
-`gdb` от временен път, без да го инсталира, после оставя услугата спряна.
-Физическият му резултат предстои. Няма потвърдена live ROCK телеметрия или
-history datapoint.
+`gdb` като отделен debug binary, после оставя услугата спряна.
+Първият опит (`de9f42d`) получи `Permission denied` при изпълнение от `/run`,
+затова debug binary е преместен на отделен път в `/usr/local/bin`, без да
+замества инсталирания service binary. Stack-ът на кандидата още предстои.
+Няма потвърдена live ROCK телеметрия или history datapoint.
 
 ## Pilot inventory reconciled / Пилотен инвентар съгласуван — 2026-09-20
 

@@ -20,7 +20,7 @@ The earlier "MQTT offline" explanation was incorrect: connection result was 0.
 
 Next controlled action: run the updated
 `base-rockpie/install/capture-rock-crash-stack.sh` once. It builds the current
-candidate from `feat/rock-temperature` with symbols into a temporary location,
+candidate from `feat/rock-temperature` with symbols into a separate debug binary,
 runs that candidate under the existing service identity/environment using a
 runtime-only `Restart=no` override, captures its stack, removes the override
 and temporary binary, and leaves the service stopped. It does not replace the
@@ -28,6 +28,13 @@ installed binary/configuration or print the protected env. Do **not** rerun
 `activate-system-telemetry.sh` until the candidate is diagnosed and a fix
 passes physical validation. Claim live data only after fresh MQTT receipt and
 an independently verified OpenRemote/Timescale datapoint.
+
+First candidate diagnostic attempt (`de9f42d`) did not execute its binary:
+systemd/gdb reported `Permission denied` for the temporary `/run` path. This
+was a diagnostic staging-path failure, not evidence of a new application crash.
+The script now stages the separate `gridex_rockpie_debug` executable next to
+the known executable service binary in `/usr/local/bin`, refuses an existing
+file at that exact path, and removes only its own file afterward.
 
 Физическият опит компилира commit `927d73a` на ROCK Pi, но услугата не издържа
 45-секундната проверка. Инсталаторът върна предишния binary/config; и той
@@ -45,13 +52,20 @@ gate-овете остават нула.
 
 Следва еднократно изпълнение на обновения
 `base-rockpie/install/capture-rock-crash-stack.sh`. Той компилира текущия
-кандидат от `feat/rock-temperature` със symbols във временна директория,
+кандидат от `feat/rock-temperature` със symbols като отделен debug binary,
 пуска го с текущите service identity/env и runtime-only override с
 `Restart=no`, събира stack, почиства временните файлове и оставя услугата
 спряна. Не подменя инсталирания binary/config и не показва защитения env.
 **Не** пускай `activate-system-telemetry.sh` пак, преди кандидатът да бъде
 диагностициран и поправката да мине физически тест. Live данни се заявяват
 едва след ново MQTT съобщение и отделно потвърден OpenRemote/Timescale запис.
+
+Първият диагностичен опит на кандидата (`de9f42d`) не изпълни binary:
+systemd/gdb върна `Permission denied` за временния път в `/run`. Това е отказ
+на диагностичния staging път, не нов доказан application crash. Скриптът вече
+поставя отделния `gridex_rockpie_debug` до изпълнимия service binary в
+`/usr/local/bin`, отказва съществуващ файл на този точен път и после премахва
+само своя временен файл.
 
 ## Pilot inventory reconciled / Пилотен инвентар съгласуван — 2026-09-20
 
