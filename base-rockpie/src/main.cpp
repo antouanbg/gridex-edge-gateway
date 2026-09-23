@@ -146,9 +146,8 @@ int main() {
         gridex::SafetyEnvelope{},
         controllerConfig
     );
-    // Initialize MQTT before starting any worker threads and keep it alive
-    // until those workers have stopped (reverse destruction order).  This is
-    // required by libmosquitto's global pthread state on small ARM systems.
+    // Keep MQTT alive until the polling/server workers have stopped (reverse
+    // destruction order). Its libmosquitto network loop runs in its own thread.
     gridex::rockpie::MqttHealthPublisher healthPublisher({
         .brokerUrl = envString("GRIDEX_MQTT_BROKER_URL", ""),
         .topicPrefix = envString("GRIDEX_MQTT_TOPIC_PREFIX", "gridex/v1"),
@@ -222,7 +221,6 @@ int main() {
     }
 
     while (running) {
-        healthPublisher.pump();
         const auto now = std::chrono::steady_clock::now();
         if (const auto command = northboundBank.takeCommand()) {
             controller.receiveCommand(command->requestedPowerKw, {}, now);

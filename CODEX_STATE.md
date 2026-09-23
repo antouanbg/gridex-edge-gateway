@@ -15,6 +15,13 @@ the service stopped. The first attempt (`de9f42d`) hit `Permission denied`
 executing from `/run`, so the debug binary was moved to a separate path in
 `/usr/local/bin`; candidate crash evidence is still pending. No live ROCK
 telemetry or history datapoint is verified.
+The `fc1c012` candidate also crashed, in main-thread `mosquitto_loop()`.
+Review found a mismatched class layout across translation units because the
+public header was conditional on a PRIVATE compile definition, plus an
+unsupported `mosquitto_connect_async()` + manual `mosquitto_loop()` pairing.
+Both are corrected on the branch with an ABI regression test. Eight macOS
+tests pass; physical validation is still pending. Do not activate the service
+until the corrected candidate survives the one-shot capture.
 
 Физическата активация на последователния MQTT loop (`927d73a`) се компилира,
 но не издържа 45-секундната проверка. Rollback върна предишния binary/config;
@@ -28,6 +35,12 @@ telemetry or history datapoint is verified.
 затова debug binary е преместен на отделен път в `/usr/local/bin`, без да
 замества инсталирания service binary. Stack-ът на кандидата още предстои.
 Няма потвърдена live ROCK телеметрия или history datapoint.
+Кандидатът `fc1c012` също падна — в `mosquitto_loop()` на основната нишка.
+Открити са различен размер на класа между translation units заради PRIVATE
+compile flag и неподдържаната комбинация `mosquitto_connect_async()` + ръчен
+`mosquitto_loop()`. И двете са поправени в branch-а с ABI регресионен тест.
+Осемте macOS теста минават, физическата проверка предстои. Не активирай
+услугата преди поправеният кандидат да издържи еднократния тест.
 
 ## Pilot inventory reconciled / Пилотен инвентар съгласуван — 2026-09-20
 

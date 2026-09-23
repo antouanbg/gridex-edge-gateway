@@ -53,10 +53,6 @@ class MqttHealthPublisher {
 
     [[nodiscard]] bool configured() const noexcept;
     [[nodiscard]] bool connected() const noexcept;
-    // Drive the MQTT state machine from the service's main loop.  Keeping
-    // publish and loop operations on one thread avoids libmosquitto races on
-    // the ARM image.
-    void pump() noexcept;
     bool publishHealth(const EdgeHealthMessage& message) noexcept;
     bool publishNodeTelemetry(const std::string& siteId,
                               const std::string& gatewayId,
@@ -76,14 +72,14 @@ class MqttHealthPublisher {
 
   private:
     MqttHealthPublisherConfig config_;
-#ifdef GRIDEX_WITH_MOSQUITTO
+    // Keep the public header's class layout independent of the library's
+    // private build flag. The service and this library are separate C++ TUs.
     void* client_{nullptr};
     std::atomic_bool connected_{false};
     bool libraryInitialized_{false};
-    std::chrono::steady_clock::time_point nextReconnectAttempt_{};
+    bool loopStarted_{false};
     static void onConnect(void* client, void* context, int result) noexcept;
     static void onDisconnect(void* client, void* context, int result) noexcept;
-#endif
 };
 
 }  // namespace gridex::rockpie

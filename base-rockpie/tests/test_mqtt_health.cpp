@@ -6,10 +6,13 @@
 #include <sstream>
 #include <limits>
 
+std::size_t mqttPublisherSizeWithoutBuildFlag();
+
 int main() {
     using gridex::rockpie::EdgeHealthMessage;
     using gridex::rockpie::MbusNodeTelemetry;
     using gridex::rockpie::MqttHealthPublisher;
+    assert(sizeof(MqttHealthPublisher) == mqttPublisherSizeWithoutBuildFlag());
 
     const auto health = MqttHealthPublisher::healthPayload({
         .siteId = "test-site", .gatewayId = "edge-01", .state = "degraded",

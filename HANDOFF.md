@@ -36,6 +36,20 @@ The script now stages the separate `gridex_rockpie_debug` executable next to
 the known executable service binary in `/usr/local/bin`, refuses an existing
 file at that exact path, and removes only its own file afterward.
 
+The next controlled run (`fc1c012`) reproduced SIGSEGV in the newer candidate,
+now at `mosquitto_loop()` called from `MqttHealthPublisher::pump()` on the main
+thread. Code review found two concrete defects: `GRIDEX_WITH_MOSQUITTO` was a
+PRIVATE compile definition while the public header conditionally changed the
+class layout, so the service and transport library disagreed on the object's
+size; and `mosquitto_connect_async()` was combined with manual
+`mosquitto_loop()`, contrary to the Mosquitto API contract. The candidate now
+keeps layout independent of the flag, exports the flag to consumers, and pairs
+async connect with `mosquitto_loop_start()`. An ABI regression test compares
+class size compiled with/without the flag. macOS build and all eight tests
+pass (loopback tests required local-port sandbox approval). Physical validation
+of this new candidate is PENDING; service remains stopped, and the old binary
+has not been replaced. Run the one-shot capture again before activation.
+
 Физическият опит компилира commit `927d73a` на ROCK Pi, но услугата не издържа
 45-секундната проверка. Инсталаторът върна предишния binary/config; и той
 падна, затова услугата остана СПРЯНА. Няма потвърден live ROCK heartbeat,
@@ -66,6 +80,20 @@ systemd/gdb върна `Permission denied` за временния път в `/r
 поставя отделния `gridex_rockpie_debug` до изпълнимия service binary в
 `/usr/local/bin`, отказва съществуващ файл на този точен път и после премахва
 само своя временен файл.
+
+Следващият контролиран опит (`fc1c012`) възпроизведе SIGSEGV и в новия
+кандидат — този път в `mosquitto_loop()`, извикан от
+`MqttHealthPublisher::pump()` в основната нишка. Прегледът откри два конкретни
+дефекта: `GRIDEX_WITH_MOSQUITTO` беше PRIVATE compile flag, а публичният header
+променяше размера на класа според него, така че service и transport библиотеката
+не бяха съгласни за размера на обекта; `mosquitto_connect_async()` беше съчетан
+с ръчен `mosquitto_loop()`, което противоречи на Mosquitto API договора.
+Кандидатът вече има независим от flag-а class layout, изнася flag-а към
+потребителите и съчетава async connect с `mosquitto_loop_start()`. ABI
+регресионен тест сравнява размера при компилация със/без flag. macOS build и
+осемте теста минават (loopback тестовете изискваха разрешен локален порт).
+Физическата проверка ПРЕДСТОИ; услугата остава спряна и старият binary не е
+подменян. Първо повтори еднократния диагностичен тест, не активацията.
 
 ## Pilot inventory reconciled / Пилотен инвентар съгласуван — 2026-09-20
 
