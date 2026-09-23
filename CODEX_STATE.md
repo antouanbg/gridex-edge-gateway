@@ -22,6 +22,9 @@ unsupported `mosquitto_connect_async()` + manual `mosquitto_loop()` pairing.
 Both are corrected on the branch with an ABI regression test. Eight macOS and
 eight isolated ARM64 Linux tests pass; physical validation is still pending. Do not activate the service
 until the corrected candidate survives the one-shot capture.
+The later user-provided trace still printed `fc1c012`/`pump()`; remote branch
+HEAD is `372b375`, so that trace is not a new validation of the fix. The
+diagnostic now rejects obsolete source before building it.
 
 Физическата активация на последователния MQTT loop (`927d73a`) се компилира,
 но не издържа 45-секундната проверка. Rollback върна предишния binary/config;
@@ -41,6 +44,9 @@ compile flag и неподдържаната комбинация `mosquitto_con
 `mosquitto_loop()`. И двете са поправени в branch-а с ABI регресионен тест.
 Осемте macOS и осемте изолирани ARM64 Linux теста минават; физическата проверка предстои. Не активирай
 услугата преди поправеният кандидат да издържи еднократния тест.
+По-късният изпратен stack пак показва `fc1c012`/`pump()`; remote branch HEAD
+е `372b375`, следователно това не е нов тест на поправката. Диагностиката
+вече отказва стар source преди build.
 
 ## Pilot inventory reconciled / Пилотен инвентар съгласуван — 2026-09-20
 

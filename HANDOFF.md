@@ -50,6 +50,10 @@ pass (loopback tests required local-port sandbox approval). The same eight tests
 pass in an isolated ARM64 Linux container with libmosquitto. Physical validation
 of this new candidate is PENDING; service remains stopped, and the old binary
 has not been replaced. Run the one-shot capture again before activation.
+The later pasted trace still identifies commit `fc1c012` and `pump()`: it is
+the previous diagnostic result, not evidence against the fix. GitHub branch
+HEAD was verified as `372b375`. The diagnostic script now refuses source that
+still calls `pump()` or lacks `mosquitto_loop_start()`.
 
 Физическият опит компилира commit `927d73a` на ROCK Pi, но услугата не издържа
 45-секундната проверка. Инсталаторът върна предишния binary/config; и той
@@ -96,6 +100,10 @@ systemd/gdb върна `Permission denied` за временния път в `/r
 Същите осем теста минават и в изолиран ARM64 Linux контейнер с libmosquitto.
 Физическата проверка ПРЕДСТОИ; услугата остава спряна и старият binary не е
 подменян. Първо повтори еднократния диагностичен тест, не активацията.
+По-късно изпратеният stack отново сочи commit `fc1c012` и `pump()` — това е
+предишният резултат, не доказателство срещу поправката. GitHub branch HEAD е
+проверен като `372b375`. Диагностичният скрипт вече отказва стар source с
+`pump()` или без `mosquitto_loop_start()`.
 
 ## Pilot inventory reconciled / Пилотен инвентар съгласуван — 2026-09-20
 

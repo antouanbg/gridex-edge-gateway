@@ -40,6 +40,11 @@ trap cleanup EXIT HUP INT TERM
 
 git clone --depth 1 --branch feat/rock-temperature \
     https://github.com/antouanbg/gridex-edge-gateway.git "$temporary_dir/source"
+if grep -q 'healthPublisher.pump();' "$temporary_dir/source/base-rockpie/src/main.cpp" ||
+   ! grep -q 'mosquitto_loop_start' "$temporary_dir/source/base-rockpie/src/MqttHealthPublisher.cpp"; then
+    echo 'Fetched an obsolete MQTT candidate; refusing to run it.' >&2
+    exit 1
+fi
 cmake -S "$temporary_dir/source/base-rockpie" -B "$temporary_dir/build" \
     -DCMAKE_BUILD_TYPE=RelWithDebInfo \
     -DGRIDEX_ENABLE_PRIVATE_MQTT=ON -DGRIDEX_REQUIRE_MQTT=ON
