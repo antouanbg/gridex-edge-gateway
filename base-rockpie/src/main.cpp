@@ -328,7 +328,14 @@ int main() {
         }
         if (systemTelemetryEnabled && now >= nextSystemTelemetryPublish) {
             const auto samples = gridex::rockpie::readSystemTelemetry(systemDataDirectory, telemetryJournal.path(), cpuTemperaturePath, cpuTemperatureEnabled);
-            (void)healthPublisher.publishSystemTelemetry(envString("GRIDEX_SITE_ID", ""), envString("GRIDEX_GATEWAY_ID", ""), bootId, ++systemTelemetrySequence, samples);
+            const auto sequence = ++systemTelemetrySequence;
+            const bool published = healthPublisher.publishSystemTelemetry(
+                envString("GRIDEX_SITE_ID", ""), envString("GRIDEX_GATEWAY_ID", ""),
+                bootId, sequence, samples);
+            if (!published) {
+                std::cerr << "{\"system_telemetry_publish\":false,\"sequence\":"
+                          << sequence << ",\"samples\":" << samples.size() << "}\n";
+            }
             nextSystemTelemetryPublish = now + systemTelemetryInterval;
         }
         if (now >= nextJournalSnapshot) {
