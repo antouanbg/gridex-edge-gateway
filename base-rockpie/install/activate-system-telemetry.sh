@@ -5,11 +5,11 @@ set -eu
 
 [ "$(id -u)" -eq 0 ] || { echo 'Run with sudo on ROCK Pi.' >&2; exit 1; }
 repo="${GRIDEX_EDGE_REPO:-/home/antouan/gridex-edge-gateway}"
+source_dir="$repo"
 env_file=/etc/gridex/gridex-rockpie.env
 service_file=/etc/systemd/system/gridex-rockpie.service
 binary=/usr/local/bin/gridex_rockpie_service
 
-[ -d "$repo/.git" ] || { echo "Existing source checkout not found: $repo" >&2; exit 1; }
 [ -f "$env_file" ] || { echo "Existing config not found: $env_file" >&2; exit 1; }
 [ -f "$service_file" ] || { echo "Existing service unit not found: $service_file" >&2; exit 1; }
 [ -x "$binary" ] || { echo "Existing service binary not found: $binary" >&2; exit 1; }
@@ -24,14 +24,19 @@ command -v cmake >/dev/null || { echo 'cmake is required on the existing ROCK im
 command -v pkg-config >/dev/null || { echo 'pkg-config is required on the existing ROCK image.' >&2; exit 1; }
 pkg-config --exists libmosquitto || { echo 'libmosquitto-dev/runtime is required; no MQTT build attempted.' >&2; exit 1; }
 
-git -C "$repo" fetch origin feat/rock-temperature
-git -C "$repo" checkout feat/rock-temperature
-git -C "$repo" pull --ff-only origin feat/rock-temperature
+if [ -d "$repo/.git" ]; then
+    git -C "$repo" fetch origin feat/rock-temperature
+    git -C "$repo" checkout feat/rock-temperature
+    git -C "$repo" pull --ff-only origin feat/rock-temperature
+else
+    source_dir=$(mktemp -d /tmp/gridex-edge-source.XXXXXX)
+    git clone --depth 1 --branch feat/rock-temperature https://github.com/antouanbg/gridex-edge-gateway.git "$source_dir"
+fi
 
 build_dir=$(mktemp -d /tmp/gridex-rock-telemetry.XXXXXX)
 backup_dir=/var/backups/gridex-rock-telemetry-$(date +%Y%m%d%H%M%S)
 mkdir -p "$backup_dir"
-cmake -S "$repo/base-rockpie" -B "$build_dir" -DCMAKE_BUILD_TYPE=Release \
+cmake -S "$source_dir/base-rockpie" -B "$build_dir" -DCMAKE_BUILD_TYPE=Release \
     -DGRIDEX_ENABLE_PRIVATE_MQTT=ON -DGRIDEX_REQUIRE_MQTT=ON
 cmake --build "$build_dir" --target gridex_rockpie_service --parallel 2
 ldd "$build_dir/gridex_rockpie_service" | grep 'libmosquitto' >/dev/null
