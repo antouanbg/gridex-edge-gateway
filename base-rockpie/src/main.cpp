@@ -146,6 +146,19 @@ int main() {
         gridex::SafetyEnvelope{},
         controllerConfig
     );
+    // Initialize MQTT before starting any worker threads and keep it alive
+    // until those workers have stopped (reverse destruction order).  This is
+    // required by libmosquitto's global pthread state on small ARM systems.
+    gridex::rockpie::MqttHealthPublisher healthPublisher({
+        .brokerUrl = envString("GRIDEX_MQTT_BROKER_URL", ""),
+        .topicPrefix = envString("GRIDEX_MQTT_TOPIC_PREFIX", "gridex/v1"),
+        .clientId = envString("GRIDEX_MQTT_CLIENT_ID", ""),
+        .username = envString("GRIDEX_MQTT_USERNAME", ""),
+        .passwordFile = envString("GRIDEX_MQTT_PASSWORD_FILE", ""),
+        .caFile = envString("GRIDEX_MQTT_CA_FILE", ""),
+        .clientCertificateFile = envString("GRIDEX_MQTT_CLIENT_CERT_FILE", ""),
+        .clientKeyFile = envString("GRIDEX_MQTT_CLIENT_KEY_FILE", ""),
+    });
     gridex::rockpie::NorthboundRegisterBank northboundBank;
     gridex::rockpie::NorthboundModbusTcpServer northboundServer(
         northboundBank,
@@ -174,16 +187,6 @@ int main() {
         ),
     });
     nodePolling.start();
-    gridex::rockpie::MqttHealthPublisher healthPublisher({
-        .brokerUrl = envString("GRIDEX_MQTT_BROKER_URL", ""),
-        .topicPrefix = envString("GRIDEX_MQTT_TOPIC_PREFIX", "gridex/v1"),
-        .clientId = envString("GRIDEX_MQTT_CLIENT_ID", ""),
-        .username = envString("GRIDEX_MQTT_USERNAME", ""),
-        .passwordFile = envString("GRIDEX_MQTT_PASSWORD_FILE", ""),
-        .caFile = envString("GRIDEX_MQTT_CA_FILE", ""),
-        .clientCertificateFile = envString("GRIDEX_MQTT_CLIENT_CERT_FILE", ""),
-        .clientKeyFile = envString("GRIDEX_MQTT_CLIENT_KEY_FILE", ""),
-    });
     const auto healthInterval = std::chrono::seconds(
         std::clamp(envInt("GRIDEX_HEALTH_PUBLISH_SECONDS", 10), 2, 300));
     const bool cpuTemperatureEnabled = envBool("GRIDEX_CPU_TEMPERATURE_ENABLED", false);
