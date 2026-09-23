@@ -3,27 +3,27 @@
 ## ROCK Pi pilot stopped after repeat crash / ROCK Pi пилотът е спрян след повторен crash — 2026-09-23
 
 The physical activation of the serialized MQTT loop (`927d73a`) compiled but
-failed the 45-second process-stability check. Automatic rollback restored the
-previous binary and config; the previous binary also failed, so the service
-was stopped to prevent a restart loop. MQTT connection had previously returned
-success (`mqtt_connect_result=0`), followed by `SIGSEGV`; root cause is not
-proven. Next action: collect the most recent core/kernel crash evidence with
-`base-rockpie/install/diagnose-rock-crash.sh` before another build/deployment.
-No live ROCK telemetry or history datapoint is verified.
-The next read-only diagnostic found no `coredumpctl` and no stack. A temporary
-`gdb`/systemd one-shot capture script is prepared; its physical result is pending.
+failed the 45-second process-stability check. Rollback restored the previous
+binary/config; the previous binary also failed, so the service was stopped.
+The one-shot `gdb` stack of that **old binary** shows SIGSEGV in
+`libmosquitto.so.1` during `mosquitto_publish_v5()`, called from
+`MqttHealthPublisher::publishNodeTelemetry()`, with a separate Mosquitto loop
+thread active. This does not diagnose the newer candidate's failure. The
+updated one-shot script now builds and runs the candidate under `gdb` from a
+temporary path without installing it, then leaves the service stopped. Its
+physical result is pending. No live ROCK telemetry or history datapoint is
+verified.
 
 Физическата активация на последователния MQTT loop (`927d73a`) се компилира,
-но не издържа 45-секундната проверка за стабилен процес. Автоматичният rollback
-възстанови предишния binary и config; предишният binary също падна, затова
-услугата беше спряна срещу безкраен restart. Преди това MQTT връзката беше
-успешна (`mqtt_connect_result=0`), след което имаше `SIGSEGV`; причината не е
-доказана. Следващо действие: събери последния core/kernel crash с
-`base-rockpie/install/diagnose-rock-crash.sh` преди нов build/deployment.
-Няма потвърдена live ROCK телеметрия или history datapoint.
-Следващата read-only проверка не намери `coredumpctl` или stack. Подготвен е
-временен `gdb`/systemd скрипт за еднократно заснемане; физическият му резултат
-предстои.
+но не издържа 45-секундната проверка. Rollback върна предишния binary/config;
+и той падна, затова услугата беше спряна. Еднократният `gdb` stack на
+**стария binary** показва SIGSEGV в `libmosquitto.so.1` при
+`mosquitto_publish_v5()`, извикан от `MqttHealthPublisher::publishNodeTelemetry()`,
+докато отделна Mosquitto loop нишка работи. Това не диагностицира отказа на
+новия кандидат. Обновеният еднократен скрипт компилира и пуска кандидата под
+`gdb` от временен път, без да го инсталира, после оставя услугата спряна.
+Физическият му резултат предстои. Няма потвърдена live ROCK телеметрия или
+history datapoint.
 
 ## Pilot inventory reconciled / Пилотен инвентар съгласуван — 2026-09-20
 

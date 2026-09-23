@@ -4,81 +4,54 @@ Repository / GitHub: `antouanbg/gridex-edge-gateway`
 
 ## ROCK system telemetry crash recovery — 2026-09-23
 
-Update after physical attempt: commit `927d73a` built successfully on ROCK Pi,
-but the service failed the 45-second stability check. The installer restored
-the preceding binary/configuration; that binary also crashed, so it stopped
-the service. The pilot ROCK Pi service is currently STOPPED. No live ROCK
-heartbeat/system telemetry or stored system datapoint is verified. Do not
-rerun the activation script before collecting crash evidence. Run the
-read-only `base-rockpie/install/diagnose-rock-crash.sh` on ROCK Pi and inspect
-the most recent core backtrace/kernel crash line first. If no core exists,
-prepare one controlled diagnostic run with a core capture rather than another
-blind production activation.
+The physical attempt built commit `927d73a` on ROCK Pi, but the service failed
+the 45-second stability check. The installer restored the preceding binary and
+configuration; that binary also crashed, so it stopped the service. The pilot
+ROCK Pi service remains STOPPED. No live ROCK heartbeat, system telemetry, or
+stored system datapoint has been verified. Control approval gates remain zero.
 
-The read-only diagnostic confirmed `MainPID=0`, `ActiveState=inactive`,
-`ExecMainStatus=11`, and no `coredumpctl` on the device. It did not provide a
-stack frame. The next controlled action is
-`base-rockpie/install/capture-rock-crash-stack.sh`: it installs `gdb` if
-missing, adds a temporary runtime-only systemd override with `Restart=no`,
-runs the existing binary once under the existing service identity and env,
-prints the stack from journal, then removes the override and leaves the
-service stopped. The protected env is not printed. Do not reactivate telemetry
-until the stack identifies a code fix and a new physical test passes.
+The controlled `gdb` run of the **rolled-back old binary** captured SIGSEGV in
+`libmosquitto.so.1` during `mosquitto_publish_v5()`, called from
+`MqttHealthPublisher::publishNodeTelemetry()`. A separate `mosquitto loop`
+thread was active, while the node polling and Modbus server threads were not
+crashing. This supports an MQTT client concurrency problem in the old binary;
+it does **not** identify why the newer candidate failed its stability check.
+The earlier "MQTT offline" explanation was incorrect: connection result was 0.
 
-След физическия опит: commit `927d73a` се компилира успешно на ROCK Pi, но
-услугата не издържа 45-секундната проверка. Инсталаторът възстанови предишния
-binary/config; и този binary падна, затова услугата беше СПРЯНА. За пилотния
-ROCK Pi няма потвърден live heartbeat/системна телеметрия или записана
-system datapoint стойност. Не повтаряй инсталацията преди crash диагностика.
-Пусни read-only `base-rockpie/install/diagnose-rock-crash.sh` на ROCK Pi и
-първо прегледай последния core backtrace/kernel crash ред. Ако няма core,
-подготви едно контролирано диагностично стартиране с core capture, вместо
-нова сляпа активация.
+Next controlled action: run the updated
+`base-rockpie/install/capture-rock-crash-stack.sh` once. It builds the current
+candidate from `feat/rock-temperature` with symbols into a temporary location,
+runs that candidate under the existing service identity/environment using a
+runtime-only `Restart=no` override, captures its stack, removes the override
+and temporary binary, and leaves the service stopped. It does not replace the
+installed binary/configuration or print the protected env. Do **not** rerun
+`activate-system-telemetry.sh` until the candidate is diagnosed and a fix
+passes physical validation. Claim live data only after fresh MQTT receipt and
+an independently verified OpenRemote/Timescale datapoint.
 
-Read-only диагностиката потвърди `MainPID=0`, `ActiveState=inactive`,
-`ExecMainStatus=11` и липса на `coredumpctl` на устройството. Тя не даде
-stack frame. Следващото контролирано действие е
-`base-rockpie/install/capture-rock-crash-stack.sh`: при нужда инсталира
-`gdb`, добавя временен runtime-only systemd override с `Restart=no`, пуска
-съществуващия binary веднъж с текущата service identity и env, показва stack-а
-от journal, премахва override-а и оставя услугата спряна. Защитеният env не се
-извежда. Телеметрията не се активира пак преди stack-ът да насочи към кодова
-поправка и нов физически тест да мине.
+Физическият опит компилира commit `927d73a` на ROCK Pi, но услугата не издържа
+45-секундната проверка. Инсталаторът върна предишния binary/config; и той
+падна, затова услугата остана СПРЯНА. Няма потвърден live ROCK heartbeat,
+системна телеметрия или записана system datapoint стойност. Control approval
+gate-овете остават нула.
 
-The physical pilot repeatedly exited with `SIGSEGV` shortly after MQTT
-connected (`mqtt_connect_result=0`). The earlier "offline MQTT" explanation was
-incorrect. The crash location is not yet proven by a core backtrace. The
-follow-up change serializes `mosquitto_loop` and MQTT publishing on the service
-main thread, includes bounded reconnect attempts, and makes the activation
-script verify a stable PID for 45 seconds, covering more than one telemetry
-publish interval. If it fails, the script restores
-the previous binary/config; if that also fails, it stops the service to avoid
-an endless restart loop. This is built and unit-tested on macOS and in an
-ARM64 Linux container with `libmosquitto`; it still needs physical validation.
-The Site's control approval gates must remain at zero. Do not call the ROCK
-system telemetry or OpenRemote/Timescale history live until a fresh MQTT
-message and stored datapoint are independently verified. Next safe action:
-run `base-rockpie/install/activate-system-telemetry.sh` once on ROCK Pi, then
-read service status/logs and verify broker receipt plus the stored datapoint.
-If the service fails again, collect a core backtrace before another code fix.
+Контролираният `gdb` тест на **върнатия стар binary** улови SIGSEGV в
+`libmosquitto.so.1` при `mosquitto_publish_v5()`, извикан от
+`MqttHealthPublisher::publishNodeTelemetry()`. Отделна `mosquitto loop` нишка
+работеше; node polling и Modbus server нишките не бяха мястото на crash-а.
+Това подкрепя проблем с едновременен достъп до MQTT клиента в стария binary,
+но **не** доказва причината за неуспеха на новия кандидат. Старото обяснение
+„MQTT offline“ беше погрешно: резултатът от свързването беше 0.
 
-Физическият пилот многократно падна със `SIGSEGV` скоро след успешна MQTT
-връзка (`mqtt_connect_result=0`). Предишното обяснение с offline MQTT беше
-погрешно. Точното място на crash-а още не е доказано с core backtrace.
-Следващата поправка изпълнява `mosquitto_loop` и MQTT публикуването последователно
-в основната нишка, добавя ограничени опити за повторна връзка и кара
-инсталационния скрипт да проверява стабилен PID за 45 секунди, обхващайки
-повече от един интервал за публикуване. При отказ
-скриптът възстановява предишния binary/config; ако и той пада, спира услугата,
-за да няма безкрайни рестарти. Build и unit тестовете минават на macOS и в
-ARM64 Linux контейнер с `libmosquitto`; физическата проверка предстои.
-Control approval gate-овете на Обекта остават нула. ROCK системната телеметрия
-и OpenRemote/Timescale историята не се обявяват за live преди отделно да се
-потвърдят ново MQTT съобщение и записана datapoint стойност. Следващата
-безопасна стъпка е еднократно изпълнение на
-`base-rockpie/install/activate-system-telemetry.sh` на ROCK Pi, проверка на
-service status/log и на broker receipt плюс записаната datapoint стойност.
-При нов crash първо се събира core backtrace.
+Следва еднократно изпълнение на обновения
+`base-rockpie/install/capture-rock-crash-stack.sh`. Той компилира текущия
+кандидат от `feat/rock-temperature` със symbols във временна директория,
+пуска го с текущите service identity/env и runtime-only override с
+`Restart=no`, събира stack, почиства временните файлове и оставя услугата
+спряна. Не подменя инсталирания binary/config и не показва защитения env.
+**Не** пускай `activate-system-telemetry.sh` пак, преди кандидатът да бъде
+диагностициран и поправката да мине физически тест. Live данни се заявяват
+едва след ново MQTT съобщение и отделно потвърден OpenRemote/Timescale запис.
 
 ## Pilot inventory reconciled / Пилотен инвентар съгласуван — 2026-09-20
 
