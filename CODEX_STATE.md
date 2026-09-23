@@ -19,8 +19,8 @@ The `fc1c012` candidate also crashed, in main-thread `mosquitto_loop()`.
 Review found a mismatched class layout across translation units because the
 public header was conditional on a PRIVATE compile definition, plus an
 unsupported `mosquitto_connect_async()` + manual `mosquitto_loop()` pairing.
-Both are corrected on the branch with an ABI regression test. Eight macOS
-tests pass; physical validation is still pending. Do not activate the service
+Both are corrected on the branch with an ABI regression test. Eight macOS and
+eight isolated ARM64 Linux tests pass; physical validation is still pending. Do not activate the service
 until the corrected candidate survives the one-shot capture.
 
 Физическата активация на последователния MQTT loop (`927d73a`) се компилира,
@@ -39,7 +39,7 @@ until the corrected candidate survives the one-shot capture.
 Открити са различен размер на класа между translation units заради PRIVATE
 compile flag и неподдържаната комбинация `mosquitto_connect_async()` + ръчен
 `mosquitto_loop()`. И двете са поправени в branch-а с ABI регресионен тест.
-Осемте macOS теста минават, физическата проверка предстои. Не активирай
+Осемте macOS и осемте изолирани ARM64 Linux теста минават; физическата проверка предстои. Не активирай
 услугата преди поправеният кандидат да издържи еднократния тест.
 
 ## Pilot inventory reconciled / Пилотен инвентар съгласуван — 2026-09-20

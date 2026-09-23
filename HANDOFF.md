@@ -46,7 +46,8 @@ size; and `mosquitto_connect_async()` was combined with manual
 keeps layout independent of the flag, exports the flag to consumers, and pairs
 async connect with `mosquitto_loop_start()`. An ABI regression test compares
 class size compiled with/without the flag. macOS build and all eight tests
-pass (loopback tests required local-port sandbox approval). Physical validation
+pass (loopback tests required local-port sandbox approval). The same eight tests
+pass in an isolated ARM64 Linux container with libmosquitto. Physical validation
 of this new candidate is PENDING; service remains stopped, and the old binary
 has not been replaced. Run the one-shot capture again before activation.
 
@@ -92,6 +93,7 @@ systemd/gdb върна `Permission denied` за временния път в `/r
 потребителите и съчетава async connect с `mosquitto_loop_start()`. ABI
 регресионен тест сравнява размера при компилация със/без flag. macOS build и
 осемте теста минават (loopback тестовете изискваха разрешен локален порт).
+Същите осем теста минават и в изолиран ARM64 Linux контейнер с libmosquitto.
 Физическата проверка ПРЕДСТОИ; услугата остава спряна и старият binary не е
 подменян. Първо повтори еднократния диагностичен тест, не активацията.
 
