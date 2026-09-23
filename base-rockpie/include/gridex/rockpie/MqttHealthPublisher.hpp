@@ -7,6 +7,7 @@
 #include <cstdint>
 #include <string>
 #include <optional>
+#include <vector>
 
 namespace gridex::rockpie {
 
@@ -36,6 +37,12 @@ struct EdgeHealthMessage {
     std::optional<double> cpuTemperatureC;
 };
 
+struct SystemTelemetrySample {
+    std::string sensorId;
+    std::string unit;
+    double value{0.0};
+};
+
 class MqttHealthPublisher {
   public:
     explicit MqttHealthPublisher(MqttHealthPublisherConfig config);
@@ -50,11 +57,17 @@ class MqttHealthPublisher {
                               const std::string& gatewayId,
                               std::size_t slot,
                               const MbusNodeTelemetry& sample) noexcept;
+    bool publishSystemTelemetry(const std::string& siteId, const std::string& gatewayId,
+                                const std::string& bootId, std::uint64_t sequence,
+                                const std::vector<SystemTelemetrySample>& samples) noexcept;
 
     // Kept public for deterministic tests, independent of a local broker.
     [[nodiscard]] static std::string healthPayload(const EdgeHealthMessage& message);
     [[nodiscard]] static std::string nodeTelemetryPayload(
         std::size_t slot, const MbusNodeTelemetry& sample);
+    [[nodiscard]] static std::string systemTelemetryPayload(
+        const std::string& gatewayId, const std::string& bootId, std::uint64_t sequence,
+        const std::vector<SystemTelemetrySample>& samples);
 
   private:
     MqttHealthPublisherConfig config_;

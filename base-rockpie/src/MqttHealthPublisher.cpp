@@ -213,6 +213,22 @@ std::string MqttHealthPublisher::nodeTelemetryPayload(
     return output.str();
 }
 
+std::string MqttHealthPublisher::systemTelemetryPayload(
+    const std::string& gatewayId, const std::string& bootId, std::uint64_t sequence,
+    const std::vector<SystemTelemetrySample>& samples) {
+    std::ostringstream output;
+    output << "{\"schemaVersion\":1,\"observedAt\":" << jsonString(timestamp())
+           << ",\"gatewayId\":" << jsonString(gatewayId)
+           << ",\"bootId\":" << jsonString(bootId) << ",\"sequence\":" << sequence << ",\"samples\":[";
+    for (std::size_t i = 0; i < samples.size(); ++i) {
+        if (i) output << ',';
+        output << "{\"sensorId\":" << jsonString(samples[i].sensorId)
+               << ",\"value\":" << samples[i].value << ",\"unit\":" << jsonString(samples[i].unit) << '}';
+    }
+    output << "]}";
+    return output.str();
+}
+
 bool MqttHealthPublisher::publishHealth(const EdgeHealthMessage& message) noexcept {
 #ifdef GRIDEX_WITH_MOSQUITTO
     const auto siteId = topicPart(message.siteId);
@@ -246,6 +262,20 @@ bool MqttHealthPublisher::publishNodeTelemetry(
     (void)slot;
     (void)sample;
     return false;
+#endif
+}
+
+bool MqttHealthPublisher::publishSystemTelemetry(
+    const std::string& siteId, const std::string& gatewayId, const std::string& bootId,
+    std::uint64_t sequence, const std::vector<SystemTelemetrySample>& samples) noexcept {
+#ifdef GRIDEX_WITH_MOSQUITTO
+    const auto site = topicPart(siteId), gateway = topicPart(gatewayId);
+    if (!connected() || site.empty() || gateway.empty() || samples.empty()) return false;
+    const auto topic = config_.topicPrefix + "/sites/" + site + "/edge/" + gateway + "/system/telemetry";
+    const auto payload = systemTelemetryPayload(gatewayId, bootId, sequence, samples);
+    return mosquitto_publish(static_cast<mosquitto*>(client_), nullptr, topic.c_str(), static_cast<int>(payload.size()), payload.c_str(), 1, false) == MOSQ_ERR_SUCCESS;
+#else
+    (void)siteId; (void)gatewayId; (void)bootId; (void)sequence; (void)samples; return false;
 #endif
 }
 

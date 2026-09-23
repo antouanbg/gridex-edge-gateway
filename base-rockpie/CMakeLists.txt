@@ -12,6 +12,7 @@ add_library(gridex_rockpie_transport
     src/NorthboundRegisterBank.cpp
     src/PosixModbusTcpClient.cpp
     src/TelemetryJournal.cpp
+    src/SystemTelemetry.cpp
 )
 target_include_directories(gridex_rockpie_transport PUBLIC include)
 target_link_libraries(gridex_rockpie_transport PUBLIC gridex_edge)

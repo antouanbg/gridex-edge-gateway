@@ -5,6 +5,7 @@
 #include "gridex/rockpie/MqttHealthPublisher.hpp"
 #include "gridex/rockpie/TelemetryJournal.hpp"
 #include "gridex/rockpie/CpuTemperature.hpp"
+#include "gridex/rockpie/SystemTelemetry.hpp"
 
 #include <atomic>
 #include <algorithm>
@@ -189,6 +190,11 @@ int main() {
     const auto cpuTemperaturePath = envString("GRIDEX_CPU_TEMPERATURE_FILE", "/sys/class/thermal/thermal_zone0/temp");
     const auto telemetryInterval = std::chrono::seconds(
         std::clamp(envInt("GRIDEX_NODE_TELEMETRY_PUBLISH_SECONDS", 2), 1, 300));
+    const bool systemTelemetryEnabled = envBool("GRIDEX_SYSTEM_TELEMETRY_ENABLED", false);
+    const auto systemTelemetryInterval = std::chrono::seconds(std::clamp(envInt("GRIDEX_SYSTEM_TELEMETRY_PUBLISH_SECONDS", 30), 5, 3600));
+    const auto systemDataDirectory = envString("GRIDEX_SYSTEM_DATA_DIRECTORY", "/var/lib/gridex");
+    const auto bootId = envString("GRIDEX_BOOT_ID", "unknown");
+    std::uint64_t systemTelemetrySequence = 0;
     gridex::rockpie::TelemetryJournal telemetryJournal({
         .path = envString("GRIDEX_TELEMETRY_JOURNAL_PATH",
                           "/var/lib/gridex/telemetry-journal.ndjson"),
@@ -204,6 +210,7 @@ int main() {
     auto nextHealthPublish = std::chrono::steady_clock::now();
     auto nextTelemetryPublish = std::chrono::steady_clock::now();
     auto nextJournalSnapshot = std::chrono::steady_clock::now();
+    auto nextSystemTelemetryPublish = std::chrono::steady_clock::now();
 
     std::cout << "GrideX ROCK Pi E service started; writes_enabled="
               << (driver.writesEnabled() ? "true" : "false") << '\n';
@@ -318,6 +325,11 @@ int main() {
                     siteId, gatewayId, slot + 1U, nodeSamples[slot]);
             }
             nextTelemetryPublish = now + telemetryInterval;
+        }
+        if (systemTelemetryEnabled && now >= nextSystemTelemetryPublish) {
+            const auto samples = gridex::rockpie::readSystemTelemetry(systemDataDirectory, telemetryJournal.path(), cpuTemperaturePath, cpuTemperatureEnabled);
+            (void)healthPublisher.publishSystemTelemetry(envString("GRIDEX_SITE_ID", ""), envString("GRIDEX_GATEWAY_ID", ""), bootId, ++systemTelemetrySequence, samples);
+            nextSystemTelemetryPublish = now + systemTelemetryInterval;
         }
         if (now >= nextJournalSnapshot) {
             for (std::size_t slot = 0; slot < nodeSamples.size(); ++slot) {
