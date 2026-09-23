@@ -58,7 +58,8 @@ echo 'ROCK_CRASH_CAPTURE_START'
 git -C "$temporary_dir/source" rev-parse --short HEAD
 start_at=$(date --iso-8601=seconds)
 systemctl start gridex-rockpie || true
-sleep 12
+# Cover the installer's 45-second stability window plus one publish interval.
+sleep 55
 systemctl stop gridex-rockpie >/dev/null 2>&1 || true
 journalctl -u gridex-rockpie --since "$start_at" --no-pager -o cat | tail -n 140
 echo 'ROCK_CRASH_CAPTURE_END; service will remain stopped.'
