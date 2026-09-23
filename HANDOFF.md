@@ -9,7 +9,8 @@ connected (`mqtt_connect_result=0`). The earlier "offline MQTT" explanation was
 incorrect. The crash location is not yet proven by a core backtrace. The
 follow-up change serializes `mosquitto_loop` and MQTT publishing on the service
 main thread, includes bounded reconnect attempts, and makes the activation
-script verify a stable PID for 15 seconds. If it fails, the script restores
+script verify a stable PID for 45 seconds, covering more than one telemetry
+publish interval. If it fails, the script restores
 the previous binary/config; if that also fails, it stops the service to avoid
 an endless restart loop. This is built and unit-tested on macOS and in an
 ARM64 Linux container with `libmosquitto`; it still needs physical validation.
@@ -25,7 +26,8 @@ If the service fails again, collect a core backtrace before another code fix.
 погрешно. Точното място на crash-а още не е доказано с core backtrace.
 Следващата поправка изпълнява `mosquitto_loop` и MQTT публикуването последователно
 в основната нишка, добавя ограничени опити за повторна връзка и кара
-инсталационния скрипт да проверява стабилен PID за 15 секунди. При отказ
+инсталационния скрипт да проверява стабилен PID за 45 секунди, обхващайки
+повече от един интервал за публикуване. При отказ
 скриптът възстановява предишния binary/config; ако и той пада, спира услугата,
 за да няма безкрайни рестарти. Build и unit тестовете минават на macOS и в
 ARM64 Linux контейнер с `libmosquitto`; физическата проверка предстои.

@@ -74,7 +74,7 @@ chmod 0640 "$env_file"
 systemctl daemon-reload
 systemctl restart gridex-rockpie
 first_pid=$(systemctl show gridex-rockpie -p MainPID --value)
-sleep 15
+sleep 45
 last_pid=$(systemctl show gridex-rockpie -p MainPID --value)
 if ! systemctl is-active --quiet gridex-rockpie || [ "$first_pid" = 0 ] || [ "$first_pid" != "$last_pid" ]; then
     echo "New service did not remain stable; restoring the previous binary and config." >&2
