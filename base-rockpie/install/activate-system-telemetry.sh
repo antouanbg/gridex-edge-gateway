@@ -13,6 +13,7 @@ binary=/usr/local/bin/gridex_rockpie_service
 [ -f "$env_file" ] || { echo "Existing config not found: $env_file" >&2; exit 1; }
 [ -f "$service_file" ] || { echo "Existing service unit not found: $service_file" >&2; exit 1; }
 [ -x "$binary" ] || { echo "Existing service binary not found: $binary" >&2; exit 1; }
+grep -q '^EnvironmentFile=-/etc/gridex/gridex-rockpie.env' "$service_file" || { echo 'Unexpected systemd EnvironmentFile; refusing activation.' >&2; exit 1; }
 
 for gate in GRIDEX_APPROVE_ADDRESSING GRIDEX_APPROVE_POWER_SIGN GRIDEX_APPROVE_SCALING GRIDEX_APPROVE_INT32_WORD_ORDER; do
     value=$(sed -n "s/^${gate}=//p" "$env_file" | tail -n 1)
@@ -23,6 +24,16 @@ command -v git >/dev/null || { echo 'git is required on the existing ROCK image.
 command -v cmake >/dev/null || { echo 'cmake is required on the existing ROCK image.' >&2; exit 1; }
 command -v pkg-config >/dev/null || { echo 'pkg-config is required on the existing ROCK image.' >&2; exit 1; }
 pkg-config --exists libmosquitto || { echo 'libmosquitto-dev/runtime is required; no MQTT build attempted.' >&2; exit 1; }
+broker=$(sed -n 's/^GRIDEX_MQTT_BROKER_URL=//p' "$env_file" | tail -n 1)
+case "$broker" in mqtts://*) ;; *) echo 'Existing MQTT broker is not mqtts://; refusing activation.' >&2; exit 1;; esac
+ca=$(sed -n 's/^GRIDEX_MQTT_CA_FILE=//p' "$env_file" | tail -n 1)
+crt=$(sed -n 's/^GRIDEX_MQTT_CLIENT_CERT_FILE=//p' "$env_file" | tail -n 1)
+key=$(sed -n 's/^GRIDEX_MQTT_CLIENT_KEY_FILE=//p' "$env_file" | tail -n 1)
+for certificate in "$ca" "$crt" "$key"; do [ -s "$certificate" ] || { echo "MQTT certificate/key missing: $certificate" >&2; exit 1; }; done
+openssl verify -purpose sslclient -CAfile "$ca" "$crt" >/dev/null || { echo 'MQTT client certificate verification failed.' >&2; exit 1; }
+openssl x509 -in "$crt" -pubkey -noout > /tmp/gridex-client-pub.$$
+openssl pkey -in "$key" -pubout | cmp -s - /tmp/gridex-client-pub.$$ || { rm -f /tmp/gridex-client-pub.$$; echo 'MQTT certificate/key mismatch.' >&2; exit 1; }
+rm -f /tmp/gridex-client-pub.$$
 
 if [ -d "$repo/.git" ]; then
     git -C "$repo" fetch origin feat/rock-temperature
@@ -36,6 +47,8 @@ fi
 build_dir=$(mktemp -d /tmp/gridex-rock-telemetry.XXXXXX)
 backup_dir=/var/backups/gridex-rock-telemetry-$(date +%Y%m%d%H%M%S)
 mkdir -p "$backup_dir"
+cleanup() { rm -rf "$build_dir"; [ "$source_dir" = "$repo" ] || rm -rf "$source_dir"; }
+trap cleanup EXIT
 cmake -S "$source_dir/base-rockpie" -B "$build_dir" -DCMAKE_BUILD_TYPE=Release \
     -DGRIDEX_ENABLE_PRIVATE_MQTT=ON -DGRIDEX_REQUIRE_MQTT=ON
 cmake --build "$build_dir" --target gridex_rockpie_service --parallel 2
