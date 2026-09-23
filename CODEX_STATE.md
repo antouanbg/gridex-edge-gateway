@@ -10,6 +10,8 @@ success (`mqtt_connect_result=0`), followed by `SIGSEGV`; root cause is not
 proven. Next action: collect the most recent core/kernel crash evidence with
 `base-rockpie/install/diagnose-rock-crash.sh` before another build/deployment.
 No live ROCK telemetry or history datapoint is verified.
+The next read-only diagnostic found no `coredumpctl` and no stack. A temporary
+`gdb`/systemd one-shot capture script is prepared; its physical result is pending.
 
 Физическата активация на последователния MQTT loop (`927d73a`) се компилира,
 но не издържа 45-секундната проверка за стабилен процес. Автоматичният rollback
@@ -19,6 +21,9 @@ No live ROCK telemetry or history datapoint is verified.
 доказана. Следващо действие: събери последния core/kernel crash с
 `base-rockpie/install/diagnose-rock-crash.sh` преди нов build/deployment.
 Няма потвърдена live ROCK телеметрия или history datapoint.
+Следващата read-only проверка не намери `coredumpctl` или stack. Подготвен е
+временен `gdb`/systemd скрипт за еднократно заснемане; физическият му резултат
+предстои.
 
 ## Pilot inventory reconciled / Пилотен инвентар съгласуван — 2026-09-20
 

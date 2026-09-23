@@ -15,6 +15,16 @@ the most recent core backtrace/kernel crash line first. If no core exists,
 prepare one controlled diagnostic run with a core capture rather than another
 blind production activation.
 
+The read-only diagnostic confirmed `MainPID=0`, `ActiveState=inactive`,
+`ExecMainStatus=11`, and no `coredumpctl` on the device. It did not provide a
+stack frame. The next controlled action is
+`base-rockpie/install/capture-rock-crash-stack.sh`: it installs `gdb` if
+missing, adds a temporary runtime-only systemd override with `Restart=no`,
+runs the existing binary once under the existing service identity and env,
+prints the stack from journal, then removes the override and leaves the
+service stopped. The protected env is not printed. Do not reactivate telemetry
+until the stack identifies a code fix and a new physical test passes.
+
 След физическия опит: commit `927d73a` се компилира успешно на ROCK Pi, но
 услугата не издържа 45-секундната проверка. Инсталаторът възстанови предишния
 binary/config; и този binary падна, затова услугата беше СПРЯНА. За пилотния
@@ -24,6 +34,16 @@ system datapoint стойност. Не повтаряй инсталацият�
 първо прегледай последния core backtrace/kernel crash ред. Ако няма core,
 подготви едно контролирано диагностично стартиране с core capture, вместо
 нова сляпа активация.
+
+Read-only диагностиката потвърди `MainPID=0`, `ActiveState=inactive`,
+`ExecMainStatus=11` и липса на `coredumpctl` на устройството. Тя не даде
+stack frame. Следващото контролирано действие е
+`base-rockpie/install/capture-rock-crash-stack.sh`: при нужда инсталира
+`gdb`, добавя временен runtime-only systemd override с `Restart=no`, пуска
+съществуващия binary веднъж с текущата service identity и env, показва stack-а
+от journal, премахва override-а и оставя услугата спряна. Защитеният env не се
+извежда. Телеметрията не се активира пак преди stack-ът да насочи към кодова
+поправка и нов физически тест да мине.
 
 The physical pilot repeatedly exited with `SIGSEGV` shortly after MQTT
 connected (`mqtt_connect_result=0`). The earlier "offline MQTT" explanation was
