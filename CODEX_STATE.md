@@ -1,5 +1,20 @@
 # CODEX_STATE.md
 
+## ROCK system telemetry active / ROCK системната телеметрия е активна — 2026-09-24
+
+Supersedes the stopped/zero-outbox status below: physical permanent activation
+reported one MQTT connection and local publish after the corrected build's
+55-second crash-free test. Independent backend/Timescale checks found growing
+datapoints for five system metrics (15→24 each). CPU temperature is missing;
+external Devices acceptance and long-run stability are pending. No MODBUS
+write/commissioning change. See newest HANDOFF and backend HANDOFF.
+
+Заменя стария статус за спряна услуга/празен outbox: физическото постоянно
+включване отчете MQTT връзка и публикуване след 55 секунди без crash.
+Независимата backend/Timescale проверка показа нарастващи записи за пет
+показателя (15→24 всеки). CPU температура липсва; външен екран и дълга
+стабилност предстоят. Без MODBUS write/commissioning промяна.
+
 ## ROCK Pi pilot stopped after repeat crash / ROCK Pi пилотът е спрян след повторен crash — 2026-09-23
 
 The physical activation of the serialized MQTT loop (`927d73a`) compiled but

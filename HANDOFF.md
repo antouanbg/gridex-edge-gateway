@@ -2,6 +2,30 @@
 
 Repository / GitHub: `antouanbg/gridex-edge-gateway`
 
+## ROCK pilot active; five metrics stored / ROCK пилотът е активен — 2026-09-24
+
+This entry supersedes the older "service stopped / zero outbox" status below.
+The corrected build passed a physical 55-second crash test, then the permanent
+activation reported `ROCK_SYSTEM_TELEMETRY_ACTIVE`, one MQTT connection and a
+local publish. Backend receipt and OpenRemote Timescale datapoints were later
+independently verified: uptime, load1, memory available, data free and journal
+size each increased from 15 to 24 records during checks. The backend had to
+repair five missing restricted-writer Asset links (403 retries); see backend
+HANDOFF for its validated backup. CPU temperature is still missing; inspect
+ROCK sensor availability and its opt-in configuration. Long-running stability,
+external Devices display and cross-owner denial remain open. No evidence here
+authorizes battery MODBUS writes or changes to commissioning locks.
+
+Този запис заменя по-стария статус „услугата е спряна / outbox е празен“.
+Поправеният build издържа 55-секунден физически тест, а постоянното включване
+върна `ROCK_SYSTEM_TELEMETRY_ACTIVE`, MQTT връзка и публикуване. Backend приемът
+и Timescale записите бяха независимо потвърдени: uptime, load1, свободна RAM,
+място и journal size нараснаха от 15 до 24 записа за всеки. В backend бяха
+поправени пет липсващи връзки към ограничения writer. CPU температура липсва;
+провери сензора и настройката на ROCK. Остават дълга стабилност, външен екран
+„Устройства“ и отказ за чужд собственик. Това не разрешава MODBUS записи към
+батерия или промяна на commissioning locks.
+
 ## ROCK system telemetry crash recovery — 2026-09-23
 
 The physical attempt built commit `927d73a` on ROCK Pi, but the service failed
