@@ -26,6 +26,25 @@ authorizes battery MODBUS writes or changes to commissioning locks.
 „Устройства“ и отказ за чужд собственик. Това не разрешава MODBUS записи към
 батерия или промяна на commissioning locks.
 
+CPU temperature is opt-in (`GRIDEX_CPU_TEMPERATURE_ENABLED=0` by default),
+which explains the five rather than six published samples. The new
+`base-rockpie/install/enable-cpu-temperature.sh` is a one-file pilot operation:
+it validates a readable Linux thermal sensor, preserves commissioning locks,
+backs up the existing env, restarts only the ROCK service, checks stable PID and
+six published samples, and restores the env on failure. It is installed in
+future image payloads. It has not been executed on the physical ROCK because
+noninteractive SSH was denied; a local operator must run it once. A six-sample
+local publish still requires separate backend/Timescale verification.
+
+CPU температурата е изключена по подразбиране (`GRIDEX_CPU_TEMPERATURE_ENABLED=0`),
+затова се публикуват пет, а не шест проби. Новият еднофайлов скрипт
+`base-rockpie/install/enable-cpu-temperature.sh` проверява четим Linux thermal
+сензор, пази commissioning locks, архивира env, рестартира само ROCK услугата,
+проверява стабилен PID и шест публикувани проби и връща env при отказ.
+Добавен е към бъдещия image payload. Не е изпълнен на физическия ROCK, понеже
+автоматичният SSH вход е отказан; оператор трябва да го стартира веднъж.
+Локално публикуване на шест проби още изисква отделна backend/Timescale проверка.
+
 ## ROCK system telemetry crash recovery — 2026-09-23
 
 The physical attempt built commit `927d73a` on ROCK Pi, but the service failed

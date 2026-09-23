@@ -15,6 +15,18 @@ write/commissioning change. See newest HANDOFF and backend HANDOFF.
 показателя (15→24 всеки). CPU температура липсва; външен екран и дълга
 стабилност предстоят. Без MODBUS write/commissioning промяна.
 
+CPU absence traced to the explicit default-off flag. A one-file ROCK
+activation script now checks the thermal sensor, backs up/restores the env,
+restarts only the ROCK service and requires stable six-sample publishing.
+It is included in future image payloads but has not run on physical ROCK;
+passwordless SSH was denied. Backend datapoint verification follows a local run.
+
+Липсата на CPU стойност е от изрично изключената настройка. Еднофайлов ROCK
+скрипт проверява thermal сензора, архивира/връща env, рестартира само ROCK
+услугата и изисква стабилно публикуване на шест проби. Включен е в бъдещия
+image payload, но още не е изпълнен на физическия ROCK; SSH без парола е отказан.
+След локално изпълнение се проверява backend datapoint.
+
 ## ROCK Pi pilot stopped after repeat crash / ROCK Pi пилотът е спрян след повторен crash — 2026-09-23
 
 The physical activation of the serialized MQTT loop (`927d73a`) compiled but

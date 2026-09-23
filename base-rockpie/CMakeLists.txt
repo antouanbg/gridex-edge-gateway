@@ -111,6 +111,7 @@ install(PROGRAMS
     install/install-ot-dhcp.sh
     install/check-journal-access.sh
     install/prepare-state.sh
+    install/enable-cpu-temperature.sh
     DESTINATION lib/gridex
 )
 install(FILES config/gridex-rockpie.env.example DESTINATION share/gridex)
