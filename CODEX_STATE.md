@@ -1,5 +1,21 @@
 # CODEX_STATE.md
 
+## Six ROCK system metrics live / Шест ROCK показателя са активни — 2026-09-24
+
+Supersedes the CPU-pending text below. Physical ROCK CPU opt-in returned ACTIVE
+for thermal_zone0 with private rollback `gridex-cpu-temperature.nfQasW`.
+Fresh CPU readings were confirmed in OpenRemote TimescaleDB and via its
+datapoint API (21/hour, latest 52.083 °C at check). Other five metrics continue
+to grow. Owner-browser acceptance and longer stability are still pending;
+no commissioning/MODBUS change.
+
+Заменя по-стария текст за чакаща CPU температура. Физическият ROCK върна
+ACTIVE за thermal_zone0 с частен rollback `gridex-cpu-temperature.nfQasW`.
+Пресни CPU стойности са потвърдени в OpenRemote TimescaleDB и през datapoint
+API (21/час, последна 52.083 °C при проверката). Другите пет показателя
+продължават да се натрупват. Остават owner browser проверка и дълга
+стабилност; без commissioning/MODBUS промяна.
+
 ## ROCK system telemetry active / ROCK системната телеметрия е активна — 2026-09-24
 
 Supersedes the stopped/zero-outbox status below: physical permanent activation

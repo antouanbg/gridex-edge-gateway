@@ -2,6 +2,31 @@
 
 Repository / GitHub: `antouanbg/gridex-edge-gateway`
 
+## CPU telemetry verified live / CPU телеметрията е потвърдена — 2026-09-24
+
+This supersedes the older five-metric/CPU-pending status below. The operator
+ran the pinned SHA-256-verified CPU opt-in script on the physical ROCK Pi. It
+reported `ROCK_CPU_TEMPERATURE_ACTIVE` for
+`/sys/class/thermal/thermal_zone0/temp`, with private rollback at
+`/var/backups/gridex-cpu-temperature.nfQasW`. Independent backend checks found
+fresh CPU datapoints in OpenRemote TimescaleDB; the OpenRemote datapoint API
+returned 21 readings in the last hour with a latest 52.083 °C at the check.
+All six system metrics now traverse ROCK → MQTT → backend → OpenRemote. This
+does not yet establish owner-browser Devices acceptance or long-term stability.
+Commissioning/control locks and battery MODBUS writes were not changed.
+
+Това заменя по-стария статус за пет показателя/чакаща CPU температура.
+Операторът изпълни проверения по SHA-256 скрипт на физическия ROCK Pi. Той
+върна `ROCK_CPU_TEMPERATURE_ACTIVE` за
+`/sys/class/thermal/thermal_zone0/temp` с частен rollback в
+`/var/backups/gridex-cpu-temperature.nfQasW`. Независима backend проверка
+намери пресни CPU datapoints в OpenRemote TimescaleDB; OpenRemote API върна
+21 измервания за последния час с последна стойност 52.083 °C при проверката.
+Всичките шест системни показателя вече минават по пътя ROCK → MQTT → backend
+→ OpenRemote. Това не доказва още реалния owner екран „Устройства“ или дълга
+стабилност. Без промяна на commissioning/control locks и без MODBUS записи
+към батерията.
+
 ## ROCK pilot active; five metrics stored / ROCK пилотът е активен — 2026-09-24
 
 This entry supersedes the older "service stopped / zero outbox" status below.
