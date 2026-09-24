@@ -56,6 +56,16 @@ ROCK Pi и сравнявай heartbeat и възрастта на даннит�
 
 ## ROCK Pi E operating-system baseline
 
+Image builds must use install/build-image-payload.sh and GRIDEX_REQUIRE_MQTT=ON.
+Provision Git, compiler, CMake, pkg-config, OpenSSL/CA and libmosquitto dependencies
+in the builder; missing MQTT must fail, never silently produce a disabled publisher.
+Stage and test before installation. No enrolled keys/configuration in base images.
+
+Image build използва install/build-image-payload.sh и GRIDEX_REQUIRE_MQTT=ON.
+Git, compiler, CMake, pkg-config, OpenSSL/CA и libmosquitto се осигуряват от
+builder-а; липсващ MQTT спира build-а, не произвежда мълчаливо изключен publisher.
+Първо staging и тестове; без заведени ключове/конфигурации в базовия имидж.
+
 Image/install rule (2026-09-19): follow `docs/ROCKPI_IMAGE_PROVISIONING.md`.
 Package sysusers/tmpfiles state preparation; run it after install/restore before
 service start. Test journal append/rotation as gridex, not root. Preserve data,

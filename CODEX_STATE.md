@@ -1,5 +1,19 @@
 # CODEX_STATE.md
 
+2026-09-20: fixed image helper source root after physical failure of 123e410;
+two real-helper/mock-tools regressions pass. Retry with --skip-dependencies.
+Physical successful payload still unverified; prior core-only run did not qualify.
+2026-09-20: поправен source root след физическия отказ на 123e410; два helper
+regression теста минават. Повтори с --skip-dependencies. Успешен physical payload
+още не е доказан; предходният core-only build не е приемателен тест.
+
+Latest: feat/image-mqtt-bootstrap automates build dependencies (including Git),
+required MQTT, tests and image payload staging. Missing MQTT fails closed.
+No physical deployment/image flash. Linux/ARM64/first-boot gates remain pending.
+Последно: feat/image-mqtt-bootstrap автоматизира зависимости (включително Git),
+задължителен MQTT, тестове и image payload staging. Без MQTT build отказва.
+Без физическо внедряване/flash; Linux/ARM64/first-boot тестовете предстоят.
+
 2026-09-19: per-Site private WireGuard and direct MQTT-mTLS explicitly approved.
 Execution plan recorded in backend docs/PER_SITE_TRANSPORT_AND_ENROLLMENT.md;
 12 TODO items, documentation-only publication, no live activation. See HANDOFF.

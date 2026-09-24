@@ -7,7 +7,38 @@ by this change. Keep the pinned pilot OS baseline and commissioning locks.
 The image includes binaries, service account definitions, default state-directory
 permissions and safe templates, **not** a commissioned device clone.
 
-### State preparation
+### Automated dependency/build payload
+
+From a reviewed source checkout/archive in a native Debian/Armbian Linux builder,
+run once as the non-root build user:
+
+```sh
+sh base-rockpie/install/build-image-payload.sh
+```
+
+For retries with dependencies already installed, append `--skip-dependencies`;
+this avoids apt update/install/possible package upgrades. The helper must select
+`base-rockpie`, not the repository root, and refuses success without its binary.
+Run `python3 base-rockpie/tests/test_image_payload.py` for orchestration regression
+tests (mock host tools; not a substitute for native image acceptance).
+
+This installs Git, compiler, CMake, make, pkg-config, OpenSSL/CA and Mosquitto
+development/runtime dependencies (sudo only for apt), builds with required MQTT,
+runs CTest with assertions enabled (Debug), checks runtime linkage and stages
+the install tree in a fresh temporary directory. It records resolved package
+versions and binary SHA256. No live files, network settings, credentials or
+services are changed. Existing device env is not replaced. Dependency versions
+are recorded, not repository-snapshot pinned; this is not a reproducible image yet.
+
+The image assembly pipeline must copy this payload into its explicit target root,
+include runtime libmosquitto1/CA/OpenSSL and run the existing state preparation
+there. The helper is not a disk image assembler/flasher. Physical first boot,
+ARM64 build, image packaging and per-device claim/mTLS issuance remain acceptance
+gates. Identity/keys are generated/enrolled per device, never baked into a clone.
+Normal installed devices need only the runtime, not Git or a compiler; the pilot
+builder includes Git to eliminate the observed manual-bootstrap failure.
+
+### State preparation details
 
 With the standard `/usr/local` install prefix, `cmake --install` now installs
 `lib/sysusers.d/gridex.conf`, `lib/tmpfiles.d/gridex.conf` and the journal preflight.
@@ -72,6 +103,27 @@ This proves the reported local interval, not current status or backend delivery.
 The separate PCS heartbeat remains unconfirmed while commissioning is locked.
 
 ## Български
+
+При повторение с налични зависимости добави `--skip-dependencies`: без apt
+update/install/възможни package upgrades. Helper избира `base-rockpie`, не repo
+root, и отказва успех без ROCK binary. `python3 base-rockpie/tests/test_image_payload.py`
+проверява orchestration с mock host tools; не заменя native image приемането.
+
+Автоматична подготовка: от проверен source checkout/archive в native Debian/
+Armbian Linux builder изпълни като non-root build user командата от EN секцията.
+Скриптът инсталира Git, compiler, CMake, make, pkg-config, OpenSSL/CA и Mosquitto
+зависимости (sudo само за apt), build-ва със задължителен MQTT, пуска CTest с
+активни assertions (Debug), проверява runtime linkage и подготвя install tree в
+нова временна папка. Записва package версии и SHA256. Не променя живи файлове,
+мрежа, credentials, услуги или текущия device env. Версиите се записват, но няма
+фиксиран package snapshot: това още не е възпроизводим имидж.
+
+Image pipeline трябва да включи payload в изричния target root, runtime
+libmosquitto1/CA/OpenSSL и state preparation там. Скриптът не сглобява/flash-ва
+дисков имидж. ARM64 build, image packaging, first boot и per-device claim/mTLS
+остават приемателни стъпки. Ключове/идентичност се създават за всяко устройство,
+не се клонират. Нормалният краен runtime няма нужда от Git/compiler; pilot builder
+включва Git, за да не се повтаря установеният ръчен bootstrap проблем.
 
 Обхват: подготовка за нов ROCK Pi; тази промяна не изгражда/записва имидж.
 Запазват се фиксираната пилотна OS и commissioning заключването. Имиджът съдържа

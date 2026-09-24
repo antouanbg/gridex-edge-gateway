@@ -2,6 +2,53 @@
 
 Repository / GitHub: `antouanbg/gridex-edge-gateway`
 
+## Bootstrap path correction / Поправка на bootstrap пътя — 2026-09-20
+
+Physical user run of 123e410 exposed a helper bug: source_dir resolved to repo
+root, so only the core test ran and ROCK executable was absent. That run is NOT
+successful image/MQTT acceptance. Corrected root to base-rockpie, added explicit
+executable gate and --skip-dependencies for retries without apt changes. Two
+regression tests execute the real shell helper with fake host tools: exact CMake
+source/required MQTT flags/staging and missing-binary rejection. Both pass; shell
+syntax passes. Native Linux retry remains pending. Earlier eight native CTests
+tested the correct manually chosen source, not the faulty helper path.
+The user's dependency run also upgraded OpenSSL packages; no GrideX service
+replacement or Ethernet change occurred. Preserve existing live config/keys.
+
+Физическото изпълнение на 123e410 откри грешка: source_dir сочеше repo root;
+мина само core тестът и липсваше ROCK executable. Това НЕ е успешно image/MQTT
+приемане. Пътят е поправен към base-rockpie, добавени executable gate и
+--skip-dependencies за повторение без apt промени. Два regression теста изпълняват
+реалния shell helper с fake host tools и проверяват source/MQTT flags/staging и
+отказ при липсващ binary; минават, както и shell syntax. Linux повторението
+предстои. Старите 8 native CTests бяха с правилно ръчно избран source, не с
+грешния helper. Dependency изпълнението е обновило OpenSSL пакети; няма подменена
+GrideX услуга или Ethernet промяна. Запазват се live конфигурацията и ключовете.
+
+## Image MQTT bootstrap / Image MQTT подготовка — 2026-09-19
+
+Owner requested dependency provisioning in the image flow instead of manual
+commands per board. Added build-image-payload.sh: Debian/Armbian dependency
+install including Git/Mosquitto, required-MQTT build, CTest, linkage check and
+DESTDIR staging with package versions/binary hash. No live install/restart/network
+changes. GRIDEX_REQUIRE_MQTT rejects missing dependencies or disabled MQTT.
+Per-device keys/claim remain outside the base image; no cloned credentials.
+Validation: shell syntax, native MQTT build and missing-PkgConfig fail-closed check.
+Linux bootstrap/ARM64 payload, disk image assembly and first-boot acceptance
+remain pending; this is not a generated/flashed image or real MQTT delivery.
+See docs/ROCKPI_IMAGE_PROVISIONING.md. Source branch feat/image-mqtt-bootstrap
+includes approved transport documentation from PR #18.
+
+Собственикът поиска зависимостите да се осигуряват при image подготовката,
+не ръчно за всяка платка. build-image-payload.sh инсталира Debian/Armbian
+зависимости с Git/Mosquitto, build със задължителен MQTT, CTest, linkage проверка
+и DESTDIR staging с package версии/hash. Без live install/restart/мрежови промени.
+GRIDEX_REQUIRE_MQTT отказва липсващи зависимости/изключен MQTT. Per-device keys/
+claim остават извън base image. Проверени shell syntax, native MQTT build и
+fail-closed при липсващ PkgConfig. Linux bootstrap/ARM64 payload, image assembly
+и first-boot приемане предстоят; няма готов/flash-нат имидж или real MQTT receipt.
+Виж docs/ROCKPI_IMAGE_PROVISIONING.md; branch включва документацията от PR #18.
+
 ## Approved dual transport plan / Одобрен план за два транспорта — 2026-09-19
 
 Owner approval recorded for per-Site WireGuard-private OR direct MQTT-mTLS.
