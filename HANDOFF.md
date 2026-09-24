@@ -2,6 +2,12 @@
 
 Repository / GitHub: `antouanbg/gridex-edge-gateway`
 
+## PR reconciliation checkpoint / Проверка на PR — 2026-09-24
+
+PRs #18, #19 and #20 merged after MQTT-required build and 8/8 CTest success on macOS. This is not a new board deployment. Legacy draft #2 conflicts with current MQTT publisher, main, CMake and ESP code; do not merge its old transport implementation over the verified one. Review only still-missing changes separately. Ethernet and commissioning locks were not changed.
+
+PR #18, #19 и #20 са слети след MQTT-required build и 8/8 CTest на macOS. Това не е ново внедряване на платката. Старият draft #2 конфликтува с текущия MQTT publisher, main, CMake и ESP код; без сливане на стария транспорт върху проверения. Следва отделен преглед само на липсващи промени. Ethernet и commissioning locks не са променяни.
+
 ## CPU telemetry verified live / CPU телеметрията е потвърдена — 2026-09-24
 
 This supersedes the older five-metric/CPU-pending status below. The operator
