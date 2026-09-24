@@ -2,6 +2,327 @@
 
 Repository / GitHub: `antouanbg/gridex-edge-gateway`
 
+## CPU telemetry verified live / CPU телеметрията е потвърдена — 2026-09-24
+
+This supersedes the older five-metric/CPU-pending status below. The operator
+ran the pinned SHA-256-verified CPU opt-in script on the physical ROCK Pi. It
+reported `ROCK_CPU_TEMPERATURE_ACTIVE` for
+`/sys/class/thermal/thermal_zone0/temp`, with private rollback at
+`/var/backups/gridex-cpu-temperature.nfQasW`. Independent backend checks found
+fresh CPU datapoints in OpenRemote TimescaleDB; the OpenRemote datapoint API
+returned 21 readings in the last hour with a latest 52.083 °C at the check.
+All six system metrics now traverse ROCK → MQTT → backend → OpenRemote. This
+does not yet establish owner-browser Devices acceptance or long-term stability.
+Commissioning/control locks and battery MODBUS writes were not changed.
+
+Това заменя по-стария статус за пет показателя/чакаща CPU температура.
+Операторът изпълни проверения по SHA-256 скрипт на физическия ROCK Pi. Той
+върна `ROCK_CPU_TEMPERATURE_ACTIVE` за
+`/sys/class/thermal/thermal_zone0/temp` с частен rollback в
+`/var/backups/gridex-cpu-temperature.nfQasW`. Независима backend проверка
+намери пресни CPU datapoints в OpenRemote TimescaleDB; OpenRemote API върна
+21 измервания за последния час с последна стойност 52.083 °C при проверката.
+Всичките шест системни показателя вече минават по пътя ROCK → MQTT → backend
+→ OpenRemote. Това не доказва още реалния owner екран „Устройства“ или дълга
+стабилност. Без промяна на commissioning/control locks и без MODBUS записи
+към батерията.
+
+## ROCK pilot active; five metrics stored / ROCK пилотът е активен — 2026-09-24
+
+This entry supersedes the older "service stopped / zero outbox" status below.
+The corrected build passed a physical 55-second crash test, then the permanent
+activation reported `ROCK_SYSTEM_TELEMETRY_ACTIVE`, one MQTT connection and a
+local publish. Backend receipt and OpenRemote Timescale datapoints were later
+independently verified: uptime, load1, memory available, data free and journal
+size each increased from 15 to 24 records during checks. The backend had to
+repair five missing restricted-writer Asset links (403 retries); see backend
+HANDOFF for its validated backup. CPU temperature is still missing; inspect
+ROCK sensor availability and its opt-in configuration. Long-running stability,
+external Devices display and cross-owner denial remain open. No evidence here
+authorizes battery MODBUS writes or changes to commissioning locks.
+
+Този запис заменя по-стария статус „услугата е спряна / outbox е празен“.
+Поправеният build издържа 55-секунден физически тест, а постоянното включване
+върна `ROCK_SYSTEM_TELEMETRY_ACTIVE`, MQTT връзка и публикуване. Backend приемът
+и Timescale записите бяха независимо потвърдени: uptime, load1, свободна RAM,
+място и journal size нараснаха от 15 до 24 записа за всеки. В backend бяха
+поправени пет липсващи връзки към ограничения writer. CPU температура липсва;
+провери сензора и настройката на ROCK. Остават дълга стабилност, външен екран
+„Устройства“ и отказ за чужд собственик. Това не разрешава MODBUS записи към
+батерия или промяна на commissioning locks.
+
+CPU temperature is opt-in (`GRIDEX_CPU_TEMPERATURE_ENABLED=0` by default),
+which explains the five rather than six published samples. The new
+`base-rockpie/install/enable-cpu-temperature.sh` is a one-file pilot operation:
+it validates a readable Linux thermal sensor, preserves commissioning locks,
+backs up the existing env, restarts only the ROCK service, checks stable PID and
+six published samples, and restores the env on failure. It is installed in
+future image payloads. It has not been executed on the physical ROCK because
+noninteractive SSH was denied; a local operator must run it once. A six-sample
+local publish still requires separate backend/Timescale verification.
+
+CPU температурата е изключена по подразбиране (`GRIDEX_CPU_TEMPERATURE_ENABLED=0`),
+затова се публикуват пет, а не шест проби. Новият еднофайлов скрипт
+`base-rockpie/install/enable-cpu-temperature.sh` проверява четим Linux thermal
+сензор, пази commissioning locks, архивира env, рестартира само ROCK услугата,
+проверява стабилен PID и шест публикувани проби и връща env при отказ.
+Добавен е към бъдещия image payload. Не е изпълнен на физическия ROCK, понеже
+автоматичният SSH вход е отказан; оператор трябва да го стартира веднъж.
+Локално публикуване на шест проби още изисква отделна backend/Timescale проверка.
+
+## ROCK system telemetry crash recovery — 2026-09-23
+
+The physical attempt built commit `927d73a` on ROCK Pi, but the service failed
+the 45-second stability check. The installer restored the preceding binary and
+configuration; that binary also crashed, so it stopped the service. The pilot
+ROCK Pi service remains STOPPED. No live ROCK heartbeat, system telemetry, or
+stored system datapoint has been verified. Control approval gates remain zero.
+
+The controlled `gdb` run of the **rolled-back old binary** captured SIGSEGV in
+`libmosquitto.so.1` during `mosquitto_publish_v5()`, called from
+`MqttHealthPublisher::publishNodeTelemetry()`. A separate `mosquitto loop`
+thread was active, while the node polling and Modbus server threads were not
+crashing. This supports an MQTT client concurrency problem in the old binary;
+it does **not** identify why the newer candidate failed its stability check.
+The earlier "MQTT offline" explanation was incorrect: connection result was 0.
+
+Next controlled action: run the updated
+`base-rockpie/install/capture-rock-crash-stack.sh` once. It builds the current
+candidate from `feat/rock-temperature` with symbols into a separate debug binary,
+runs that candidate under the existing service identity/environment using a
+runtime-only `Restart=no` override, captures its stack, removes the override
+and temporary binary, and leaves the service stopped. It does not replace the
+installed binary/configuration or print the protected env. Do **not** rerun
+`activate-system-telemetry.sh` until the candidate is diagnosed and a fix
+passes physical validation. Claim live data only after fresh MQTT receipt and
+an independently verified OpenRemote/Timescale datapoint.
+
+First candidate diagnostic attempt (`de9f42d`) did not execute its binary:
+systemd/gdb reported `Permission denied` for the temporary `/run` path. This
+was a diagnostic staging-path failure, not evidence of a new application crash.
+The script now stages the separate `gridex_rockpie_debug` executable next to
+the known executable service binary in `/usr/local/bin`, refuses an existing
+file at that exact path, and removes only its own file afterward.
+
+The next controlled run (`fc1c012`) reproduced SIGSEGV in the newer candidate,
+now at `mosquitto_loop()` called from `MqttHealthPublisher::pump()` on the main
+thread. Code review found two concrete defects: `GRIDEX_WITH_MOSQUITTO` was a
+PRIVATE compile definition while the public header conditionally changed the
+class layout, so the service and transport library disagreed on the object's
+size; and `mosquitto_connect_async()` was combined with manual
+`mosquitto_loop()`, contrary to the Mosquitto API contract. The candidate now
+keeps layout independent of the flag, exports the flag to consumers, and pairs
+async connect with `mosquitto_loop_start()`. An ABI regression test compares
+class size compiled with/without the flag. macOS build and all eight tests
+pass (loopback tests required local-port sandbox approval). The same eight tests
+pass in an isolated ARM64 Linux container with libmosquitto. Physical validation
+of this new candidate is PENDING; service remains stopped, and the old binary
+has not been replaced. Run the one-shot capture again before activation.
+The later pasted trace still identifies commit `fc1c012` and `pump()`: it is
+the previous diagnostic result, not evidence against the fix. GitHub branch
+HEAD was verified as `372b375`. The diagnostic script now refuses source that
+still calls `pump()` or lacks `mosquitto_loop_start()`.
+
+Physical one-shot of corrected `cf834fc` PASSED: 55 seconds without a crash,
+MQTT CONNACK success, and two successful local QoS1 publish calls with five
+system samples each. `writes_enabled=false` and `commissioning_locked` stayed
+intact. The diagnostic deliberately stopped the service afterward; the
+installed binary was not replaced. Broker logs confirm the pilot MQTT client
+connected. Backend history worker has six configured system bindings and an
+active subscription, but the read-only outbox query returned ZERO rows as of
+2026-09-23 20:59 UTC. Local `publish=true` is not a broker acknowledgement or
+stored datapoint, so backend delivery/history is NOT verified. The activation
+script now rejects obsolete source and requires stable PID, successful MQTT
+connect log and a system telemetry publish log within 45 seconds; its rollback
+remains in place. After activation, independently check the broker and outbox
+before calling telemetry live.
+The active broker ACL file was modified at 2026-09-23 15:39 UTC, while the
+broker process had been running since 2026-09-15. No ACL reload was seen in
+the intervening logs. A scoped SIGHUP was sent to the broker on 2026-09-23
+to reload that file without restarting the container; it remained healthy.
+This is a likely explanation for the zero outbox rows, NOT yet proven. The
+next physical ROCK activation and subsequent broker/outbox checks will test it.
+
+Физическият опит компилира commit `927d73a` на ROCK Pi, но услугата не издържа
+45-секундната проверка. Инсталаторът върна предишния binary/config; и той
+падна, затова услугата остана СПРЯНА. Няма потвърден live ROCK heartbeat,
+системна телеметрия или записана system datapoint стойност. Control approval
+gate-овете остават нула.
+
+Контролираният `gdb` тест на **върнатия стар binary** улови SIGSEGV в
+`libmosquitto.so.1` при `mosquitto_publish_v5()`, извикан от
+`MqttHealthPublisher::publishNodeTelemetry()`. Отделна `mosquitto loop` нишка
+работеше; node polling и Modbus server нишките не бяха мястото на crash-а.
+Това подкрепя проблем с едновременен достъп до MQTT клиента в стария binary,
+но **не** доказва причината за неуспеха на новия кандидат. Старото обяснение
+„MQTT offline“ беше погрешно: резултатът от свързването беше 0.
+
+Следва еднократно изпълнение на обновения
+`base-rockpie/install/capture-rock-crash-stack.sh`. Той компилира текущия
+кандидат от `feat/rock-temperature` със symbols като отделен debug binary,
+пуска го с текущите service identity/env и runtime-only override с
+`Restart=no`, събира stack, почиства временните файлове и оставя услугата
+спряна. Не подменя инсталирания binary/config и не показва защитения env.
+**Не** пускай `activate-system-telemetry.sh` пак, преди кандидатът да бъде
+диагностициран и поправката да мине физически тест. Live данни се заявяват
+едва след ново MQTT съобщение и отделно потвърден OpenRemote/Timescale запис.
+
+Първият диагностичен опит на кандидата (`de9f42d`) не изпълни binary:
+systemd/gdb върна `Permission denied` за временния път в `/run`. Това е отказ
+на диагностичния staging път, не нов доказан application crash. Скриптът вече
+поставя отделния `gridex_rockpie_debug` до изпълнимия service binary в
+`/usr/local/bin`, отказва съществуващ файл на този точен път и после премахва
+само своя временен файл.
+
+Следващият контролиран опит (`fc1c012`) възпроизведе SIGSEGV и в новия
+кандидат — този път в `mosquitto_loop()`, извикан от
+`MqttHealthPublisher::pump()` в основната нишка. Прегледът откри два конкретни
+дефекта: `GRIDEX_WITH_MOSQUITTO` беше PRIVATE compile flag, а публичният header
+променяше размера на класа според него, така че service и transport библиотеката
+не бяха съгласни за размера на обекта; `mosquitto_connect_async()` беше съчетан
+с ръчен `mosquitto_loop()`, което противоречи на Mosquitto API договора.
+Кандидатът вече има независим от flag-а class layout, изнася flag-а към
+потребителите и съчетава async connect с `mosquitto_loop_start()`. ABI
+регресионен тест сравнява размера при компилация със/без flag. macOS build и
+осемте теста минават (loopback тестовете изискваха разрешен локален порт).
+Същите осем теста минават и в изолиран ARM64 Linux контейнер с libmosquitto.
+Физическата проверка ПРЕДСТОИ; услугата остава спряна и старият binary не е
+подменян. Първо повтори еднократния диагностичен тест, не активацията.
+По-късно изпратеният stack отново сочи commit `fc1c012` и `pump()` — това е
+предишният резултат, не доказателство срещу поправката. GitHub branch HEAD е
+проверен като `372b375`. Диагностичният скрипт вече отказва стар source с
+`pump()` или без `mosquitto_loop_start()`.
+
+Физическият еднократен тест на поправения `cf834fc` МИНА: 55 секунди без crash,
+успешно MQTT свързване и две успешни локални QoS1 publish извиквания с по пет
+системни измервания. `writes_enabled=false` и `commissioning_locked` останаха.
+След теста диагностиката умишлено спря услугата; инсталираният binary не е
+подменен. Broker log потвърждава връзката на пилотния MQTT клиент. Backend
+history worker има шест конфигурирани system bindings и активен абонамент, но
+read-only проверката на outbox върна НУЛА реда към 2026-09-23 20:59 UTC.
+Локалното `publish=true` не е broker acknowledgement или записан datapoint,
+затова backend доставката/историята НЕ са потвърдени. Скриптът за активация
+вече отказва стар source и изисква стабилен PID, успешен MQTT connect log и
+system telemetry publish log в 45 секунди; rollback е запазен. След активация
+broker и outbox се проверяват отделно преди да се обяви live телеметрия.
+Активният broker ACL файл е променен на 2026-09-23 15:39 UTC, а broker
+процесът работеше още от 2026-09-15. В междинните логове няма ACL reload.
+На 2026-09-23 е изпратен ограничен SIGHUP за презареждане на файла без
+рестарт на контейнера; broker остана healthy. Това вероятно обяснява празния
+outbox, но още НЕ е доказано. Следващата физическа активация на ROCK и
+последващите broker/outbox проверки ще го проверят.
+
+## Pilot inventory reconciled / Пилотен инвентар съгласуван — 2026-09-20
+
+DEPLOYED via supported OpenRemote APIs: pilot Site -> ROCK -> ESP, with the
+existing temperature asset reparented under ROCK (same ID/history writer).
+All four assets have verified owner links. Owner lacked OR read:assets: granted
+that role with restricted_user, NOT unrestricted asset/admin writes. Existing
+GrideX administrator membership unchanged. New tokens may be needed to see roles.
+Site binding and two gateway bindings are projections of verified OR resources
+(migration 009), not independently provisioned inventory. No physical activation,
+Ethernet, certificates, MQTT configuration or BESS control changes.
+Private backups: inventory-or-XXk1AE before asset creation; inventory-or-ypRcM2
+before owner role assignment. Both database dumps passed pg_restore --list;
+OR/owner snapshots are private. Final read-back: inventory-or-dHQvbb.
+A partial SQL audit failure was corrected; retry reused the same OR IDs.
+Eight verification tests + 37 API regression tests PASS; live snapshot validates
+hierarchy, owner links, bindings and history writer restricted to its one asset.
+Sandbox HTTP tests initially failed EPERM; approved local-port rerun passed.
+NOT claimed: owner browser acceptance, physical temperature receipt, or generic
+UI/import provisioning enforcement. Those remain pending under the canonical
+backend plan. Do not resume local-only bootstrap scripts. Documentation rules
+published in backend PR #32, frontend PR #40 and edge PR #20; not merged here.
+
+ВНЕДРЕНО през OpenRemote API: пилотен Обект -> ROCK -> ESP; съществуващият
+температурен asset е преместен под ROCK със същия ID/history writer.
+Проверени са връзките на четирите assets към собственика. Липсващото OR
+read:assets право е добавено с restricted_user, БЕЗ неограничени asset/admin
+записи. GrideX администраторското членство е запазено. За новите роли може да
+е нужен нов token. Site binding и двата gateway bindings (миграция 009) са
+проекции на потвърдени OR ресурси, не отделно провизиран инвентар.
+Без физическо активиране, Ethernet, сертификати, MQTT настройки или BESS промени.
+Частни backups: inventory-or-XXk1AE преди assets и inventory-or-ypRcM2 преди
+owner ролите; двата database dump-а са проверени с pg_restore --list.
+OR/owner snapshots са частни; последна проверка inventory-or-dHQvbb.
+Поправен е частичен SQL audit отказ; повторението използва същите OR IDs.
+8 verification + 37 API regression теста МИНАВАТ; реалният snapshot потвърждава
+йерархия, owner links, bindings и writer само до неговия температурен asset.
+Първият HTTP тест е блокиран от sandbox EPERM; разрешеното повторение минава.
+НЕ са потвърдени: owner browser приемане, физическа температура и универсална
+UI/import защита. Те остават задачи по backend плана. Без local-only bootstrap.
+Правилата са публикувани в backend PR #32, frontend PR #40 и edge PR #20;
+тук не са merge-вани.
+
+
+## Strategic invariant: OpenRemote-only inventory / Стратегическо правило — 2026-09-20
+
+Owner-confirmed: OpenRemote is the ONLY authoritative place for all operational
+inventory, Sites, devices, gateways, sensors and resource relationships. This
+applies equally to user actions through the frontend and Codex/operator actions
+under owner instructions: create/provision/update resources through supported
+OpenRemote APIs, normally orchestrated by the authorized GrideX backend. Never
+bypass OpenRemote by SQL, import, scripts, browser storage or a second registry.
+Do not expose administrative credentials in the frontend. No local-only resource
+may be presented as provisioned. Require verified OR identity, hierarchy,
+owner/realm access and durable bindings before success; outages and partial
+failures stay pending/failed and must reconcile idempotently.
+Local drafts, delivery queues and disposable read projections are allowed ONLY
+as workflow data referencing OR or a pending request, never independent inventory.
+Device configuration/NVS and certificates are execution artifacts, not a registry.
+Keycloak identity and business records are separate concerns. Anonymous demo
+fixtures remain explicitly synthetic, never registered customer/live inventory.
+This decision supersedes conflicting older local-only provisioning instructions.
+Preserve existing data and safety locks; reconcile legacy orphans with backup,
+not blind deletion. Canonical plan: backend docs/OPENREMOTE_PROVISIONING_AUTHORITY.md.
+Documentation is not runtime enforcement; migration and acceptance remain pending.
+
+Потвърдено от собственика: OpenRemote е ЕДИНСТВЕНОТО основно място за целия
+оперативен инвентар, Обекти, устройства, шлюзове, сензори и ресурсните им връзки.
+Правилото важи еднакво за потребителя през frontend и за Codex/оператор по
+инструкции на собственика: създаване/провизиране/обновяване през поддържаните
+OpenRemote API, обичайно чрез GrideX backend с проверени права. Без заобикаляне
+чрез SQL, import, скриптове, browser storage или втори регистър. Без admin тайни
+във frontend. Local-only ресурс не се показва като провизиран. Успех изисква
+проверени OR идентичност, йерархия, собственик/realm права и устойчив binding;
+отказите остават pending/failed и се съгласуват идемпотентно.
+Локални чернови, опашки и възстановими проекции за четене са допустими САМО като
+данни за процеса с връзка към OR или чакаща заявка, никога независим инвентар.
+Device конфигурации/NVS и сертификати са изпълними настройки, не регистър.
+Keycloak идентичности и бизнес записи са отделни. Анонимното демо остава ясно
+синтетично, не регистриран клиентски/live инвентар.
+Решението отменя противоречащи стари инструкции за local-only provisioning.
+Пази данните и safety locks; съгласувай наследените записи с backup, без сляпо
+изтриване. Каноничен план: backend docs/OPENREMOTE_PROVISIONING_AUTHORITY.md.
+Документацията не е runtime защита; миграцията и приемането предстоят.
+
+
+## CPU temperature publisher / CPU temperature publisher — 2026-09-20
+
+Prepared optional read-only Linux thermal sysfs CPU temperature in existing
+ROCK health MQTT payload (`cpuTemperatureC`, Celsius, null if missing/invalid).
+Enable only through existing device env: GRIDEX_CPU_TEMPERATURE_ENABLED=1,
+GRIDEX_CPU_TEMPERATURE_FILE points to the board-verified CPU thermal zone.
+It follows GRIDEX_HEALTH_PUBLISH_SECONDS; no global 15-minute schedule.
+Default disabled; no Ethernet, ESP firmware, BESS or command-lock changes.
+8/8 native CTests pass with MQTT required. NOT deployed to physical ROCK:
+noninteractive SSH refused. Next: approved local build/install with backup,
+verify zone/type and service-user read access, enable in existing env, confirm
+physical MQTT -> backend outbox -> OpenRemote Timescale -> owner UI.
+Backend owner asset/writer/worker configured; synthetic database probe passed,
+not physical temperature evidence. Never report CPU as battery temperature.
+
+Готов е optional read-only CPU thermal sysfs сензор в текущия ROCK MQTT health
+payload (`cpuTemperatureC`, Celsius, null при липса/грешка). Активиране само през
+текущия env: GRIDEX_CPU_TEMPERATURE_ENABLED=1 и GRIDEX_CPU_TEMPERATURE_FILE към
+проверен CPU thermal zone. Следва GRIDEX_HEALTH_PUBLISH_SECONDS, не общи 15 минути.
+По подразбиране е изключен. Без Ethernet/ESP firmware/BESS/command-lock промени.
+8/8 native CTest минават със задължителен MQTT. НЕ е внедрен: SSH е отказан.
+Следва одобрен local build/install с backup, zone/type и service-user read
+проверка, активиране в текущия env и реален MQTT -> outbox -> Timescale -> UI.
+Backend asset/writer/worker са настроени; synthetic DB probe минава, но не
+доказва физическа температура. CPU температура не се представя като батерийна.
+
 ## Bootstrap path correction / Поправка на bootstrap пътя — 2026-09-20
 
 Physical user run of 123e410 exposed a helper bug: source_dir resolved to repo

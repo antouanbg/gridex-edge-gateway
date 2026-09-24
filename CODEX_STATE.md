@@ -1,5 +1,206 @@
 # CODEX_STATE.md
 
+## Six ROCK system metrics live / Шест ROCK показателя са активни — 2026-09-24
+
+Supersedes the CPU-pending text below. Physical ROCK CPU opt-in returned ACTIVE
+for thermal_zone0 with private rollback `gridex-cpu-temperature.nfQasW`.
+Fresh CPU readings were confirmed in OpenRemote TimescaleDB and via its
+datapoint API (21/hour, latest 52.083 °C at check). Other five metrics continue
+to grow. Owner-browser acceptance and longer stability are still pending;
+no commissioning/MODBUS change.
+
+Заменя по-стария текст за чакаща CPU температура. Физическият ROCK върна
+ACTIVE за thermal_zone0 с частен rollback `gridex-cpu-temperature.nfQasW`.
+Пресни CPU стойности са потвърдени в OpenRemote TimescaleDB и през datapoint
+API (21/час, последна 52.083 °C при проверката). Другите пет показателя
+продължават да се натрупват. Остават owner browser проверка и дълга
+стабилност; без commissioning/MODBUS промяна.
+
+## ROCK system telemetry active / ROCK системната телеметрия е активна — 2026-09-24
+
+Supersedes the stopped/zero-outbox status below: physical permanent activation
+reported one MQTT connection and local publish after the corrected build's
+55-second crash-free test. Independent backend/Timescale checks found growing
+datapoints for five system metrics (15→24 each). CPU temperature is missing;
+external Devices acceptance and long-run stability are pending. No MODBUS
+write/commissioning change. See newest HANDOFF and backend HANDOFF.
+
+Заменя стария статус за спряна услуга/празен outbox: физическото постоянно
+включване отчете MQTT връзка и публикуване след 55 секунди без crash.
+Независимата backend/Timescale проверка показа нарастващи записи за пет
+показателя (15→24 всеки). CPU температура липсва; външен екран и дълга
+стабилност предстоят. Без MODBUS write/commissioning промяна.
+
+CPU absence traced to the explicit default-off flag. A one-file ROCK
+activation script now checks the thermal sensor, backs up/restores the env,
+restarts only the ROCK service and requires stable six-sample publishing.
+It is included in future image payloads but has not run on physical ROCK;
+passwordless SSH was denied. Backend datapoint verification follows a local run.
+
+Липсата на CPU стойност е от изрично изключената настройка. Еднофайлов ROCK
+скрипт проверява thermal сензора, архивира/връща env, рестартира само ROCK
+услугата и изисква стабилно публикуване на шест проби. Включен е в бъдещия
+image payload, но още не е изпълнен на физическия ROCK; SSH без парола е отказан.
+След локално изпълнение се проверява backend datapoint.
+
+## ROCK Pi pilot stopped after repeat crash / ROCK Pi пилотът е спрян след повторен crash — 2026-09-23
+
+The physical activation of the serialized MQTT loop (`927d73a`) compiled but
+failed the 45-second process-stability check. Rollback restored the previous
+binary/config; the previous binary also failed, so the service was stopped.
+The one-shot `gdb` stack of that **old binary** shows SIGSEGV in
+`libmosquitto.so.1` during `mosquitto_publish_v5()`, called from
+`MqttHealthPublisher::publishNodeTelemetry()`, with a separate Mosquitto loop
+thread active. This does not diagnose the newer candidate's failure. The
+updated one-shot script now builds and runs the candidate under `gdb` from a
+separate debug binary without replacing the installed service, then leaves
+the service stopped. The first attempt (`de9f42d`) hit `Permission denied`
+executing from `/run`, so the debug binary was moved to a separate path in
+`/usr/local/bin`; candidate crash evidence is still pending. No live ROCK
+telemetry or history datapoint is verified.
+The `fc1c012` candidate also crashed, in main-thread `mosquitto_loop()`.
+Review found a mismatched class layout across translation units because the
+public header was conditional on a PRIVATE compile definition, plus an
+unsupported `mosquitto_connect_async()` + manual `mosquitto_loop()` pairing.
+Both are corrected on the branch with an ABI regression test. Eight macOS and
+eight isolated ARM64 Linux tests pass; physical validation is still pending. Do not activate the service
+until the corrected candidate survives the one-shot capture.
+The later user-provided trace still printed `fc1c012`/`pump()`; remote branch
+HEAD is `372b375`, so that trace is not a new validation of the fix. The
+diagnostic now rejects obsolete source before building it.
+Corrected `cf834fc` survived the physical 55-second one-shot, connected to
+MQTT, and locally queued two five-sample system messages with control locked.
+The test stopped the service afterward. Broker connection is confirmed, but
+backend history outbox still had zero rows as of 2026-09-23 20:59 UTC. The
+activation guard now requires PID/MQTT/publish evidence and preserves rollback;
+OpenRemote/Timescale delivery remains a separate, unverified gate.
+The broker ACL file changed after broker startup with no logged reload; a
+scoped SIGHUP reloaded it and the broker stayed healthy. Stale ACL is a
+hypothesis for the zero outbox rows, pending the next physical publish.
+
+Физическата активация на последователния MQTT loop (`927d73a`) се компилира,
+но не издържа 45-секундната проверка. Rollback върна предишния binary/config;
+и той падна, затова услугата беше спряна. Еднократният `gdb` stack на
+**стария binary** показва SIGSEGV в `libmosquitto.so.1` при
+`mosquitto_publish_v5()`, извикан от `MqttHealthPublisher::publishNodeTelemetry()`,
+докато отделна Mosquitto loop нишка работи. Това не диагностицира отказа на
+новия кандидат. Обновеният еднократен скрипт компилира и пуска кандидата под
+`gdb` като отделен debug binary, после оставя услугата спряна.
+Първият опит (`de9f42d`) получи `Permission denied` при изпълнение от `/run`,
+затова debug binary е преместен на отделен път в `/usr/local/bin`, без да
+замества инсталирания service binary. Stack-ът на кандидата още предстои.
+Няма потвърдена live ROCK телеметрия или history datapoint.
+Кандидатът `fc1c012` също падна — в `mosquitto_loop()` на основната нишка.
+Открити са различен размер на класа между translation units заради PRIVATE
+compile flag и неподдържаната комбинация `mosquitto_connect_async()` + ръчен
+`mosquitto_loop()`. И двете са поправени в branch-а с ABI регресионен тест.
+Осемте macOS и осемте изолирани ARM64 Linux теста минават; физическата проверка предстои. Не активирай
+услугата преди поправеният кандидат да издържи еднократния тест.
+По-късният изпратен stack пак показва `fc1c012`/`pump()`; remote branch HEAD
+е `372b375`, следователно това не е нов тест на поправката. Диагностиката
+вече отказва стар source преди build.
+Поправеният `cf834fc` издържа физическия 55-секунден тест, свърза се с MQTT
+и локално подаде две system съобщения с по пет измервания, при заключен
+control. Тестът после спря услугата. Broker връзката е потвърдена, но backend
+history outbox още имаше нула реда към 2026-09-23 20:59 UTC. Скриптът за
+активация вече изисква PID/MQTT/publish доказателства и пази rollback;
+OpenRemote/Timescale доставката остава отделна непотвърдена проверка.
+Broker ACL файлът е променен след старта на broker-а без записан reload;
+ограничен SIGHUP го презареди и broker остана healthy. Стар ACL е хипотеза
+за нулевия outbox до следващото физическо публикуване.
+
+## Pilot inventory reconciled / Пилотен инвентар съгласуван — 2026-09-20
+
+DEPLOYED via supported OpenRemote APIs: pilot Site -> ROCK -> ESP, with the
+existing temperature asset reparented under ROCK (same ID/history writer).
+All four assets have verified owner links. Owner lacked OR read:assets: granted
+that role with restricted_user, NOT unrestricted asset/admin writes. Existing
+GrideX administrator membership unchanged. New tokens may be needed to see roles.
+Site binding and two gateway bindings are projections of verified OR resources
+(migration 009), not independently provisioned inventory. No physical activation,
+Ethernet, certificates, MQTT configuration or BESS control changes.
+Private backups: inventory-or-XXk1AE before asset creation; inventory-or-ypRcM2
+before owner role assignment. Both database dumps passed pg_restore --list;
+OR/owner snapshots are private. Final read-back: inventory-or-dHQvbb.
+A partial SQL audit failure was corrected; retry reused the same OR IDs.
+Eight verification tests + 37 API regression tests PASS; live snapshot validates
+hierarchy, owner links, bindings and history writer restricted to its one asset.
+Sandbox HTTP tests initially failed EPERM; approved local-port rerun passed.
+NOT claimed: owner browser acceptance, physical temperature receipt, or generic
+UI/import provisioning enforcement. Those remain pending under the canonical
+backend plan. Do not resume local-only bootstrap scripts. Documentation rules
+published in backend PR #32, frontend PR #40 and edge PR #20; not merged here.
+
+ВНЕДРЕНО през OpenRemote API: пилотен Обект -> ROCK -> ESP; съществуващият
+температурен asset е преместен под ROCK със същия ID/history writer.
+Проверени са връзките на четирите assets към собственика. Липсващото OR
+read:assets право е добавено с restricted_user, БЕЗ неограничени asset/admin
+записи. GrideX администраторското членство е запазено. За новите роли може да
+е нужен нов token. Site binding и двата gateway bindings (миграция 009) са
+проекции на потвърдени OR ресурси, не отделно провизиран инвентар.
+Без физическо активиране, Ethernet, сертификати, MQTT настройки или BESS промени.
+Частни backups: inventory-or-XXk1AE преди assets и inventory-or-ypRcM2 преди
+owner ролите; двата database dump-а са проверени с pg_restore --list.
+OR/owner snapshots са частни; последна проверка inventory-or-dHQvbb.
+Поправен е частичен SQL audit отказ; повторението използва същите OR IDs.
+8 verification + 37 API regression теста МИНАВАТ; реалният snapshot потвърждава
+йерархия, owner links, bindings и writer само до неговия температурен asset.
+Първият HTTP тест е блокиран от sandbox EPERM; разрешеното повторение минава.
+НЕ са потвърдени: owner browser приемане, физическа температура и универсална
+UI/import защита. Те остават задачи по backend плана. Без local-only bootstrap.
+Правилата са публикувани в backend PR #32, frontend PR #40 и edge PR #20;
+тук не са merge-вани.
+
+
+## Strategic invariant: OpenRemote-only inventory / Стратегическо правило — 2026-09-20
+
+Owner-confirmed: OpenRemote is the ONLY authoritative place for all operational
+inventory, Sites, devices, gateways, sensors and resource relationships. This
+applies equally to user actions through the frontend and Codex/operator actions
+under owner instructions: create/provision/update resources through supported
+OpenRemote APIs, normally orchestrated by the authorized GrideX backend. Never
+bypass OpenRemote by SQL, import, scripts, browser storage or a second registry.
+Do not expose administrative credentials in the frontend. No local-only resource
+may be presented as provisioned. Require verified OR identity, hierarchy,
+owner/realm access and durable bindings before success; outages and partial
+failures stay pending/failed and must reconcile idempotently.
+Local drafts, delivery queues and disposable read projections are allowed ONLY
+as workflow data referencing OR or a pending request, never independent inventory.
+Device configuration/NVS and certificates are execution artifacts, not a registry.
+Keycloak identity and business records are separate concerns. Anonymous demo
+fixtures remain explicitly synthetic, never registered customer/live inventory.
+This decision supersedes conflicting older local-only provisioning instructions.
+Preserve existing data and safety locks; reconcile legacy orphans with backup,
+not blind deletion. Canonical plan: backend docs/OPENREMOTE_PROVISIONING_AUTHORITY.md.
+Documentation is not runtime enforcement; migration and acceptance remain pending.
+
+Потвърдено от собственика: OpenRemote е ЕДИНСТВЕНОТО основно място за целия
+оперативен инвентар, Обекти, устройства, шлюзове, сензори и ресурсните им връзки.
+Правилото важи еднакво за потребителя през frontend и за Codex/оператор по
+инструкции на собственика: създаване/провизиране/обновяване през поддържаните
+OpenRemote API, обичайно чрез GrideX backend с проверени права. Без заобикаляне
+чрез SQL, import, скриптове, browser storage или втори регистър. Без admin тайни
+във frontend. Local-only ресурс не се показва като провизиран. Успех изисква
+проверени OR идентичност, йерархия, собственик/realm права и устойчив binding;
+отказите остават pending/failed и се съгласуват идемпотентно.
+Локални чернови, опашки и възстановими проекции за четене са допустими САМО като
+данни за процеса с връзка към OR или чакаща заявка, никога независим инвентар.
+Device конфигурации/NVS и сертификати са изпълними настройки, не регистър.
+Keycloak идентичности и бизнес записи са отделни. Анонимното демо остава ясно
+синтетично, не регистриран клиентски/live инвентар.
+Решението отменя противоречащи стари инструкции за local-only provisioning.
+Пази данните и safety locks; съгласувай наследените записи с backup, без сляпо
+изтриване. Каноничен план: backend docs/OPENREMOTE_PROVISIONING_AUTHORITY.md.
+Документацията не е runtime защита; миграцията и приемането предстоят.
+
+
+2026-09-20: optional CPU temperature publisher prepared on feat/rock-temperature;
+8/8 CTests pass. Not installed on ROCK (SSH denied); device env activation and
+real sensor/MQTT/Timescale/UI verification pending. See newest HANDOFF.
+2026-09-20: optional CPU temperature publisher е готов, 8/8 CTest минават.
+Не е качен на ROCK (SSH отказан); env активиране и реален сензор/MQTT/Timescale/UI
+тест предстоят. Виж най-новия HANDOFF.
+
 2026-09-20: fixed image helper source root after physical failure of 123e410;
 two real-helper/mock-tools regressions pass. Retry with --skip-dependencies.
 Physical successful payload still unverified; prior core-only run did not qualify.

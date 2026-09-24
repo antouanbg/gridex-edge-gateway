@@ -1,12 +1,18 @@
 #include "gridex/rockpie/MqttHealthPublisher.hpp"
+#include "gridex/rockpie/CpuTemperature.hpp"
 
 #include <cassert>
 #include <string>
+#include <sstream>
+#include <limits>
+
+std::size_t mqttPublisherSizeWithoutBuildFlag();
 
 int main() {
     using gridex::rockpie::EdgeHealthMessage;
     using gridex::rockpie::MbusNodeTelemetry;
     using gridex::rockpie::MqttHealthPublisher;
+    assert(sizeof(MqttHealthPublisher) == mqttPublisherSizeWithoutBuildFlag());
 
     const auto health = MqttHealthPublisher::healthPayload({
         .siteId = "test-site", .gatewayId = "edge-01", .state = "degraded",
@@ -16,6 +22,21 @@ int main() {
     assert(health.find("\"schemaVersion\":1") != std::string::npos);
     assert(health.find("\"state\":\"degraded\"") != std::string::npos);
     assert(health.find("\"safeMode\":true") != std::string::npos);
+    assert(health.find("\"cpuTemperatureC\":null") != std::string::npos);
+    EdgeHealthMessage temperature;
+    temperature.cpuTemperatureC = 48.125;
+    assert(MqttHealthPublisher::healthPayload(temperature).find("\"cpuTemperatureC\":48.125") != std::string::npos);
+    temperature.cpuTemperatureC = std::numeric_limits<double>::quiet_NaN();
+    assert(MqttHealthPublisher::healthPayload(temperature).find("\"cpuTemperatureC\":null") != std::string::npos);
+    for (const auto text : {"", "nan", "48000junk", "150001", "-40001", "48000 extra"}) {
+        std::istringstream input(text);
+        assert(!gridex::rockpie::parseCpuTemperature(input));
+    }
+    std::istringstream valid("48125\n");
+    assert(gridex::rockpie::parseCpuTemperature(valid) == 48.125);
+    std::istringstream zero("0\n");
+    assert(gridex::rockpie::parseCpuTemperature(zero) == 0.0);
+    assert(!gridex::rockpie::readCpuTemperature("/nonexistent-gridex-sensor"));
 
     const auto telemetry = MqttHealthPublisher::nodeTelemetryPayload(1, MbusNodeTelemetry{
         .address = 1, .nodeType = 3, .nodeState = 2, .driverId = 7,

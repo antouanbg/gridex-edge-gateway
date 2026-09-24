@@ -1,9 +1,11 @@
 #include "gridex/rockpie/MqttHealthPublisher.hpp"
 
 #include <chrono>
+#include <cmath>
 #include <ctime>
 #include <fstream>
 #include <iomanip>
+#include <iostream>
 #include <sstream>
 #include <string_view>
 #include <utility>
@@ -126,20 +128,26 @@ MqttHealthPublisher::MqttHealthPublisher(MqttHealthPublisherConfig config)
         [](mosquitto* client, void* context, int result) {
             MqttHealthPublisher::onDisconnect(client, context, result);
         });
+    // connect_async must be paired with loop_start, not a manually driven
+    // mosquitto_loop. The library enables its thread-safety mode for us.
     if (!tlsConfigured || !authConfigured || !secure ||
         mosquitto_connect_async(static_cast<mosquitto*>(client_), endpoint.host.c_str(), endpoint.port, 30) != MOSQ_ERR_SUCCESS ||
         mosquitto_loop_start(static_cast<mosquitto*>(client_)) != MOSQ_ERR_SUCCESS) {
         mosquitto_destroy(static_cast<mosquitto*>(client_));
         client_ = nullptr;
+        return;
     }
+    loopStarted_ = true;
 #endif
 }
 
 MqttHealthPublisher::~MqttHealthPublisher() {
 #ifdef GRIDEX_WITH_MOSQUITTO
     if (client_) {
-        mosquitto_disconnect(static_cast<mosquitto*>(client_));
-        mosquitto_loop_stop(static_cast<mosquitto*>(client_), true);
+        if (loopStarted_) {
+            (void)mosquitto_disconnect(static_cast<mosquitto*>(client_));
+            (void)mosquitto_loop_stop(static_cast<mosquitto*>(client_), false);
+        }
         mosquitto_destroy(static_cast<mosquitto*>(client_));
     }
     if (libraryInitialized_) mosquitto_lib_cleanup();
@@ -169,7 +177,15 @@ std::string MqttHealthPublisher::healthPayload(const EdgeHealthMessage& message)
            << ",\"safeMode\":" << jsonBoolean(message.safeMode)
            << ",\"northboundReady\":" << jsonBoolean(message.northboundReady)
            << ",\"nodeOnlineCount\":" << message.nodeOnlineCount
-           << ",\"nodeTotal\":" << message.nodeTotal << "}";
+           << ",\"nodeTotal\":" << message.nodeTotal
+           << ",\"cpuTemperatureC\":";
+    if (message.cpuTemperatureC && std::isfinite(*message.cpuTemperatureC)
+        && *message.cpuTemperatureC >= -40.0 && *message.cpuTemperatureC <= 150.0) {
+        output << *message.cpuTemperatureC;
+    } else {
+        output << "null";
+    }
+    output << "}";
     return output.str();
 }
 
@@ -201,6 +217,22 @@ std::string MqttHealthPublisher::nodeTelemetryPayload(
            << ",\"watchdogStatus\":" << sample.watchdogStatus
            << ",\"recoveryCount\":" << sample.recoveryCount
            << ",\"lastError\":" << sample.lastError << "}";
+    return output.str();
+}
+
+std::string MqttHealthPublisher::systemTelemetryPayload(
+    const std::string& gatewayId, const std::string& bootId, std::uint64_t sequence,
+    const std::vector<SystemTelemetrySample>& samples) {
+    std::ostringstream output;
+    output << "{\"schemaVersion\":1,\"observedAt\":" << jsonString(timestamp())
+           << ",\"gatewayId\":" << jsonString(gatewayId)
+           << ",\"bootId\":" << jsonString(bootId) << ",\"sequence\":" << sequence << ",\"samples\":[";
+    for (std::size_t i = 0; i < samples.size(); ++i) {
+        if (i) output << ',';
+        output << "{\"sensorId\":" << jsonString(samples[i].sensorId)
+               << ",\"value\":" << samples[i].value << ",\"unit\":" << jsonString(samples[i].unit) << '}';
+    }
+    output << "]}";
     return output.str();
 }
 
@@ -240,15 +272,37 @@ bool MqttHealthPublisher::publishNodeTelemetry(
 #endif
 }
 
+bool MqttHealthPublisher::publishSystemTelemetry(
+    const std::string& siteId, const std::string& gatewayId, const std::string& bootId,
+    std::uint64_t sequence, const std::vector<SystemTelemetrySample>& samples) noexcept {
+#ifdef GRIDEX_WITH_MOSQUITTO
+    const auto site = topicPart(siteId), gateway = topicPart(gatewayId);
+    if (!connected() || site.empty() || gateway.empty() || samples.empty()) return false;
+    const auto topic = config_.topicPrefix + "/sites/" + site + "/edge/" + gateway + "/system/telemetry";
+    const auto payload = systemTelemetryPayload(gatewayId, bootId, sequence, samples);
+    return mosquitto_publish(static_cast<mosquitto*>(client_), nullptr, topic.c_str(), static_cast<int>(payload.size()), payload.c_str(), 1, false) == MOSQ_ERR_SUCCESS;
+#else
+    (void)siteId; (void)gatewayId; (void)bootId; (void)sequence; (void)samples; return false;
+#endif
+}
+
 #ifdef GRIDEX_WITH_MOSQUITTO
 void MqttHealthPublisher::onConnect(void*, void* context, int result) noexcept {
     auto* publisher = static_cast<MqttHealthPublisher*>(context);
-    if (publisher) publisher->connected_ = result == MOSQ_ERR_SUCCESS;
+    if (publisher) {
+        publisher->connected_ = result == MOSQ_ERR_SUCCESS;
+        std::cerr << "{\"mqtt_connect_result\":" << result
+                  << ",\"connected\":"
+                  << (publisher->connected_ ? "true" : "false") << "}\n";
+    }
 }
 
-void MqttHealthPublisher::onDisconnect(void*, void* context, int) noexcept {
+void MqttHealthPublisher::onDisconnect(void*, void* context, int result) noexcept {
     auto* publisher = static_cast<MqttHealthPublisher*>(context);
-    if (publisher) publisher->connected_ = false;
+    if (publisher) {
+        publisher->connected_ = false;
+        std::cerr << "{\"mqtt_disconnect_result\":" << result << "}\n";
+    }
 }
 #endif
 

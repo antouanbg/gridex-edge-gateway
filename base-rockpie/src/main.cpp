@@ -4,6 +4,8 @@
 #include "gridex/rockpie/PosixModbusTcpClient.hpp"
 #include "gridex/rockpie/MqttHealthPublisher.hpp"
 #include "gridex/rockpie/TelemetryJournal.hpp"
+#include "gridex/rockpie/CpuTemperature.hpp"
+#include "gridex/rockpie/SystemTelemetry.hpp"
 
 #include <atomic>
 #include <algorithm>
@@ -144,6 +146,18 @@ int main() {
         gridex::SafetyEnvelope{},
         controllerConfig
     );
+    // Keep MQTT alive until the polling/server workers have stopped (reverse
+    // destruction order). Its libmosquitto network loop runs in its own thread.
+    gridex::rockpie::MqttHealthPublisher healthPublisher({
+        .brokerUrl = envString("GRIDEX_MQTT_BROKER_URL", ""),
+        .topicPrefix = envString("GRIDEX_MQTT_TOPIC_PREFIX", "gridex/v1"),
+        .clientId = envString("GRIDEX_MQTT_CLIENT_ID", ""),
+        .username = envString("GRIDEX_MQTT_USERNAME", ""),
+        .passwordFile = envString("GRIDEX_MQTT_PASSWORD_FILE", ""),
+        .caFile = envString("GRIDEX_MQTT_CA_FILE", ""),
+        .clientCertificateFile = envString("GRIDEX_MQTT_CLIENT_CERT_FILE", ""),
+        .clientKeyFile = envString("GRIDEX_MQTT_CLIENT_KEY_FILE", ""),
+    });
     gridex::rockpie::NorthboundRegisterBank northboundBank;
     gridex::rockpie::NorthboundModbusTcpServer northboundServer(
         northboundBank,
@@ -172,20 +186,17 @@ int main() {
         ),
     });
     nodePolling.start();
-    gridex::rockpie::MqttHealthPublisher healthPublisher({
-        .brokerUrl = envString("GRIDEX_MQTT_BROKER_URL", ""),
-        .topicPrefix = envString("GRIDEX_MQTT_TOPIC_PREFIX", "gridex/v1"),
-        .clientId = envString("GRIDEX_MQTT_CLIENT_ID", ""),
-        .username = envString("GRIDEX_MQTT_USERNAME", ""),
-        .passwordFile = envString("GRIDEX_MQTT_PASSWORD_FILE", ""),
-        .caFile = envString("GRIDEX_MQTT_CA_FILE", ""),
-        .clientCertificateFile = envString("GRIDEX_MQTT_CLIENT_CERT_FILE", ""),
-        .clientKeyFile = envString("GRIDEX_MQTT_CLIENT_KEY_FILE", ""),
-    });
     const auto healthInterval = std::chrono::seconds(
         std::clamp(envInt("GRIDEX_HEALTH_PUBLISH_SECONDS", 10), 2, 300));
+    const bool cpuTemperatureEnabled = envBool("GRIDEX_CPU_TEMPERATURE_ENABLED", false);
+    const auto cpuTemperaturePath = envString("GRIDEX_CPU_TEMPERATURE_FILE", "/sys/class/thermal/thermal_zone0/temp");
     const auto telemetryInterval = std::chrono::seconds(
         std::clamp(envInt("GRIDEX_NODE_TELEMETRY_PUBLISH_SECONDS", 2), 1, 300));
+    const bool systemTelemetryEnabled = envBool("GRIDEX_SYSTEM_TELEMETRY_ENABLED", false);
+    const auto systemTelemetryInterval = std::chrono::seconds(std::clamp(envInt("GRIDEX_SYSTEM_TELEMETRY_PUBLISH_SECONDS", 30), 5, 3600));
+    const auto systemDataDirectory = envString("GRIDEX_SYSTEM_DATA_DIRECTORY", "/var/lib/gridex");
+    const auto bootId = envString("GRIDEX_BOOT_ID", "unknown");
+    std::uint64_t systemTelemetrySequence = 0;
     gridex::rockpie::TelemetryJournal telemetryJournal({
         .path = envString("GRIDEX_TELEMETRY_JOURNAL_PATH",
                           "/var/lib/gridex/telemetry-journal.ndjson"),
@@ -201,6 +212,7 @@ int main() {
     auto nextHealthPublish = std::chrono::steady_clock::now();
     auto nextTelemetryPublish = std::chrono::steady_clock::now();
     auto nextJournalSnapshot = std::chrono::steady_clock::now();
+    auto nextSystemTelemetryPublish = std::chrono::steady_clock::now();
 
     std::cout << "GrideX ROCK Pi E service started; writes_enabled="
               << (driver.writesEnabled() ? "true" : "false") << '\n';
@@ -302,6 +314,8 @@ int main() {
                 .northboundReady = true,
                 .nodeOnlineCount = onlineNodes,
                 .nodeTotal = nodeSamples.size(),
+                .cpuTemperatureC = cpuTemperatureEnabled
+                    ? gridex::rockpie::readCpuTemperature(cpuTemperaturePath) : std::nullopt,
             });
             nextHealthPublish = now + healthInterval;
         }
@@ -313,6 +327,24 @@ int main() {
                     siteId, gatewayId, slot + 1U, nodeSamples[slot]);
             }
             nextTelemetryPublish = now + telemetryInterval;
+        }
+        // Do not enter the system telemetry/filesystem path while MQTT is
+        // offline.  This keeps the edge loop stable during broker/TLS
+        // outages; the next interval retries automatically after reconnect.
+        if (systemTelemetryEnabled && healthPublisher.connected() && now >= nextSystemTelemetryPublish) {
+            const auto samples = gridex::rockpie::readSystemTelemetry(systemDataDirectory, telemetryJournal.path(), cpuTemperaturePath, cpuTemperatureEnabled);
+            const auto sequence = ++systemTelemetrySequence;
+            const bool published = healthPublisher.publishSystemTelemetry(
+                envString("GRIDEX_SITE_ID", ""), envString("GRIDEX_GATEWAY_ID", ""),
+                bootId, sequence, samples);
+            if (!published) {
+                std::cerr << "{\"system_telemetry_publish\":false,\"sequence\":"
+                          << sequence << ",\"samples\":" << samples.size() << "}\n";
+            } else {
+                std::cout << "{\"system_telemetry_publish\":true,\"sequence\":"
+                          << sequence << ",\"samples\":" << samples.size() << "}\n";
+            }
+            nextSystemTelemetryPublish = now + systemTelemetryInterval;
         }
         if (now >= nextJournalSnapshot) {
             for (std::size_t slot = 0; slot < nodeSamples.size(); ++slot) {

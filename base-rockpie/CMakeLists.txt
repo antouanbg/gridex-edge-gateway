@@ -12,6 +12,7 @@ add_library(gridex_rockpie_transport
     src/NorthboundRegisterBank.cpp
     src/PosixModbusTcpClient.cpp
     src/TelemetryJournal.cpp
+    src/SystemTelemetry.cpp
 )
 target_include_directories(gridex_rockpie_transport PUBLIC include)
 target_link_libraries(gridex_rockpie_transport PUBLIC gridex_edge)
@@ -36,7 +37,7 @@ if(GRIDEX_ENABLE_PRIVATE_MQTT)
         if(TARGET PkgConfig::CJSON)
             target_link_libraries(gridex_rockpie_transport PRIVATE PkgConfig::CJSON)
         endif()
-        target_compile_definitions(gridex_rockpie_transport PRIVATE GRIDEX_WITH_MOSQUITTO=1)
+        target_compile_definitions(gridex_rockpie_transport PUBLIC GRIDEX_WITH_MOSQUITTO=1)
     else()
         if(GRIDEX_REQUIRE_MQTT)
             message(FATAL_ERROR "MQTT required: install pkg-config and libmosquitto-dev before building")
@@ -75,7 +76,7 @@ target_link_libraries(gridex_input_range_tests PRIVATE gridex_rockpie_transport 
 add_test(NAME gridex_input_range_tests COMMAND gridex_input_range_tests)
 set_tests_properties(gridex_input_range_tests PROPERTIES TIMEOUT 15)
 
-add_executable(gridex_mqtt_health_tests tests/test_mqtt_health.cpp)
+add_executable(gridex_mqtt_health_tests tests/test_mqtt_health.cpp tests/mqtt_abi_without_flag.cpp)
 target_link_libraries(gridex_mqtt_health_tests PRIVATE gridex_rockpie_transport)
 add_test(NAME gridex_mqtt_health_tests COMMAND gridex_mqtt_health_tests)
 
@@ -110,6 +111,7 @@ install(PROGRAMS
     install/install-ot-dhcp.sh
     install/check-journal-access.sh
     install/prepare-state.sh
+    install/enable-cpu-temperature.sh
     DESTINATION lib/gridex
 )
 install(FILES config/gridex-rockpie.env.example DESTINATION share/gridex)

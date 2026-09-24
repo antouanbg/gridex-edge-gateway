@@ -3,9 +3,12 @@
 #include "gridex/rockpie/MbusNodeTelemetry.hpp"
 
 #include <atomic>
+#include <chrono>
 #include <cstddef>
 #include <cstdint>
 #include <string>
+#include <optional>
+#include <vector>
 
 namespace gridex::rockpie {
 
@@ -32,6 +35,13 @@ struct EdgeHealthMessage {
     bool northboundReady{false};
     std::size_t nodeOnlineCount{0};
     std::size_t nodeTotal{0};
+    std::optional<double> cpuTemperatureC;
+};
+
+struct SystemTelemetrySample {
+    std::string sensorId;
+    std::string unit;
+    double value{0.0};
 };
 
 class MqttHealthPublisher {
@@ -48,21 +58,28 @@ class MqttHealthPublisher {
                               const std::string& gatewayId,
                               std::size_t slot,
                               const MbusNodeTelemetry& sample) noexcept;
+    bool publishSystemTelemetry(const std::string& siteId, const std::string& gatewayId,
+                                const std::string& bootId, std::uint64_t sequence,
+                                const std::vector<SystemTelemetrySample>& samples) noexcept;
 
     // Kept public for deterministic tests, independent of a local broker.
     [[nodiscard]] static std::string healthPayload(const EdgeHealthMessage& message);
     [[nodiscard]] static std::string nodeTelemetryPayload(
         std::size_t slot, const MbusNodeTelemetry& sample);
+    [[nodiscard]] static std::string systemTelemetryPayload(
+        const std::string& gatewayId, const std::string& bootId, std::uint64_t sequence,
+        const std::vector<SystemTelemetrySample>& samples);
 
   private:
     MqttHealthPublisherConfig config_;
-#ifdef GRIDEX_WITH_MOSQUITTO
+    // Keep the public header's class layout independent of the library's
+    // private build flag. The service and this library are separate C++ TUs.
     void* client_{nullptr};
     std::atomic_bool connected_{false};
     bool libraryInitialized_{false};
+    bool loopStarted_{false};
     static void onConnect(void* client, void* context, int result) noexcept;
     static void onDisconnect(void* client, void* context, int result) noexcept;
-#endif
 };
 
 }  // namespace gridex::rockpie

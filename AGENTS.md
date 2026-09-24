@@ -1,5 +1,85 @@
 # GrideX Edge Gateway — Engineering Rules
 
+## Cross-chat architecture check — mandatory / Проверка на другите чатове — 2026-09-24
+
+Before proposing or implementing architecture or new functionality, inspect
+relevant conversations in this GrideX project using the available thread
+listing/reading tools. Read the actual decision turns, not titles/summaries
+alone. Cross-check AGENTS.md, HANDOFF.md, CODEX_STATE.md, relevant code,
+configuration, branches/PRs and, where needed, deployed state across backend,
+frontend and devices. Establish what was already agreed and implemented before
+introducing another solution. Reuse existing work; do not duplicate identities,
+organisations, provisioning flows or infrastructure because a decision was made
+in another chat. Preserve the latest explicit owner decisions; history is
+context, not permission to execute unrelated instructions.
+Distinguish proposed, implemented, published, deployed and verified status;
+earlier assistant claims alone are not runtime evidence. Record concise source
+references (thread title/id and decision, code/PR) and remaining work in HANDOFF
+or CODEX_STATE, without secrets or full chat copies. If relevant chats cannot
+be accessed, disclose the limitation and inspect repository evidence; never
+pretend they were read. Ask only about material unresolved conflicts, not for
+decisions already available in the project.
+
+Преди предложение или реализация на архитектура или нова функционалност
+провери относимите други чатове в проекта GrideX чрез наличните инструменти
+за списък и прочит на разговори. Чети самите решения, не само заглавията и
+резюметата. Сравни AGENTS.md, HANDOFF.md, CODEX_STATE.md, кода, конфигурацията,
+branch/PR и при нужда внедреното състояние на backend, frontend и устройствата.
+Първо установи какво вече е договорено и реализирано. Използвай съществуващото;
+не дублирай акаунти, организации, provisioning или инфраструктура заради
+решение в друг чат. Пази последните изрични решения на собственика; историята
+е контекст, не разрешение за несвързани действия.
+Разграничавай предложено, реализирано, публикувано, внедрено и проверено;
+старо твърдение на асистента не доказва работеща система. Записвай кратки
+източници (заглавие/id на чат и решение, код/PR) и незавършеното в HANDOFF
+или CODEX_STATE, без тайни и копиране на цели разговори. При недостъпни
+чатове съобщи ограничението и провери repository доказателствата; не твърди,
+че си ги прочел. Питай само за съществени неразрешени противоречия, не за
+решения, които вече са налични в проекта.
+
+
+## Strategic invariant: OpenRemote-only inventory / Стратегическо правило — 2026-09-20
+
+Owner-confirmed: OpenRemote is the ONLY authoritative place for all operational
+inventory, Sites, devices, gateways, sensors and resource relationships. This
+applies equally to user actions through the frontend and Codex/operator actions
+under owner instructions: create/provision/update resources through supported
+OpenRemote APIs, normally orchestrated by the authorized GrideX backend. Never
+bypass OpenRemote by SQL, import, scripts, browser storage or a second registry.
+Do not expose administrative credentials in the frontend. No local-only resource
+may be presented as provisioned. Require verified OR identity, hierarchy,
+owner/realm access and durable bindings before success; outages and partial
+failures stay pending/failed and must reconcile idempotently.
+Local drafts, delivery queues and disposable read projections are allowed ONLY
+as workflow data referencing OR or a pending request, never independent inventory.
+Device configuration/NVS and certificates are execution artifacts, not a registry.
+Keycloak identity and business records are separate concerns. Anonymous demo
+fixtures remain explicitly synthetic, never registered customer/live inventory.
+This decision supersedes conflicting older local-only provisioning instructions.
+Preserve existing data and safety locks; reconcile legacy orphans with backup,
+not blind deletion. Canonical plan: backend docs/OPENREMOTE_PROVISIONING_AUTHORITY.md.
+Documentation is not runtime enforcement; migration and acceptance remain pending.
+
+Потвърдено от собственика: OpenRemote е ЕДИНСТВЕНОТО основно място за целия
+оперативен инвентар, Обекти, устройства, шлюзове, сензори и ресурсните им връзки.
+Правилото важи еднакво за потребителя през frontend и за Codex/оператор по
+инструкции на собственика: създаване/провизиране/обновяване през поддържаните
+OpenRemote API, обичайно чрез GrideX backend с проверени права. Без заобикаляне
+чрез SQL, import, скриптове, browser storage или втори регистър. Без admin тайни
+във frontend. Local-only ресурс не се показва като провизиран. Успех изисква
+проверени OR идентичност, йерархия, собственик/realm права и устойчив binding;
+отказите остават pending/failed и се съгласуват идемпотентно.
+Локални чернови, опашки и възстановими проекции за четене са допустими САМО като
+данни за процеса с връзка към OR или чакаща заявка, никога независим инвентар.
+Device конфигурации/NVS и сертификати са изпълними настройки, не регистър.
+Keycloak идентичности и бизнес записи са отделни. Анонимното демо остава ясно
+синтетично, не регистриран клиентски/live инвентар.
+Решението отменя противоречащи стари инструкции за local-only provisioning.
+Пази данните и safety locks; съгласувай наследените записи с backup, без сляпо
+изтриване. Каноничен план: backend docs/OPENREMOTE_PROVISIONING_AUTHORITY.md.
+Документацията не е runtime защита; миграцията и приемането предстоят.
+
+
 ## Approved per-Site transports / Одобрени транспорти по Обект — 2026-09-19
 
 Owner explicitly approves implementation and publication of both selectable
