@@ -2,6 +2,21 @@
 
 Repository / GitHub: `antouanbg/gridex-edge-gateway`
 
+## Одобрение на нови функции — 2026-09-27
+
+Собственикът изисква конкретен въпрос и изрично потвърждение преди всяка
+нова функционалност извън вече одобреното. Изборът на устройства и роли е
+в GrideX frontend, авторитетният инвентар — в OpenRemote през backend.
+Edge кодът не измисля модели, драйвери, роли или автоматично активиране.
+Това е само правило в AGENTS.md; няма промяна на firmware, Ethernet, OTA,
+commissioning или физическо устройство. Публикацията на правилото е PR;
+сливане се прави само след решение на собственика според този repo.
+
+EN: Ask for specific owner confirmation before any new unspecified device
+function. GrideX frontend selects approved devices/roles; OpenRemote owns
+inventory. This is a documentation-only rule, with no firmware, network or
+physical-device change. Merge requires the owner's decision.
+
 ## PR reconciliation checkpoint / Проверка на PR — 2026-09-24
 
 PRs #18, #19 and #20 merged after MQTT-required build and 8/8 CTest success on macOS. This is not a new board deployment. Legacy draft #2 conflicts with current MQTT publisher, main, CMake and ESP code; do not merge its old transport implementation over the verified one. Review only still-missing changes separately. Ethernet and commissioning locks were not changed.
