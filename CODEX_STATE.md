@@ -1,5 +1,17 @@
 # CODEX_STATE.md
 
+## Правило за одобрение — 2026-09-27
+
+Новите функции за устройства изискват конкретен въпрос и потвърждение,
+ако не са вече изрично одобрени. Типът и ролите се избират във frontend;
+OpenRemote е единственият инвентар през backend. AGENTS.md/HANDOFF.md са
+обновени в отделен PR; няма firmware или hardware промяна, няма merge без
+решение на собственика.
+
+EN: New unspecified device functions require specific owner confirmation.
+Selection is in frontend; OpenRemote is authoritative. Rule-only PR;
+no firmware/hardware change and no merge without owner decision.
+
 ## Six ROCK system metrics live / Шест ROCK показателя са активни — 2026-09-24
 
 Supersedes the CPU-pending text below. Physical ROCK CPU opt-in returned ACTIVE

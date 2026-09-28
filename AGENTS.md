@@ -1,5 +1,28 @@
 # GrideX Edge Gateway — Engineering Rules
 
+## Approval for every new function / Одобрение за всяка нова функция
+
+Before adding any new device behavior, role, driver, provisioning step,
+control path or automatic transition, compare it with the owner's exact
+approved requirements and relevant project decisions. If the behavior is not
+explicitly approved, ask a concrete question and wait for confirmation BEFORE
+implementation. A general goal or assistant suggestion is not permission.
+The owner selects device type and up to the already-approved role limit in
+GrideX frontend; backend provisions authoritative inventory in OpenRemote.
+This repository implements only the approved device execution configuration;
+it must not invent a model, driver, role or independent inventory. Routine
+engineering inside an approved function needs no repeated question.
+
+Преди ново поведение на устройство, роля, драйвер, стъпка за провизиране,
+команда или автоматичен преход сравни с точното одобрено задание и решенията
+в проекта. Ако поведението не е изрично одобрено, задай конкретен въпрос и
+изчакай потвърждение ПРЕДИ реализация. Обща цел или предложение на асистента
+не са разрешение. Собственикът избира типа устройство и вече одобрените роли
+в GrideX frontend; backend записва авторитетния инвентар в OpenRemote.
+Този repo изпълнява само одобрената конфигурация на устройствата — без
+измислен модел, драйвер, роля или отделен инвентар. Не питай повторно за
+обичайни технически стъпки в вече одобрена функция.
+
 ## Working prompt language — Bulgarian / Език на работните prompt-и — български
 
 The owner works with Codex prompts in Bulgarian. Keep user-facing prompts,
