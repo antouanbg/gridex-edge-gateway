@@ -94,7 +94,7 @@ The draft cross-repository recovery export/acknowledgement contract is in
 
 ## Project credits / Принос към проекта
 
-Created and led by **Dr. Eng. Antuan Hristov Angelov** — product concept, EMS
+Created and led by **Antouan** — product concept, EMS
 and system architecture, software development, Edge-gateway design, and
 product/UX/UI design. [Digital profile](https://linkmy.cards/en/antouan-anguelov/)
 · [LinkedIn](https://www.linkedin.com/in/antouan/) ·
