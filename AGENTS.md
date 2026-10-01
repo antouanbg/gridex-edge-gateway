@@ -33,6 +33,15 @@ never treat a draft form as implemented.
 грешки и възстановяване в Git. Публикувай BG/EN помощ при реално пускане;
 чернова не е внедрена функция.
 
+Implementation gate: save the proposed device logic and every affected
+role-specific screen/form as DRAFT Git documentation first. Obtain the owner's
+explicit confirmation of that documented package before changing device code,
+image builds, provisioning or safety behavior.
+
+Първо запази предложената логика на устройствата и всеки засегнат екран/форма
+по роли като ЧЕРНОВА в Git документацията. Изчакай изрично потвърждение на
+целия пакет преди промяна на код, имидж, провизиране или защитно поведение.
+
 ## Deployment failures and regression evidence / Грешки при внедряване и регресионни тестове
 
 For every deployment, provisioning or production failure, first record a
