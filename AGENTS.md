@@ -23,6 +23,16 @@ desktop/mobile екран или макет; ако екран няма да с�
 Без частична реализация или предполагаемо разрешение от обща цел. При
 съществена промяна поискай ново одобрение; дотогава пази control locks.
 
+If an owner-approved device/provisioning form is part of the flow, preserve
+its approved visual and document fields, safety checks, device acknowledgements,
+errors and recovery in Git. Publish paired BG/EN help with the live feature;
+never treat a draft form as implemented.
+
+Ако процесът включва одобрена форма за устройство/провизиране, запази
+одобрения ѝ вид и опиши полета, защити, потвърждения от устройството,
+грешки и възстановяване в Git. Публикувай BG/EN помощ при реално пускане;
+чернова не е внедрена функция.
+
 ## Deployment failures and regression evidence / Грешки при внедряване и регресионни тестове
 
 For every deployment, provisioning or production failure, first record a
