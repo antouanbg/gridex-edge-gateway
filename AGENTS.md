@@ -1,5 +1,28 @@
 # GrideX Edge Gateway — Engineering Rules
 
+## Specify, draw, approve, then implement / Специфицирай, начертай, одобри, после внедрявай — 2026-10-01
+
+Before any new device behavior, provisioning/OTA flow, role, control path or
+related UI-facing logic, draw the full actor/device state flow: initiator,
+authority, acknowledgement, failure/retry, safety lock and rollback. Show
+where the related choice/status appears in the existing GrideX frontend and
+provide a reviewable desktop/mobile screen or wireframe; state explicitly if
+no screen changes. Distinguish existing behavior from proposal and unresolved
+decisions. Wait for the owner's explicit approval of both logic and screen
+before coding; record scope in HANDOFF/CODEX_STATE. Do not implement a partial
+flow or infer permission from a broad goal. Re-approve material deviations;
+preserve existing control locks while awaiting approval.
+
+Преди ново поведение на устройство, provisioning/OTA процес, роля, команда
+или свързана с UI логика начертай целия поток: инициатор, права, потвърждение
+от устройството, отказ/повторен опит, защитни блокировки и връщане назад.
+Покажи къде изборът/статусът стои в съществуващия GrideX frontend с прегледен
+desktop/mobile екран или макет; ако екран няма да се променя, кажи го изрично.
+Разграничи налично, предложено и неуточнено. Изчакай изрично одобрение и на
+логиката, и на екрана **преди код**; запиши обхвата в HANDOFF/CODEX_STATE.
+Без частична реализация или предполагаемо разрешение от обща цел. При
+съществена промяна поискай ново одобрение; дотогава пази control locks.
+
 ## Deployment failures and regression evidence / Грешки при внедряване и регресионни тестове
 
 For every deployment, provisioning or production failure, first record a
